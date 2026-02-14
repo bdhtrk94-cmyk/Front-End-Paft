@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { adminUsersApi, UserResponse } from '@/lib/api';
 
 export default function AdminUsersPage() {
-  const { token } = useAuth();
+  const { token, user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,8 +40,14 @@ export default function AdminUsersPage() {
   const handleRoleChange = async (userId: number, newRole: 'admin' | 'user' | 'super_admin') => {
     // Check if this is a protected user
     const user = users.find(u => u.id === userId);
-    if (user && isProtectedUser(user.email)) {
-      alert('Cannot modify super admin role');
+    if (user && isProtectedUser(user.email, user.role)) {
+      alert('Cannot modify super admin role - super admin accounts are protected');
+      return;
+    }
+
+    // Only super admins can assign super_admin role
+    if (newRole === 'super_admin' && currentUser?.role !== 'super_admin') {
+      alert('Only super admins can assign super admin privileges');
       return;
     }
 
@@ -59,8 +65,8 @@ export default function AdminUsersPage() {
   const handleDeleteUser = async (userId: number) => {
     // Check if this is a protected user
     const user = users.find(u => u.id === userId);
-    if (user && isProtectedUser(user.email)) {
-      alert('Cannot delete super admin account');
+    if (user && isProtectedUser(user.email, user.role)) {
+      alert('Cannot delete super admin account - super admin accounts are protected');
       return;
     }
 
@@ -94,8 +100,13 @@ export default function AdminUsersPage() {
     }
   };
 
-  const isProtectedUser = (email: string) => {
-    return email === 'abdelrahman@paft.eg' || email.includes('abdelrahman');
+  const isProtectedUser = (email: string, role?: string) => {
+    // Protect any super_admin user
+    if (role === 'super_admin') {
+      return true;
+    }
+    // Also protect specific emails
+    return email === 'admin@paft.com' || email === 'abdelrahman@paft.eg' || email.includes('abdelrahman');
   };
 
   // Filter and sort users
@@ -165,9 +176,19 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Users Management</h1>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            Users Management
+            {currentUser?.role === 'super_admin' && (
+              <span className="text-sm bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
+                👑 Full Access
+              </span>
+            )}
+          </h1>
           <p className="text-gray-500 text-sm mt-1">
-            Manage user accounts and permissions ({filteredUsers.length} users)
+            {currentUser?.role === 'super_admin' 
+              ? `Manage all user accounts and permissions (${filteredUsers.length} users)` 
+              : `Manage user accounts and permissions (${filteredUsers.length} users)`
+            }
           </p>
         </div>
         
@@ -392,7 +413,10 @@ export default function AdminUsersPage() {
                 >
                   <option value="user" className="bg-[#1a2332] text-white">User</option>
                   <option value="admin" className="bg-[#1a2332] text-white">Admin</option>
-                  <option value="super_admin" className="bg-[#1a2332] text-white">Super Admin</option>
+                  {/* Only super admins can create other super admins */}
+                  {currentUser?.role === 'super_admin' && (
+                    <option value="super_admin" className="bg-[#1a2332] text-white">Super Admin</option>
+                  )}
                 </select>
               </div>
               
@@ -420,105 +444,255 @@ export default function AdminUsersPage() {
       )}
 
       {/* Users List */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {filteredUsers.length === 0 ? (
-          <div className="bg-[#151b2e] border border-white/5 rounded-lg p-8 text-center">
-            <svg className="w-12 h-12 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-            </svg>
-            <h3 className="text-lg font-medium text-white mb-2">No users found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria.</p>
+          <div className="bg-[#151b2e] border border-white/5 rounded-xl p-12 text-center">
+            <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">No users found</h3>
+            <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
           <>
-            {/* Table Header */}
-            <div className="bg-[#151b2e] border border-white/5 rounded-lg p-4">
-              <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-400">
-                <div className="col-span-4">User</div>
-                <div className="col-span-3">Email</div>
-                <div className="col-span-2">Role</div>
-                <div className="col-span-2">Joined</div>
-                <div className="col-span-1">Actions</div>
-              </div>
-            </div>
-
-            {/* User Rows */}
+            {/* Enhanced User Cards */}
             {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="bg-[#151b2e] border border-white/5 rounded-lg p-4 hover:border-white/10 transition-colors"
+                className="group bg-[#151b2e] border border-white/5 rounded-xl p-5 hover:border-white/10 hover:shadow-lg hover:shadow-black/20 transition-all duration-300"
               >
-                <div className="grid grid-cols-12 gap-4 items-center">
-                  {/* User Info */}
-                  <div className="col-span-4 flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">{user.name}</div>
-                      <div className="text-gray-500 text-sm">ID: {user.id}</div>
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="col-span-3">
-                    <div className="text-gray-300 text-sm">{user.email}</div>
-                  </div>
-
-                  {/* Role */}
-                  <div className="col-span-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'super_admin'
-                        ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                {/* Desktop Layout */}
+                <div className="hidden lg:flex items-center justify-between">
+                  {/* Left Side - User Info */}
+                  <div className="flex items-center space-x-4 flex-1 min-w-0">
+                    {/* Avatar */}
+                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${
+                      user.role === 'super_admin' 
+                        ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
                         : user.role === 'admin' 
-                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
-                        : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                        : 'bg-gradient-to-br from-gray-500 to-gray-600'
                     }`}>
-                      {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'User'}
-                    </span>
+                      {user.name.charAt(0).toUpperCase()}
+                      {/* Online indicator */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[#151b2e] rounded-full"></div>
+                    </div>
+
+                    {/* User Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-white font-semibold text-lg truncate">{user.name}</h3>
+                        {/* Role Badge */}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                          user.role === 'super_admin'
+                            ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                            : user.role === 'admin' 
+                            ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' 
+                            : 'bg-gray-500/10 text-gray-300 border-gray-500/30'
+                        }`}>
+                          {user.role === 'super_admin' ? '👑 Super Admin' : user.role === 'admin' ? '🛡️ Admin' : '👤 User'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-400">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                          </svg>
+                          <span className="truncate max-w-[200px]">{user.email}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
+                          </svg>
+                          <span>ID: {user.id}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
+                          </svg>
+                          <span>Joined {formatDate(user.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Join Date */}
-                  <div className="col-span-2">
-                    <div className="text-gray-400 text-sm">{formatDate(user.createdAt)}</div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="col-span-1 flex items-center gap-2">
+                  {/* Right Side - Actions */}
+                  <div className="flex items-center gap-3 ml-4">
+                    {/* Role Selector */}
                     <div className="relative">
                       <select
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user' | 'super_admin')}
-                        disabled={isProtectedUser(user.email)}
-                        className={`appearance-none text-xs px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-8 min-w-[80px] ${
-                          isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
+                        disabled={isProtectedUser(user.email, user.role)}
+                        className={`appearance-none text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 min-w-[120px] ${
+                          isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        <option value="user" className="bg-[#1a2332] text-white">User</option>
-                        <option value="admin" className="bg-[#1a2332] text-white">Admin</option>
-                        <option value="super_admin" className="bg-[#1a2332] text-white">Super Admin</option>
+                        <option value="user" className="bg-[#1a2332] text-white">👤 User</option>
+                        <option value="admin" className="bg-[#1a2332] text-white">🛡️ Admin</option>
+                        {/* Only show super_admin option to super admins */}
+                        {currentUser?.role === 'super_admin' && (
+                          <option value="super_admin" className="bg-[#1a2332] text-white">👑 Super Admin</option>
+                        )}
                       </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </div>
                     </div>
                     
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      disabled={isProtectedUser(user.email)}
-                      className={`p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all duration-200 group/delete ${
-                        isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                      title={isProtectedUser(user.email) ? 'Cannot delete super admin' : 'Delete user'}
-                    >
-                      <svg className="w-4 h-4 group-hover/delete:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Edit Button */}
+                      <button
+                        className="p-2.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl transition-all duration-200 group/edit"
+                        title="Edit user"
+                      >
+                        <svg className="w-4 h-4 group-hover/edit:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={isProtectedUser(user.email)}
+                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${
+                          isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        title={isProtectedUser(user.email) ? 'Cannot delete super admin' : 'Delete user'}
+                      >
+                        <svg className="w-4 h-4 group-hover/delete:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                {/* Mobile/Tablet Layout */}
+                <div className="lg:hidden">
+                  {/* Top Row - Avatar, Name, Role */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${
+                        user.role === 'super_admin' 
+                          ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
+                          : user.role === 'admin' 
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                          : 'bg-gradient-to-br from-gray-500 to-gray-600'
+                      }`}>
+                        {user.name.charAt(0).toUpperCase()}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[#151b2e] rounded-full"></div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">{user.name}</h3>
+                        <p className="text-gray-400 text-sm">ID: {user.id}</p>
+                      </div>
+                    </div>
+
+                    {/* Role Badge */}
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                      user.role === 'super_admin'
+                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                        : user.role === 'admin' 
+                        ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' 
+                        : 'bg-gray-500/10 text-gray-300 border-gray-500/30'
+                    }`}>
+                      {user.role === 'super_admin' ? '👑 Super Admin' : user.role === 'admin' ? '🛡️ Admin' : '👤 User'}
+                    </span>
+                  </div>
+
+                  {/* Middle Row - Email and Date */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                      </svg>
+                      <span className="truncate">{user.email}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
+                      </svg>
+                      <span>Joined {formatDate(user.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row - Actions */}
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/5">
+                    {/* Role Selector */}
+                    <div className="relative flex-1">
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user' | 'super_admin')}
+                        disabled={isProtectedUser(user.email, user.role)}
+                        className={`appearance-none w-full text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 ${
+                          isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <option value="user" className="bg-[#1a2332] text-white">👤 User</option>
+                        <option value="admin" className="bg-[#1a2332] text-white">🛡️ Admin</option>
+                        {/* Only show super_admin option to super admins */}
+                        {currentUser?.role === 'super_admin' && (
+                          <option value="super_admin" className="bg-[#1a2332] text-white">👑 Super Admin</option>
+                        )}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Edit Button */}
+                      <button
+                        className="p-2.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl transition-all duration-200 group/edit"
+                        title="Edit user"
+                      >
+                        <svg className="w-4 h-4 group-hover/edit:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={isProtectedUser(user.email)}
+                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${
+                          isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        title={isProtectedUser(user.email) ? 'Cannot delete super admin' : 'Delete user'}
+                      >
+                        <svg className="w-4 h-4 group-hover/delete:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Protected User Warning */}
+                {isProtectedUser(user.email, user.role) && (
+                  <div className="mt-3 pt-3 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-xs text-amber-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <span>Protected account - Super admin accounts cannot be modified or deleted</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </>

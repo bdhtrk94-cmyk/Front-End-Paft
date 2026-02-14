@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Product } from '@/lib/shopData';
 import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ProductCardProps {
     product: Product;
@@ -14,6 +15,8 @@ export default function ShopProductCard({ product }: ProductCardProps) {
     const [imgError, setImgError] = useState(false);
     const [addedToCart, setAddedToCart] = useState(false);
     const { addItem } = useCart();
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     const price = Number(product.price);
     const originalPrice = product.originalPrice ? Number(product.originalPrice) : undefined;
@@ -45,14 +48,14 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                     <svg
                         key={i}
                         className="w-3.5 h-3.5"
-                        fill={i < full ? '#F59E0B' : i === full && half ? 'url(#half-star)' : 'rgba(255,255,255,0.15)'}
+                        fill={i < full ? '#F59E0B' : i === full && half ? 'url(#half-star)' : isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'}
                         viewBox="0 0 20 20"
                     >
                         {i === full && half && (
                             <defs>
                                 <linearGradient id="half-star">
                                     <stop offset="50%" stopColor="#F59E0B" />
-                                    <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
+                                    <stop offset="50%" stopColor={isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'} />
                                 </linearGradient>
                             </defs>
                         )}
@@ -68,23 +71,29 @@ export default function ShopProductCard({ product }: ProductCardProps) {
             <div
                 className="group relative rounded-2xl overflow-hidden transition-all duration-500"
                 style={{
-                    background: 'rgba(30,41,59,0.5)',
+                    background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(30,41,59,0.5)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                    boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.04)' : 'none',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.3), 0 0 30px rgba(6,182,212,0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(6,182,212,0.2)';
+                    e.currentTarget.style.boxShadow = isLight
+                        ? '0 25px 50px rgba(0,0,0,0.1), 0 0 30px rgba(6,182,212,0.05)'
+                        : '0 25px 50px rgba(0,0,0,0.3), 0 0 30px rgba(6,182,212,0.1)';
+                    e.currentTarget.style.borderColor = isLight ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.2)';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.transform = '';
-                    e.currentTarget.style.boxShadow = '';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.boxShadow = isLight ? '0 2px 12px rgba(0,0,0,0.04)' : '';
+                    e.currentTarget.style.borderColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
                 }}
             >
                 {/* Image */}
-                <div className="relative aspect-square overflow-hidden" style={{ background: 'rgba(15,23,42,0.5)' }}>
+                <div
+                    className="relative aspect-square overflow-hidden"
+                    style={{ background: isLight ? '#F0F9FF' : 'rgba(15,23,42,0.5)' }}
+                >
                     {!imgError ? (
                         <Image
                             src={product.image}
@@ -96,7 +105,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                             onError={() => setImgError(true)}
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                        <div className="w-full h-full flex items-center justify-center" style={{ color: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)' }}>
                             <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
@@ -106,7 +115,11 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                     {/* Overlay gradient */}
                     <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,17,33,0.6) 100%)' }}
+                        style={{
+                            background: isLight
+                                ? 'linear-gradient(180deg, transparent 50%, rgba(248,251,255,0.6) 100%)'
+                                : 'linear-gradient(180deg, transparent 50%, rgba(11,17,33,0.6) 100%)',
+                        }}
                     />
 
                     {/* Badges */}
@@ -159,7 +172,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                     {/* Name */}
                     <h3
                         className="text-sm font-bold mt-1.5 mb-2 line-clamp-2 leading-snug"
-                        style={{ color: '#fff' }}
+                        style={{ color: isLight ? '#0F172A' : '#fff' }}
                     >
                         {product.name}
                     </h3>
@@ -167,7 +180,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                     {/* Rating */}
                     <div className="flex items-center gap-2 mb-3">
                         {renderStars(rating)}
-                        <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <span className="text-xs font-medium" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
                             {rating} ({product.reviewCount})
                         </span>
                     </div>
@@ -178,7 +191,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                             ${price.toFixed(2)}
                         </span>
                         {originalPrice && (
-                            <span className="text-sm line-through" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            <span className="text-sm line-through" style={{ color: isLight ? '#CBD5E1' : 'rgba(255,255,255,0.3)' }}>
                                 ${originalPrice.toFixed(2)}
                             </span>
                         )}

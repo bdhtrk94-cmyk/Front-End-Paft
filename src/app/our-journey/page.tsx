@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { contentApi, ContentMapResponse } from '@/lib/api';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Milestone {
     number: number;
@@ -13,113 +15,36 @@ interface Milestone {
     accentGlow: string;
 }
 
-const milestones: Milestone[] = [
-    {
-        number: 1,
-        year: 2010,
-        title: 'Started to own molds design and manufacturing',
-        era: 1,
-        color: '#10B981',
-        accentGlow: 'rgba(16, 185, 129, 0.3)',
-    },
-    {
-        number: 2,
-        year: 2012,
-        title: 'Started co-manufacturing pallets in China',
-        era: 1,
-        color: '#06B6D4',
-        accentGlow: 'rgba(6, 182, 212, 0.3)',
-    },
-    {
-        number: 3,
-        year: 2013,
-        title: 'Developed 5th Generation mold for heavy duty steel reinforced plastic pallets with R&D center in UAE',
-        era: 1,
-        color: '#F97316',
-        accentGlow: 'rgba(249, 115, 22, 0.3)',
-    },
-    {
-        number: 4,
-        year: 2014,
-        title: 'Launched woodchip export pallets production in Egypt',
-        era: 2,
-        color: '#2563EB',
-        accentGlow: 'rgba(37, 99, 235, 0.3)',
-    },
-    {
-        number: 5,
-        year: 2017,
-        title: 'Replaced woodchip pallets with plastic export pallets',
-        era: 2,
-        color: '#8B5CF6',
-        accentGlow: 'rgba(139, 92, 246, 0.3)',
-    },
-    {
-        number: 6,
-        year: 2018,
-        title: 'Started manufacturing Plastic Pallets in Morocco while adding new molds to the portfolio',
-        era: 2,
-        color: '#06B6D4',
-        accentGlow: 'rgba(6, 182, 212, 0.3)',
-    },
-    {
-        number: 7,
-        year: 2019,
-        title: 'Built new manufacturing facility with 7 times production capacity and moved Head Office',
-        era: 3,
-        color: '#10B981',
-        accentGlow: 'rgba(16, 185, 129, 0.3)',
-    },
-    {
-        number: 8,
-        year: 2021,
-        title: 'Full acquisition of PAFT business by Eng. Ahmed Alhakim',
-        era: 3,
-        color: '#EF4444',
-        accentGlow: 'rgba(239, 68, 68, 0.3)',
-    },
-    {
-        number: 9,
-        year: 2022,
-        title: 'Expanding production capacity by 300% & Launching Square Pallets',
-        era: 3,
-        color: '#F59E0B',
-        accentGlow: 'rgba(245, 158, 11, 0.3)',
-    },
-    {
-        number: 10,
-        year: 2023,
-        title: 'PAFT started offering warehousing turnkey solutions and expanding in governmental projects',
-        era: 4,
-        color: '#2563EB',
-        accentGlow: 'rgba(37, 99, 235, 0.3)',
-    },
-    {
-        number: 11,
-        year: 2024,
-        title: 'Launch NWMS, Technical Schools Expansion, Poly AL Launch',
-        era: 4,
-        color: '#06B6D4',
-        accentGlow: 'rgba(6, 182, 212, 0.3)',
-    },
-    {
-        number: 12,
-        year: 2025,
-        title: 'Introducing Petrochemicals pallet, Expanding Recycling Line & Setting Full Lab in Place',
-        era: 4,
-        color: '#8B5CF6',
-        accentGlow: 'rgba(139, 92, 246, 0.3)',
-    },
+interface Era {
+    label: string;
+    subtitle: string;
+    range: string;
+    color: string;
+}
+
+const milestoneColors = [
+    { color: '#10B981', accentGlow: 'rgba(16, 185, 129, 0.3)' },
+    { color: '#06B6D4', accentGlow: 'rgba(6, 182, 212, 0.3)' },
+    { color: '#F97316', accentGlow: 'rgba(249, 115, 22, 0.3)' },
+    { color: '#2563EB', accentGlow: 'rgba(37, 99, 235, 0.3)' },
+    { color: '#8B5CF6', accentGlow: 'rgba(139, 92, 246, 0.3)' },
+    { color: '#06B6D4', accentGlow: 'rgba(6, 182, 212, 0.3)' },
+    { color: '#10B981', accentGlow: 'rgba(16, 185, 129, 0.3)' },
+    { color: '#EF4444', accentGlow: 'rgba(239, 68, 68, 0.3)' },
+    { color: '#F59E0B', accentGlow: 'rgba(245, 158, 11, 0.3)' },
+    { color: '#2563EB', accentGlow: 'rgba(37, 99, 235, 0.3)' },
+    { color: '#06B6D4', accentGlow: 'rgba(6, 182, 212, 0.3)' },
+    { color: '#8B5CF6', accentGlow: 'rgba(139, 92, 246, 0.3)' },
 ];
 
-const eras = [
-    { number: 1, label: '1st Era', subtitle: 'Foundation & R&D', range: '2010 – 2013', color: '#10B981' },
-    { number: 2, label: '2nd Era', subtitle: 'Expansion & Innovation', range: '2014 – 2018', color: '#06B6D4' },
-    { number: 3, label: '3rd Era', subtitle: 'Growth & Acquisition', range: '2019 – 2022', color: '#F59E0B' },
-    { number: 4, label: '4th Era', subtitle: 'Scale & Diversification', range: '2023 – 2025', color: '#8B5CF6' },
+const eraColors = [
+    '#10B981',
+    '#06B6D4',
+    '#F59E0B',
+    '#8B5CF6'
 ];
 
-function TimelineCard({ milestone, index }: { milestone: Milestone; index: number }) {
+function TimelineCard({ milestone, index, isLight }: { milestone: Milestone; index: number; isLight: boolean }) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -143,6 +68,26 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
         return () => observer.disconnect();
     }, []);
 
+    const cardStyle = {
+        background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.6)',
+        backdropFilter: 'blur(12px)',
+        borderTop: `3px solid ${milestone.color}`,
+        borderLeft: `1px solid ${isHovered ? milestone.color + '50' : isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+        borderRight: `1px solid ${isHovered ? milestone.color + '50' : isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+        borderBottom: `1px solid ${isHovered ? milestone.color + '50' : isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+        boxShadow: isHovered
+            ? isLight
+                ? `0 25px 50px rgba(0,0,0,0.08), 0 0 30px ${milestone.accentGlow.replace('0.3', '0.12')}`
+                : `0 25px 50px rgba(0,0,0,0.4), 0 0 40px ${milestone.accentGlow}`
+            : isLight
+                ? '0 4px 20px rgba(0,0,0,0.04)'
+                : '0 4px 20px rgba(0,0,0,0.2)',
+        transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'translateY(0) scale(1)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    };
+
+    const textColor = isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)';
+
     return (
         <div
             ref={cardRef}
@@ -161,20 +106,7 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
                 <div className="w-5/12">
                     <div
                         className="relative rounded-2xl p-6 cursor-pointer"
-                        style={{
-                            background: 'rgba(30, 41, 59, 0.6)',
-                            backdropFilter: 'blur(12px)',
-                            border: 'none',
-                            borderTop: `3px solid ${milestone.color}`,
-                            borderLeft: `1px solid ${isHovered ? milestone.color + '50' : 'rgba(255, 255, 255, 0.06)'}`,
-                            borderRight: `1px solid ${isHovered ? milestone.color + '50' : 'rgba(255, 255, 255, 0.06)'}`,
-                            borderBottom: `1px solid ${isHovered ? milestone.color + '50' : 'rgba(255, 255, 255, 0.06)'}`,
-                            boxShadow: isHovered
-                                ? `0 25px 50px rgba(0,0,0,0.4), 0 0 40px ${milestone.accentGlow}`
-                                : '0 4px 20px rgba(0,0,0,0.2)',
-                            transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'translateY(0) scale(1)',
-                            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                        }}
+                        style={cardStyle}
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
                     >
@@ -191,14 +123,14 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
                             </span>
                         </div>
 
-                        <p className="text-base leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                        <p className="text-base leading-relaxed" style={{ color: textColor }}>
                             {milestone.title}
                         </p>
 
                         {/* Decorative corner */}
                         <div
-                            className="absolute top-0 right-0 w-20 h-20 opacity-5 rounded-bl-full"
-                            style={{ background: milestone.color }}
+                            className="absolute top-0 right-0 w-20 h-20 rounded-bl-full"
+                            style={{ background: milestone.color, opacity: isLight ? 0.04 : 0.05 }}
                         ></div>
                     </div>
                 </div>
@@ -240,7 +172,7 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
                     </div>
                     <div
                         className="w-0.5 flex-1 mt-2"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+                        style={{ background: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)' }}
                     ></div>
                 </div>
 
@@ -249,13 +181,13 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
                     <div
                         className="rounded-2xl p-5"
                         style={{
-                            background: 'rgba(30, 41, 59, 0.6)',
+                            background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.6)',
                             backdropFilter: 'blur(12px)',
-                            border: 'none',
                             borderTop: `3px solid ${milestone.color}`,
-                            borderLeft: '1px solid rgba(255, 255, 255, 0.06)',
-                            borderRight: '1px solid rgba(255, 255, 255, 0.06)',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                            borderLeft: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+                            borderRight: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+                            borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+                            boxShadow: isLight ? '0 4px 20px rgba(0,0,0,0.04)' : '0 4px 20px rgba(0,0,0,0.2)',
                         }}
                     >
                         <div
@@ -269,7 +201,7 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
                                 {milestone.year}
                             </span>
                         </div>
-                        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                        <p className="text-sm leading-relaxed" style={{ color: textColor }}>
                             {milestone.title}
                         </p>
                     </div>
@@ -279,7 +211,7 @@ function TimelineCard({ milestone, index }: { milestone: Milestone; index: numbe
     );
 }
 
-function EraSection({ era }: { era: typeof eras[0] }) {
+function EraSection({ era, isLight }: { era: Era; isLight: boolean }) {
     const eraRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -314,8 +246,9 @@ function EraSection({ era }: { era: typeof eras[0] }) {
             <div className="text-center relative">
                 {/* Background glow */}
                 <div
-                    className="absolute inset-0 rounded-full opacity-20"
+                    className="absolute inset-0 rounded-full"
                     style={{
+                        opacity: isLight ? 0.1 : 0.2,
                         background: `radial-gradient(circle, ${era.color}, transparent 70%)`,
                         filter: 'blur(30px)',
                         transform: 'scale(2)',
@@ -325,9 +258,10 @@ function EraSection({ era }: { era: typeof eras[0] }) {
                 <div
                     className="relative inline-flex flex-col items-center px-10 py-6 rounded-2xl"
                     style={{
-                        background: 'rgba(30, 41, 59, 0.5)',
+                        background: isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(30, 41, 59, 0.5)',
                         backdropFilter: 'blur(12px)',
                         border: `1px solid ${era.color}30`,
+                        boxShadow: isLight ? '0 8px 30px rgba(0,0,0,0.06)' : 'none',
                     }}
                 >
                     <div
@@ -336,10 +270,16 @@ function EraSection({ era }: { era: typeof eras[0] }) {
                     >
                         {era.label}
                     </div>
-                    <div className="text-sm font-semibold mb-1" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    <div
+                        className="text-sm font-semibold mb-1"
+                        style={{ color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.7)' }}
+                    >
                         {era.subtitle}
                     </div>
-                    <div className="text-xs font-medium" style={{ color: 'rgba(255, 255, 255, 0.4)' }}>
+                    <div
+                        className="text-xs font-medium"
+                        style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.4)' }}
+                    >
                         {era.range}
                     </div>
                     {/* Decorative line */}
@@ -354,6 +294,68 @@ function EraSection({ era }: { era: typeof eras[0] }) {
 }
 
 export default function OurJourney() {
+    const [content, setContent] = useState<ContentMapResponse>({});
+    const [loading, setLoading] = useState(true);
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const data = await contentApi.getPageContent('our-journey');
+                setContent(data);
+            } catch (error) {
+                console.error('Error fetching our-journey content:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchContent();
+    }, []);
+
+    // Build milestones array from dynamic content
+    const milestones: Milestone[] = [];
+    for (let i = 1; i <= 12; i++) {
+        const year = content.timeline?.[`milestone${i}-year`]?.value;
+        const title = content.timeline?.[`milestone${i}-title`]?.value;
+
+        if (year && title) {
+            let era = 1;
+            const yearNum = parseInt(year);
+            if (yearNum >= 2014 && yearNum <= 2018) era = 2;
+            else if (yearNum >= 2019 && yearNum <= 2022) era = 3;
+            else if (yearNum >= 2023) era = 4;
+
+            const colorIndex = (i - 1) % milestoneColors.length;
+            milestones.push({
+                number: i,
+                year: yearNum,
+                title,
+                era,
+                color: milestoneColors[colorIndex].color,
+                accentGlow: milestoneColors[colorIndex].accentGlow,
+            });
+        }
+    }
+
+    // Build eras array from dynamic content
+    const eras: Era[] = [];
+    for (let i = 1; i <= 4; i++) {
+        const label = content.eras?.[`era${i}-label`]?.value;
+        const subtitle = content.eras?.[`era${i}-subtitle`]?.value;
+        const range = content.eras?.[`era${i}-range`]?.value;
+
+        if (label && subtitle && range) {
+            eras.push({
+                label,
+                subtitle,
+                range,
+                color: eraColors[i - 1],
+            });
+        }
+    }
+
     // Group milestones by era
     const era1 = milestones.filter((m) => m.era === 1);
     const era2 = milestones.filter((m) => m.era === 2);
@@ -366,29 +368,55 @@ export default function OurJourney() {
         { era: eras[3], items: era4 },
     ];
 
+    // Default content for loading state
+    const heroContent = {
+        badgeText: content.hero?.['badge-text']?.value || 'Our Journey',
+        title: content.hero?.title?.value || 'Building the Future',
+        description: content.hero?.description?.value || 'Over a decade of innovation, growth, and relentless pursuit of excellence in industrial packaging solutions.',
+        stat1Value: content.hero?.['stat1-value']?.value || '15+',
+        stat1Label: content.hero?.['stat1-label']?.value || 'Years of Innovation',
+        stat2Value: content.hero?.['stat2-value']?.value || '12',
+        stat2Label: content.hero?.['stat2-label']?.value || 'Key Milestones',
+        stat3Value: content.hero?.['stat3-value']?.value || '4',
+        stat3Label: content.hero?.['stat3-label']?.value || 'Growth Eras',
+        stat4Value: content.hero?.['stat4-value']?.value || '300%',
+        stat4Label: content.hero?.['stat4-label']?.value || 'Capacity Growth',
+    };
+
+    const ctaContent = {
+        title: content.cta?.title?.value || 'The Journey Continues',
+        description: content.cta?.description?.value || 'Join us as we shape the future of industrial packaging solutions across the MENA region and beyond.',
+        button1Text: content.cta?.['button1-text']?.value || 'Partner With Us →',
+        button2Text: content.cta?.['button2-text']?.value || 'Learn About PAFT',
+    };
+
     return (
-        <div className="min-h-screen" style={{ background: '#0B1121' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="our-journey" />
 
-            {/* Hero Section */}
+            {/* ════════════════════  Hero Section  ════════════════════ */}
             <section
                 className="relative overflow-hidden py-28 lg:py-36"
                 style={{
-                    background: 'linear-gradient(135deg, #0B1121 0%, #1a2744 50%, #0B1121 100%)',
+                    background: isLight
+                        ? 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #F0F9FF 100%)'
+                        : 'linear-gradient(135deg, #0B1121 0%, #1a2744 50%, #0B1121 100%)',
                 }}
             >
                 {/* Background decorations */}
                 <div
-                    className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-10"
+                    className="absolute top-0 left-0 w-96 h-96 rounded-full"
                     style={{
+                        opacity: isLight ? 0.06 : 0.1,
                         background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
                         filter: 'blur(80px)',
                         transform: 'translate(-30%, -30%)',
                     }}
                 ></div>
                 <div
-                    className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-10"
+                    className="absolute bottom-0 right-0 w-96 h-96 rounded-full"
                     style={{
+                        opacity: isLight ? 0.06 : 0.1,
                         background: 'radial-gradient(circle, #2563EB, transparent 70%)',
                         filter: 'blur(80px)',
                         transform: 'translate(30%, 30%)',
@@ -398,22 +426,22 @@ export default function OurJourney() {
                 {/* Floating particles */}
                 <div
                     className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full"
-                    style={{ background: '#06B6D4', opacity: 0.3, animation: 'float 6s ease-in-out infinite' }}
+                    style={{ background: '#06B6D4', opacity: isLight ? 0.15 : 0.3, animation: 'float 6s ease-in-out infinite' }}
                 ></div>
                 <div
                     className="absolute top-1/3 right-1/3 w-3 h-3 rounded-full"
-                    style={{ background: '#2563EB', opacity: 0.2, animation: 'float 8s ease-in-out infinite reverse' }}
+                    style={{ background: '#2563EB', opacity: isLight ? 0.1 : 0.2, animation: 'float 8s ease-in-out infinite reverse' }}
                 ></div>
                 <div
                     className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 rounded-full"
-                    style={{ background: '#8B5CF6', opacity: 0.3, animation: 'float 7s ease-in-out infinite 1s' }}
+                    style={{ background: '#8B5CF6', opacity: isLight ? 0.15 : 0.3, animation: 'float 7s ease-in-out infinite 1s' }}
                 ></div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <div
                         className="inline-flex items-center px-4 py-2 rounded-full mb-8"
                         style={{
-                            background: 'rgba(6, 182, 212, 0.1)',
+                            background: isLight ? 'rgba(6, 182, 212, 0.06)' : 'rgba(6, 182, 212, 0.1)',
                             border: '1px solid rgba(6, 182, 212, 0.2)',
                             animation: 'fadeInUp 0.8s ease-out',
                         }}
@@ -422,7 +450,7 @@ export default function OurJourney() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
                         <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-                            Our Journey
+                            {heroContent.badgeText}
                         </span>
                     </div>
 
@@ -436,7 +464,7 @@ export default function OurJourney() {
                             animation: 'fadeInUp 0.8s ease-out 0.1s both',
                         }}
                     >
-                        Building the Future
+                        {heroContent.title}
                     </h1>
 
                     <div
@@ -450,11 +478,11 @@ export default function OurJourney() {
                     <p
                         className="text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed font-medium"
                         style={{
-                            color: 'rgba(255, 255, 255, 0.7)',
+                            color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.7)',
                             animation: 'fadeInUp 0.8s ease-out 0.3s both',
                         }}
                     >
-                        Over a decade of innovation, growth, and relentless pursuit of excellence in industrial packaging solutions.
+                        {heroContent.description}
                     </p>
 
                     {/* Stats row */}
@@ -463,10 +491,10 @@ export default function OurJourney() {
                         style={{ animation: 'fadeInUp 0.8s ease-out 0.5s both' }}
                     >
                         {[
-                            { value: '15+', label: 'Years of Innovation' },
-                            { value: '12', label: 'Key Milestones' },
-                            { value: '4', label: 'Growth Eras' },
-                            { value: '300%', label: 'Capacity Growth' },
+                            { value: heroContent.stat1Value, label: heroContent.stat1Label },
+                            { value: heroContent.stat2Value, label: heroContent.stat2Label },
+                            { value: heroContent.stat3Value, label: heroContent.stat3Label },
+                            { value: heroContent.stat4Value, label: heroContent.stat4Label },
                         ].map((stat, i) => (
                             <div key={i} className="text-center">
                                 <div
@@ -479,7 +507,10 @@ export default function OurJourney() {
                                 >
                                     {stat.value}
                                 </div>
-                                <div className="text-xs lg:text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                                <div
+                                    className="text-xs lg:text-sm mt-1"
+                                    style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.5)' }}
+                                >
                                     {stat.label}
                                 </div>
                             </div>
@@ -488,18 +519,22 @@ export default function OurJourney() {
                 </div>
             </section>
 
-            {/* Timeline Section */}
+            {/* ════════════════════  Timeline Section  ════════════════════ */}
             <section
                 className="py-20 lg:py-28 relative"
                 style={{
-                    background: 'linear-gradient(180deg, #0B1121 0%, #111d36 50%, #0B1121 100%)',
+                    background: isLight
+                        ? 'linear-gradient(180deg, #F8FBFF 0%, #EFF6FF 50%, #F8FBFF 100%)'
+                        : 'linear-gradient(180deg, #0B1121 0%, #111d36 50%, #0B1121 100%)',
                 }}
             >
                 {/* Vertical center line (desktop only) */}
                 <div
                     className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-0.5"
                     style={{
-                        background: 'linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.2) 10%, rgba(6, 182, 212, 0.2) 90%, transparent)',
+                        background: isLight
+                            ? 'linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.15) 10%, rgba(6, 182, 212, 0.15) 90%, transparent)'
+                            : 'linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.2) 10%, rgba(6, 182, 212, 0.2) 90%, transparent)',
                         transform: 'translateX(-50%)',
                     }}
                 ></div>
@@ -507,8 +542,8 @@ export default function OurJourney() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                     {eraGroups.map((group, groupIndex) => (
                         <div key={groupIndex}>
-                            <EraSection era={group.era} />
-                            {group.items.map((milestone, itemIndex) => {
+                            {group.era && <EraSection era={group.era} isLight={isLight} />}
+                            {group.items.map((milestone) => {
                                 // Calculate the global index for alternating
                                 const globalIndex = milestones.findIndex((m) => m.number === milestone.number);
                                 return (
@@ -516,6 +551,7 @@ export default function OurJourney() {
                                         key={milestone.number}
                                         milestone={milestone}
                                         index={globalIndex}
+                                        isLight={isLight}
                                     />
                                 );
                             })}
@@ -524,17 +560,22 @@ export default function OurJourney() {
                 </div>
             </section>
 
-            {/* Bottom CTA Section */}
+            {/* ════════════════════  CTA Section  ════════════════════ */}
             <section className="py-20 relative overflow-hidden">
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(37, 99, 235, 0.1))',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.04), rgba(37, 99, 235, 0.04))'
+                            : 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(37, 99, 235, 0.1))',
                     }}
                 ></div>
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: '#fff' }}>
-                        The Journey{' '}
+                    <h2
+                        className="text-4xl lg:text-5xl font-bold mb-6"
+                        style={{ color: isLight ? '#0F172A' : '#fff' }}
+                    >
+                        {ctaContent.title.split(' ').slice(0, -1).join(' ')}{' '}
                         <span
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -542,32 +583,37 @@ export default function OurJourney() {
                                 WebkitTextFillColor: 'transparent',
                             }}
                         >
-                            Continues
+                            {ctaContent.title.split(' ').slice(-1)[0]}
                         </span>
                     </h2>
-                    <p className="text-xl mb-10" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                        Join us as we shape the future of industrial packaging solutions across the MENA region and beyond.
+                    <p
+                        className="text-xl mb-10"
+                        style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}
+                    >
+                        {ctaContent.description}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
                             href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:scale-105"
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                                 boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
                             }}
                         >
-                            Partner With Us →
+                            {ctaContent.button1Text}
                         </a>
                         <a
                             href="/about"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
                             style={{
-                                border: '2px solid rgba(255, 255, 255, 0.2)',
-                                color: 'rgba(255, 255, 255, 0.8)',
+                                border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255, 255, 255, 0.2)',
+                                color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)',
+                                background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                backdropFilter: 'blur(10px)',
                             }}
                         >
-                            Learn About PAFT
+                            {ctaContent.button2Text}
                         </a>
                     </div>
                 </div>

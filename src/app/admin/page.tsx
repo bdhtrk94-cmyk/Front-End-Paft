@@ -12,7 +12,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [stats, setStats] = useState<Stats>({ pages: 0, products: 0, siteContent: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -86,12 +86,42 @@ export default function AdminDashboard() {
     { label: 'Back to Website', href: '/', icon: '🔗' },
   ];
 
+  const superAdminActions = [
+    { label: 'System Settings', href: '/admin/system-settings', icon: '⚙️' },
+    { label: 'Admin Logs', href: '/admin/logs', icon: '📋' },
+    { label: 'Database Backup', href: '/admin/backup', icon: '💾' },
+    { label: 'Security Center', href: '/admin/security', icon: '🔒' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Page title */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Overview of your website content</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            Dashboard
+            {user?.role === 'super_admin' && (
+              <span className="text-sm bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30 flex items-center gap-1">
+                👑 Super Admin Access
+              </span>
+            )}
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {user?.role === 'super_admin' 
+              ? 'System-wide administration and management' 
+              : 'Overview of your website content'
+            }
+          </p>
+        </div>
+        
+        {user?.role === 'super_admin' && (
+          <div className="flex items-center gap-2 text-xs text-purple-400 bg-purple-500/10 px-3 py-2 rounded-lg border border-purple-500/20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+            <span>Full System Access</span>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -142,6 +172,37 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Super Admin Actions */}
+      {user?.role === 'super_admin' && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex-1 h-px bg-gradient-to-r from-purple-500/50 to-transparent"></div>
+            <h2 className="text-lg font-semibold text-purple-400 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 16L3 14l5.5-5.5L16 16l-2.5 2.5L5 16z"/>
+                <path d="M11.5 9L16 4.5 18 6.5l-4.5 4.5L11.5 9z"/>
+              </svg>
+              Super Admin Controls
+            </h2>
+            <div className="flex-1 h-px bg-gradient-to-l from-purple-500/50 to-transparent"></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {superAdminActions.map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="bg-[#151b2e] border border-purple-500/20 rounded-xl p-4 text-center hover:border-purple-500/40 hover:bg-purple-500/10 transition-all duration-200 group"
+              >
+                <span className="text-2xl block mb-2">{action.icon}</span>
+                <span className="text-sm text-purple-300 group-hover:text-white transition-colors">
+                  {action.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Language Info */}
       <div className="bg-[#151b2e] border border-white/5 rounded-2xl p-5">

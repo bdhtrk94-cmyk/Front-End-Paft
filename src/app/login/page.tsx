@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import { useAuth } from '@/context/AuthContext';
+import { UserRole } from '@/types';
 
 interface LoginErrors {
     email?: string;
@@ -52,7 +53,7 @@ export default function LoginPage() {
             const redirectParam = new URLSearchParams(window.location.search).get('redirect');
             if (redirectParam) {
                 router.push(redirectParam);
-            } else if (response.user.role.toLowerCase() === 'admin') {
+            } else if (response.user.role === UserRole.ADMIN || response.user.role === UserRole.SUPER_ADMIN) {
                 router.push('/admin');
             } else {
                 router.push('/');

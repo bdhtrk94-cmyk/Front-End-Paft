@@ -1,5 +1,7 @@
 'use client';
 
+import { useTheme } from '@/context/ThemeContext';
+
 interface ShopPaginationProps {
     currentPage: number;
     totalPages: number;
@@ -7,6 +9,9 @@ interface ShopPaginationProps {
 }
 
 export default function ShopPagination({ currentPage, totalPages, onPageChange }: ShopPaginationProps) {
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+
     if (totalPages <= 1) return null;
 
     const getPages = (): (number | '...')[] => {
@@ -26,16 +31,20 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
     };
 
     return (
-        <div className="flex justify-center items-center gap-2 mt-12 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div
+            className="flex justify-center items-center gap-2 mt-12 pt-8"
+            style={{ borderTop: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}` }}
+        >
             {/* Prev */}
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
                 style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.6)',
+                    background: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+                    color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)',
+                    boxShadow: isLight ? '0 1px 4px rgba(0,0,0,0.03)' : 'none',
                 }}
                 aria-label="Previous page"
             >
@@ -47,7 +56,7 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
             {/* Pages */}
             {getPages().map((p, i) =>
                 p === '...' ? (
-                    <span key={`dot-${i}`} className="px-2 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <span key={`dot-${i}`} className="px-2 text-sm" style={{ color: isLight ? '#CBD5E1' : 'rgba(255,255,255,0.3)' }}>
                         …
                     </span>
                 ) : (
@@ -63,9 +72,10 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
                                     boxShadow: '0 4px 15px rgba(6,182,212,0.4)',
                                 }
                                 : {
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    color: 'rgba(255,255,255,0.5)',
+                                    background: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.05)',
+                                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+                                    color: isLight ? '#64748B' : 'rgba(255,255,255,0.5)',
+                                    boxShadow: isLight ? '0 1px 4px rgba(0,0,0,0.03)' : 'none',
                                 }
                         }
                     >
@@ -80,9 +90,10 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
                 disabled={currentPage === totalPages}
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
                 style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.6)',
+                    background: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+                    color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)',
+                    boxShadow: isLight ? '0 1px 4px rgba(0,0,0,0.03)' : 'none',
                 }}
                 aria-label="Next page"
             >

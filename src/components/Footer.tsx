@@ -8,9 +8,10 @@ export default function Footer() {
 
     return (
         <footer
-            className="text-white relative overflow-hidden"
+            className="relative overflow-hidden"
             style={{
-                background: 'linear-gradient(180deg, #0F172A 0%, #020617 100%)',
+                background: 'var(--footer-bg)',
+                color: 'var(--footer-text)',
             }}
         >
             {/* Gradient top border */}
@@ -33,7 +34,7 @@ export default function Footer() {
                                 className="h-12 w-auto"
                             />
                         </div>
-                        <p style={{ color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.8' }}>
+                        <p style={{ color: 'var(--footer-text)', lineHeight: '1.8' }}>
                             Leading manufacturer of premium plastic pallets in Egypt, committed to quality,
                             sustainability, and innovation in logistics solutions.
                         </p>
@@ -43,20 +44,23 @@ export default function Footer() {
                                 href={COMPANY_INFO.social.facebook}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300"
+                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ease-out"
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    background: 'var(--header-hover-bg)',
+                                    border: '1px solid var(--footer-border)',
+                                    color: 'var(--footer-text)',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)';
                                     e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.5)';
                                     e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.color = 'var(--footer-link-hover)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                    e.currentTarget.style.background = 'var(--header-hover-bg)';
+                                    e.currentTarget.style.borderColor = 'var(--footer-border)';
                                     e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.color = 'var(--footer-text)';
                                 }}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -67,20 +71,23 @@ export default function Footer() {
                                 href={COMPANY_INFO.social.linkedin}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300"
+                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ease-out"
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    background: 'var(--header-hover-bg)',
+                                    border: '1px solid var(--footer-border)',
+                                    color: 'var(--footer-text)',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)';
                                     e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.5)';
                                     e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.color = 'var(--footer-link-hover)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                    e.currentTarget.style.background = 'var(--header-hover-bg)';
+                                    e.currentTarget.style.borderColor = 'var(--footer-border)';
                                     e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.color = 'var(--footer-text)';
                                 }}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -92,7 +99,7 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-6 relative">
+                        <h4 className="text-lg font-semibold mb-6 relative" style={{ color: 'var(--footer-heading)' }}>
                             Quick Links
                             <span
                                 className="absolute bottom-[-8px] left-0 w-8 h-0.5 rounded-full"
@@ -109,12 +116,12 @@ export default function Footer() {
                                 <li key={link.label}>
                                     <a
                                         href={link.href}
-                                        className="flex items-center transition-all duration-300 group"
-                                        style={{ color: 'rgba(255, 255, 255, 0.5)' }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.color = '#06B6D4'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)'; }}
+                                        className="flex items-center transition-all duration-500 ease-out group"
+                                        style={{ color: 'var(--footer-text)' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--footer-link-hover)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--footer-text)'; }}
                                     >
-                                        <svg className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-500 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                         {link.label}
@@ -126,7 +133,7 @@ export default function Footer() {
 
                     {/* Contact Info */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-6 relative">
+                        <h4 className="text-lg font-semibold mb-6 relative" style={{ color: 'var(--footer-heading)' }}>
                             Contact Info
                             <span
                                 className="absolute bottom-[-8px] left-0 w-8 h-0.5 rounded-full"
@@ -138,27 +145,27 @@ export default function Footer() {
                                 <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#06B6D4' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
-                                <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{COMPANY_INFO.contact.phone}</span>
+                                <span style={{ color: 'var(--footer-text)' }}>{COMPANY_INFO.contact.phone}</span>
                             </li>
                             <li className="flex items-start space-x-3">
                                 <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#06B6D4' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{COMPANY_INFO.contact.email}</span>
+                                <span style={{ color: 'var(--footer-text)' }}>{COMPANY_INFO.contact.email}</span>
                             </li>
                             <li className="flex items-start space-x-3">
                                 <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#06B6D4' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{COMPANY_INFO.contact.address}</span>
+                                <span className="text-sm" style={{ color: 'var(--footer-text)' }}>{COMPANY_INFO.contact.address}</span>
                             </li>
                         </ul>
                     </div>
 
                     {/* Business Hours */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-6 relative">
+                        <h4 className="text-lg font-semibold mb-6 relative" style={{ color: 'var(--footer-heading)' }}>
                             Business Hours
                             <span
                                 className="absolute bottom-[-8px] left-0 w-8 h-0.5 rounded-full"
@@ -170,7 +177,7 @@ export default function Footer() {
                                 <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#06B6D4' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>{COMPANY_INFO.contact.businessHours}</span>
+                                <span style={{ color: 'var(--footer-text)' }}>{COMPANY_INFO.contact.businessHours}</span>
                             </li>
                         </ul>
                         {/* CTA */}
@@ -181,12 +188,12 @@ export default function Footer() {
                                 border: '1px solid rgba(6, 182, 212, 0.15)',
                             }}
                         >
-                            <p className="text-sm font-medium mb-3" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                            <p className="text-sm font-medium mb-3" style={{ color: 'var(--footer-text)' }}>
                                 Ready to get started?
                             </p>
                             <a
                                 href="/contact"
-                                className="inline-flex items-center text-sm font-semibold transition-all duration-300"
+                                className="inline-flex items-center text-sm font-semibold transition-all duration-500 ease-out"
                                 style={{ color: '#06B6D4' }}
                                 onMouseEnter={(e) => { e.currentTarget.style.color = '#22D3EE'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.color = '#06B6D4'; }}
@@ -205,11 +212,11 @@ export default function Footer() {
             <div
                 className="py-6"
                 style={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderTop: '1px solid var(--footer-border)',
                 }}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center">
-                    <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.35)' }}>
+                    <p className="text-sm" style={{ color: 'var(--footer-text)', opacity: 0.7 }}>
                         &copy; 2025 {COMPANY_INFO.fullName}. All rights reserved.
                     </p>
                     <div className="flex space-x-6 mt-4 sm:mt-0">
@@ -217,10 +224,10 @@ export default function Footer() {
                             <a
                                 key={item}
                                 href="#"
-                                className="text-sm transition-colors duration-300"
-                                style={{ color: 'rgba(255, 255, 255, 0.35)' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.color = '#06B6D4'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.35)'; }}
+                                className="text-sm transition-colors duration-500 ease-out"
+                                style={{ color: 'var(--footer-text)', opacity: 0.7 }}
+                                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--footer-link-hover)'; e.currentTarget.style.opacity = '1'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--footer-text)'; e.currentTarget.style.opacity = '0.7'; }}
                             >
                                 {item}
                             </a>

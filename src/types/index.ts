@@ -1,18 +1,50 @@
 export interface Product {
   id: number;
   name: string;
-  price: string;
-  description: string;
-  specifications: {
-    dimensions: string;
-    weight: string;
-    capacity: string;
-  };
+  nameAr?: string;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  reviewCount: number;
   category: string;
+  categoryAr?: string;
+  image: string;
+  badge?: string;
   inStock: boolean;
-  imageUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  stockQuantity: number;
+  description: string;
+  descriptionAr?: string;
+  fullDescription?: string;
+  fullDescriptionAr?: string;
+  // Pallet-specific fields
+  slug?: string;
+  dimensions?: string;
+  design?: string;
+  weight?: string;
+  staticLoad?: string;
+  dynamicLoad?: string;
+  rackLoad?: string;
+  expectedLife?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+  SUPER_ADMIN = 'super_admin',
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Customer {

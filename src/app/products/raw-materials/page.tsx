@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useTheme } from '@/context/ThemeContext';
 
 /* ─── Data ─── */
 interface MaterialCard {
@@ -163,9 +164,11 @@ function useInView(threshold = 0.15) {
 function MaterialCardComponent({
     material,
     index,
+    isLight,
 }: {
     material: MaterialCard;
     index: number;
+    isLight: boolean;
 }) {
     const { ref, visible } = useInView(0.1);
     const [hovered, setHovered] = useState(false);
@@ -187,12 +190,16 @@ function MaterialCardComponent({
             <div
                 className="rounded-2xl overflow-hidden h-full flex flex-col"
                 style={{
-                    background: 'rgba(30, 41, 59, 0.5)',
+                    background: isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.5)',
                     backdropFilter: 'blur(16px)',
-                    border: `1px solid ${hovered ? accent + '50' : 'rgba(255,255,255,0.06)'}`,
+                    border: `1px solid ${hovered ? accent + '50' : isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
                     boxShadow: hovered
-                        ? `0 25px 60px rgba(0,0,0,0.35), 0 0 30px ${accent}10`
-                        : '0 4px 20px rgba(0,0,0,0.12)',
+                        ? isLight
+                            ? `0 25px 60px rgba(0,0,0,0.1), 0 0 25px ${accent}08`
+                            : `0 25px 60px rgba(0,0,0,0.35), 0 0 30px ${accent}10`
+                        : isLight
+                            ? '0 4px 20px rgba(0,0,0,0.04)'
+                            : '0 4px 20px rgba(0,0,0,0.12)',
                     transform: hovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
@@ -210,7 +217,9 @@ function MaterialCardComponent({
                     <div
                         className="absolute inset-0 transition-opacity duration-300"
                         style={{
-                            background: `linear-gradient(to top, rgba(11,17,33,0.9) 0%, rgba(11,17,33,0.2) 50%, transparent 100%)`,
+                            background: isLight
+                                ? `linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)`
+                                : `linear-gradient(to top, rgba(11,17,33,0.9) 0%, rgba(11,17,33,0.2) 50%, transparent 100%)`,
                             opacity: hovered ? 1 : 0.7,
                         }}
                     />
@@ -225,9 +234,13 @@ function MaterialCardComponent({
                             rel="noopener noreferrer"
                             className="px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 hover:scale-105"
                             style={{
-                                background: 'rgba(255,255,255,0.95)',
-                                color: '#0f172a',
-                                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                background: isLight
+                                    ? `linear-gradient(135deg, ${accent}, ${accent}CC)`
+                                    : 'rgba(255,255,255,0.95)',
+                                color: isLight ? '#fff' : '#0f172a',
+                                boxShadow: isLight
+                                    ? `0 8px 25px ${accent}40`
+                                    : '0 8px 25px rgba(0,0,0,0.3)',
                                 transform: hovered ? 'translateY(0)' : 'translateY(15px)',
                                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                             }}
@@ -246,7 +259,7 @@ function MaterialCardComponent({
                 <div className="p-7 flex-1 flex flex-col">
                     <h3
                         className="text-xl font-bold mb-4"
-                        style={{ color: '#fff', letterSpacing: '-0.01em' }}
+                        style={{ color: isLight ? '#0F172A' : '#fff', letterSpacing: '-0.01em' }}
                     >
                         {material.title}
                     </h3>
@@ -261,7 +274,7 @@ function MaterialCardComponent({
                                 <span className="font-semibold flex-shrink-0" style={{ color: accent }}>
                                     {item.label}:
                                 </span>
-                                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{item.value}</span>
+                                <span style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>{item.value}</span>
                             </div>
                         ))}
                     </div>
@@ -277,11 +290,13 @@ function AccordionItem({
     index,
     isOpen,
     onToggle,
+    isLight,
 }: {
     sheet: DataSheet;
     index: number;
     isOpen: boolean;
     onToggle: () => void;
+    isLight: boolean;
 }) {
     const { ref, visible } = useInView(0.1);
     const accents = ['#10B981', '#06B6D4', '#8B5CF6', '#F59E0B', '#EC4899'];
@@ -297,9 +312,10 @@ function AccordionItem({
                 transition: `all 0.6s ease ${index * 0.08}s`,
                 border: isOpen
                     ? `1px solid ${accent}40`
-                    : '1px solid rgba(255,255,255,0.06)',
-                background: 'rgba(30, 41, 59, 0.3)',
+                    : `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.3)',
                 backdropFilter: 'blur(10px)',
+                boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
             }}
         >
             {/* Header */}
@@ -308,7 +324,7 @@ function AccordionItem({
                 className="w-full flex items-center justify-between px-6 py-5 transition-all duration-300 text-left"
                 style={{
                     background: isOpen
-                        ? `linear-gradient(135deg, ${accent}15, ${accent}08)`
+                        ? `linear-gradient(135deg, ${accent}${isLight ? '08' : '15'}, ${accent}${isLight ? '04' : '08'})`
                         : 'transparent',
                 }}
             >
@@ -335,10 +351,10 @@ function AccordionItem({
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-base font-bold" style={{ color: '#fff' }}>
+                        <h3 className="text-base font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                             {sheet.title}
                         </h3>
-                        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <p className="text-xs mt-0.5" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
                             {sheet.subtitle}
                         </p>
                     </div>
@@ -394,7 +410,7 @@ function AccordionItem({
                     {/* Description */}
                     <p
                         className="text-sm leading-relaxed mb-5"
-                        style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.8' }}
+                        style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)', lineHeight: '1.8' }}
                     >
                         {sheet.description}
                     </p>
@@ -405,7 +421,7 @@ function AccordionItem({
                             href={sheet.datasheetUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:scale-105"
                             style={{
                                 background: `linear-gradient(135deg, ${accent}, ${accent}CC)`,
                                 color: '#fff',
@@ -427,10 +443,12 @@ function AccordionItem({
                             target="_blank"
                             rel="noopener noreferrer"
                             download
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/5"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5"
                             style={{
-                                border: '1px solid rgba(255,255,255,0.15)',
-                                color: 'rgba(255,255,255,0.8)',
+                                border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'}`,
+                                color: isLight ? '#334155' : 'rgba(255,255,255,0.8)',
+                                background: isLight ? 'rgba(255,255,255,0.5)' : 'transparent',
+                                backdropFilter: 'blur(8px)',
                             }}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -456,9 +474,11 @@ export default function RawMaterialSupply() {
     const { ref: cardsRef, visible: cardsVisible } = useInView(0.05);
     const { ref: sheetsRef, visible: sheetsVisible } = useInView(0.05);
     const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     return (
-        <div className="min-h-screen" style={{ background: '#0B1121' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="raw-materials" />
 
             {/* ── Hero Section ── */}
@@ -477,26 +497,29 @@ export default function RawMaterialSupply() {
                         backgroundPosition: 'center',
                     }}
                 />
-                {/* Dark overlay */}
+                {/* Overlay */}
                 <div
                     className="absolute inset-0"
                     style={{
-                        background:
-                            'linear-gradient(135deg, rgba(11,17,33,0.90) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(248,251,255,0.88) 0%, rgba(224,242,254,0.82) 50%, rgba(248,251,255,0.92) 100%)'
+                            : 'linear-gradient(135deg, rgba(11,17,33,0.90) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
                     }}
                 />
                 {/* Decorative blurs */}
                 <div
-                    className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-12"
+                    className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full"
                     style={{
+                        opacity: isLight ? 0.05 : 0.12,
                         background: 'radial-gradient(circle, #10B981, transparent 70%)',
                         filter: 'blur(100px)',
                         transform: 'translate(30%, -30%)',
                     }}
                 />
                 <div
-                    className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-10"
+                    className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full"
                     style={{
+                        opacity: isLight ? 0.05 : 0.1,
                         background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
                         filter: 'blur(100px)',
                         transform: 'translate(-30%, 30%)',
@@ -511,7 +534,7 @@ export default function RawMaterialSupply() {
                             <div
                                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
                                 style={{
-                                    background: 'rgba(16, 185, 129, 0.1)',
+                                    background: isLight ? 'rgba(16, 185, 129, 0.06)' : 'rgba(16, 185, 129, 0.1)',
                                     border: '1px solid rgba(16, 185, 129, 0.2)',
                                     backdropFilter: 'blur(10px)',
                                     opacity: heroVisible ? 1 : 0,
@@ -525,7 +548,7 @@ export default function RawMaterialSupply() {
                                 />
                                 <span
                                     className="text-sm font-semibold tracking-wider uppercase"
-                                    style={{ color: 'rgba(255,255,255,0.9)' }}
+                                    style={{ color: isLight ? '#0F172A' : 'rgba(255,255,255,0.9)' }}
                                 >
                                     Raw Material Supply
                                 </span>
@@ -540,7 +563,7 @@ export default function RawMaterialSupply() {
                                     transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s',
                                 }}
                             >
-                                <span style={{ color: '#fff' }}>Sustainable</span>
+                                <span style={{ color: isLight ? '#0F172A' : '#fff' }}>Sustainable</span>
                                 <br />
                                 <span
                                     style={{
@@ -556,7 +579,7 @@ export default function RawMaterialSupply() {
                             <p
                                 className="text-lg md:text-xl leading-relaxed"
                                 style={{
-                                    color: 'rgba(255,255,255,0.65)',
+                                    color: isLight ? '#475569' : 'rgba(255,255,255,0.65)',
                                     opacity: heroVisible ? 1 : 0,
                                     transform: heroVisible ? 'translateY(0)' : 'translateY(20px)',
                                     transition: 'all 0.8s ease 0.25s',
@@ -619,16 +642,17 @@ export default function RawMaterialSupply() {
                                     key={i}
                                     className="rounded-xl p-5 text-center"
                                     style={{
-                                        backgroundColor: 'rgba(255,255,255,0.04)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        backgroundColor: isLight ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.04)',
+                                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'}`,
                                         backdropFilter: 'blur(10px)',
+                                        boxShadow: isLight ? '0 4px 16px rgba(0,0,0,0.04)' : 'none',
                                     }}
                                 >
                                     <div className="flex justify-center mb-3">
                                         <div
                                             className="w-12 h-12 rounded-full flex items-center justify-center"
                                             style={{
-                                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                                backgroundColor: isLight ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.1)',
                                                 border: '1px solid rgba(16, 185, 129, 0.2)',
                                             }}
                                         >
@@ -647,7 +671,7 @@ export default function RawMaterialSupply() {
                                     </div>
                                     <div
                                         className="text-xs mt-1 uppercase tracking-wider font-medium"
-                                        style={{ color: 'rgba(255,255,255,0.45)' }}
+                                        style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.45)' }}
                                     >
                                         {stat.label}
                                     </div>
@@ -659,7 +683,7 @@ export default function RawMaterialSupply() {
             </section>
 
             {/* ── Materials Grid ── */}
-            <section ref={cardsRef} className="py-16 lg:py-24" style={{ background: '#0f1729' }}>
+            <section ref={cardsRef} className="py-16 lg:py-24" style={{ background: isLight ? '#EFF6FF' : '#0f1729' }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Section heading */}
                     <div
@@ -670,7 +694,7 @@ export default function RawMaterialSupply() {
                             transition: 'all 0.7s ease',
                         }}
                     >
-                        <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: '#fff' }}>
+                        <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                             Our{' '}
                             <span
                                 style={{
@@ -682,21 +706,21 @@ export default function RawMaterialSupply() {
                                 Materials
                             </span>
                         </h2>
-                        <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                        <p className="text-base" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.45)' }}>
                             Discover our range of sustainable polymer solutions
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {materials.map((mat, i) => (
-                            <MaterialCardComponent key={mat.id} material={mat} index={i} />
+                            <MaterialCardComponent key={mat.id} material={mat} index={i} isLight={isLight} />
                         ))}
                     </div>
                 </div>
             </section>
 
             {/* ── Product Data Sheets ── */}
-            <section ref={sheetsRef} className="py-16 lg:py-24">
+            <section ref={sheetsRef} className="py-16 lg:py-24" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Section heading */}
                     <div
@@ -707,7 +731,7 @@ export default function RawMaterialSupply() {
                             transition: 'all 0.7s ease',
                         }}
                     >
-                        <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: '#fff' }}>
+                        <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                             Product{' '}
                             <span
                                 style={{
@@ -719,7 +743,7 @@ export default function RawMaterialSupply() {
                                 Data Sheets
                             </span>
                         </h2>
-                        <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                        <p className="text-base" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.45)' }}>
                             Explore our comprehensive range of sustainable polymer materials
                         </p>
                     </div>
@@ -734,6 +758,7 @@ export default function RawMaterialSupply() {
                                 onToggle={() =>
                                     setOpenAccordion(openAccordion === sheet.id ? null : sheet.id)
                                 }
+                                isLight={isLight}
                             />
                         ))}
                     </div>
@@ -745,14 +770,15 @@ export default function RawMaterialSupply() {
                 <div
                     className="absolute inset-0"
                     style={{
-                        background:
-                            'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 182, 212, 0.08))',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(6, 182, 212, 0.03))'
+                            : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 182, 212, 0.08))',
                     }}
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <h2
                         className="text-4xl lg:text-5xl font-bold mb-6"
-                        style={{ color: '#fff' }}
+                        style={{ color: isLight ? '#0F172A' : '#fff' }}
                     >
                         Ready to go{' '}
                         <span
@@ -765,14 +791,14 @@ export default function RawMaterialSupply() {
                             Sustainable?
                         </span>
                     </h2>
-                    <p className="text-xl mb-10" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
                         Let us help you transition to high-grade recycled materials without
                         compromising on quality
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
                             href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105"
                             style={{
                                 background: 'linear-gradient(135deg, #10B981, #06B6D4)',
                                 boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
@@ -782,10 +808,12 @@ export default function RawMaterialSupply() {
                         </a>
                         <a
                             href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-white/5"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
                             style={{
-                                border: '2px solid rgba(255,255,255,0.2)',
-                                color: 'rgba(255,255,255,0.8)',
+                                border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255,255,255,0.2)',
+                                color: isLight ? '#334155' : 'rgba(255,255,255,0.8)',
+                                background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                backdropFilter: 'blur(10px)',
                             }}
                         >
                             Contact Sales

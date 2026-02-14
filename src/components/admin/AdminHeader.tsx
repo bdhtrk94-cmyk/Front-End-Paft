@@ -23,9 +23,28 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
                     </svg>
                 </button>
 
-                <div className="hidden sm:block">
-                    <h2 className="text-white text-sm font-semibold">Welcome back!</h2>
-                    <p className="text-gray-500 text-xs">Manage your website content</p>
+                {/* Mobile logo */}
+                <div className="flex items-center gap-3 lg:hidden">
+                    <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center overflow-hidden group">
+                        <img 
+                            src="/paft-logo.png" 
+                            alt="PAFT Logo" 
+                            className="w-6 h-6 object-contain filter brightness-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-white font-bold text-lg tracking-tight">PAFT</span>
+                        <span className="text-xs text-gray-400 font-medium -mt-1">Admin</span>
+                    </div>
+                </div>
+
+                <div className="hidden sm:block lg:ml-4">
+                    <h2 className="text-white text-sm font-semibold flex items-center gap-2">
+                        <span>Welcome back!</span>
+                        <span className="text-blue-400">👋</span>
+                    </h2>
+                    <p className="text-gray-400 text-xs">Manage your PAFT website content</p>
                 </div>
             </div>
 
@@ -33,12 +52,25 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
             <div className="flex items-center gap-3">
                 {/* User info */}
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                        user?.role === 'super_admin' 
+                            ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
+                            : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                    }`}>
                         {user?.name?.charAt(0).toUpperCase() || 'A'}
                     </div>
                     <div className="hidden sm:block">
-                        <p className="text-white text-sm font-medium">{user?.name || 'Admin'}</p>
-                        <p className="text-gray-500 text-xs capitalize">{user?.role || 'admin'}</p>
+                        <p className="text-white text-sm font-medium flex items-center gap-2">
+                            {user?.name || 'Admin'}
+                            {user?.role === 'super_admin' && (
+                                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
+                                    👑 Super Admin
+                                </span>
+                            )}
+                        </p>
+                        <p className="text-gray-500 text-xs capitalize">
+                            {user?.role === 'super_admin' ? 'System Administrator' : user?.role || 'admin'}
+                        </p>
                     </div>
                 </div>
 

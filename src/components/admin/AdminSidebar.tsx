@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
-const navItems = [
+const baseNavItems = [
     {
         label: 'Dashboard',
         href: '/admin',
@@ -52,6 +52,37 @@ const navItems = [
     },
 ];
 
+const superAdminNavItems = [
+    {
+        label: 'System Settings',
+        href: '/admin/system-settings',
+        icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        ),
+    },
+    {
+        label: 'Admin Logs',
+        href: '/admin/logs',
+        icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        ),
+    },
+    {
+        label: 'Database Backup',
+        href: '/admin/backup',
+        icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        ),
+    },
+];
+
 interface AdminSidebarProps {
     isOpen: boolean;
     onToggle: () => void;
@@ -59,6 +90,7 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
     const pathname = usePathname();
+    const { user } = useAuth();
 
     const isActive = (href: string) => {
         if (href === '/admin') return pathname === '/admin';
@@ -87,17 +119,26 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
             >
                 {/* Logo */}
                 <div className="flex items-center gap-3 px-6 h-[70px] border-b border-white/5">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                        P
+                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center overflow-hidden group hover:from-white/15 hover:to-white/10 transition-all duration-300">
+                        <img 
+                            src="/paft-logo.png" 
+                            alt="PAFT Logo" 
+                            className="w-7 h-7 object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-300"
+                        />
+                        {/* Subtle glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
-                    <div>
-                        <span className="text-white font-bold text-lg tracking-tight">PAFT</span>
-                        <span className="ml-2 text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                            Admin
-                        </span>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <span className="text-white font-bold text-xl tracking-tight">PAFT</span>
+                            <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider border border-blue-500/20">
+                                Admin
+                            </span>
+                        </div>
+                        <span className="text-xs text-gray-400 font-medium">Plastic Pallets</span>
                     </div>
                     {/* Mobile close */}
-                    <button onClick={onToggle} className="ml-auto lg:hidden text-gray-400 hover:text-white">
+                    <button onClick={onToggle} className="ml-auto lg:hidden text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -109,7 +150,7 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest px-3 mb-3">
                         Menu
                     </p>
-                    {navItems.map((item) => {
+                    {baseNavItems.map((item) => {
                         const active = isActive(item.href);
                         return (
                             <Link
@@ -137,6 +178,53 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                             </Link>
                         );
                     })}
+
+                    {/* Super Admin Section */}
+                    {user?.role === 'super_admin' && superAdminNavItems.length > 0 && (
+                        <>
+                            <div className="pt-4 pb-2">
+                                <div className="flex items-center gap-2 px-3 mb-3">
+                                    <div className="flex-1 h-px bg-gradient-to-r from-purple-500/50 to-transparent"></div>
+                                    <p className="text-[10px] font-semibold text-purple-400 uppercase tracking-widest flex items-center gap-1">
+                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M5 16L3 14l5.5-5.5L16 16l-2.5 2.5L5 16z"/>
+                                            <path d="M11.5 9L16 4.5 18 6.5l-4.5 4.5L11.5 9z"/>
+                                        </svg>
+                                        Super Admin
+                                    </p>
+                                    <div className="flex-1 h-px bg-gradient-to-l from-purple-500/50 to-transparent"></div>
+                                </div>
+                            </div>
+                            {superAdminNavItems.map((item) => {
+                                const active = isActive(item.href);
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => {
+                                            if (window.innerWidth < 1024) onToggle();
+                                        }}
+                                        className={`
+                          group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                          transition-all duration-200
+                          ${active
+                                                ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/10 text-white shadow-lg shadow-purple-500/5'
+                                                : 'text-gray-400 hover:text-white hover:bg-purple-500/5'
+                                            }
+                        `}
+                                    >
+                                        <span className={`${active ? 'text-purple-400' : 'text-gray-500 group-hover:text-purple-300'} transition-colors`}>
+                                            {item.icon}
+                                        </span>
+                                        <span>{item.label}</span>
+                                        {active && (
+                                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </>
+                    )}
                 </nav>
 
                 {/* Bottom section */}

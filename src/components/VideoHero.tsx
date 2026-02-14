@@ -4,6 +4,13 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 
 interface VideoHeroProps {
   videoSrc: string;
+  content?: {
+    [key: string]: {
+      value: string;
+      valueAr?: string;
+      id: number;
+    };
+  };
 }
 
 const heroImages = [
@@ -13,12 +20,17 @@ const heroImages = [
   'https://paft.eg/wp-content/uploads/2025/10/picture.png'
 ];
 
-export default function VideoHero({ videoSrc }: VideoHeroProps) {
+export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Get content values with fallbacks
+  const getContentValue = (key: string, fallback: string = '') => {
+    return content[key]?.value || fallback;
+  };
 
   // Auto-rotate carousel
   const startAutoRotate = useCallback(() => {
@@ -119,7 +131,7 @@ export default function VideoHero({ videoSrc }: VideoHeroProps) {
           </div>
           {/* Watch video text */}
           <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Watch Video
+            {getContentValue('watch-video-text', 'Watch Video')}
           </span>
         </button>
 

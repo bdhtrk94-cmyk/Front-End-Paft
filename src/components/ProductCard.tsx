@@ -37,9 +37,9 @@ export default function ProductCard({
         <div className="mb-4">
           <h4 className="font-semibold text-gray-900 mb-2">Specifications:</h4>
           <ul className="text-sm text-gray-600 space-y-1">
-            <li><span className="font-medium">Dimensions:</span> {product.specifications.dimensions}</li>
-            <li><span className="font-medium">Weight:</span> {product.specifications.weight}</li>
-            <li><span className="font-medium">Load Capacity:</span> {product.specifications.capacity}</li>
+            <li><span className="font-medium">Dimensions:</span> {product.dimensions || 'N/A'}</li>
+            <li><span className="font-medium">Weight:</span> {product.weight || 'N/A'}</li>
+            <li><span className="font-medium">Static Load:</span> {product.staticLoad || 'N/A'}</li>
           </ul>
         </div>
         

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 interface NavItem {
   name: string;
@@ -185,23 +187,23 @@ export default function Header({ currentPage = '' }: HeaderProps) {
           }`}
         style={{
           background: isScrolled
-            ? 'rgba(15, 23, 42, 0.97)'
-            : 'rgba(15, 23, 42, 0.85)',
+            ? 'var(--header-bg-scrolled)'
+            : 'var(--header-bg)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: isScrolled
-            ? '1px solid rgba(6, 182, 212, 0.15)'
-            : '1px solid rgba(255, 255, 255, 0.05)',
+            ? '1px solid var(--header-border-scrolled)'
+            : '1px solid var(--header-border)',
           boxShadow: isScrolled
-            ? '0 4px 30px rgba(0, 0, 0, 0.3)'
-            : 'none',
+            ? 'var(--header-shadow-scrolled)'
+            : 'var(--header-shadow)',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Logo */}
             <div className="flex items-center">
-              <a href="/" className="flex items-center group">
+              <Link href="/" className="flex items-center group">
                 <div className="relative">
                   <img
                     src="/paft-logo.png"
@@ -209,7 +211,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-              </a>
+              </Link>
             </div>
 
             {/* Desktop Navigation */}
@@ -229,18 +231,18 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                       <button
                         className="relative px-4 py-2 rounded-lg font-medium transition-all duration-300 group flex items-center gap-1.5"
                         style={{
-                          color: isActive ? '#06B6D4' : 'rgba(255, 255, 255, 0.85)',
-                          backgroundColor: isActive ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+                          color: isActive ? 'var(--header-active-color)' : 'var(--header-text)',
+                          backgroundColor: isActive ? 'var(--header-active-bg)' : 'transparent',
                         }}
                         onMouseEnter={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.color = '#22D3EE';
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            e.currentTarget.style.color = 'var(--header-text-hover)';
+                            e.currentTarget.style.backgroundColor = 'var(--header-hover-bg)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)';
+                            e.currentTarget.style.color = 'var(--header-text)';
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }
                         }}
@@ -281,11 +283,11 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                         <div
                           className="rounded-xl overflow-hidden min-w-[220px]"
                           style={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.97)',
+                            backgroundColor: 'var(--header-dropdown-bg)',
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(6, 182, 212, 0.15)',
-                            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(6, 182, 212, 0.08)',
+                            border: '1px solid var(--header-dropdown-border)',
+                            boxShadow: 'var(--header-dropdown-shadow)',
                           }}
                         >
                           {/* Decorative top gradient line */}
@@ -301,19 +303,19 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                                 href={child.href}
                                 className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group/item"
                                 style={{
-                                  color: currentPage === child.key ? '#06B6D4' : 'rgba(255, 255, 255, 0.8)',
-                                  backgroundColor: currentPage === child.key ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+                                  color: currentPage === child.key ? 'var(--header-active-color)' : 'var(--header-text)',
+                                  backgroundColor: currentPage === child.key ? 'var(--header-active-bg)' : 'transparent',
                                 }}
                                 onMouseEnter={(e) => {
                                   if (currentPage !== child.key) {
-                                    e.currentTarget.style.backgroundColor = 'rgba(6, 182, 212, 0.08)';
-                                    e.currentTarget.style.color = '#22D3EE';
+                                    e.currentTarget.style.backgroundColor = 'var(--header-active-bg)';
+                                    e.currentTarget.style.color = 'var(--header-text-hover)';
                                   }
                                 }}
                                 onMouseLeave={(e) => {
                                   if (currentPage !== child.key) {
                                     e.currentTarget.style.backgroundColor = 'transparent';
-                                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                                    e.currentTarget.style.color = 'var(--header-text)';
                                   }
                                 }}
                               >
@@ -322,8 +324,8 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
                                   style={{
                                     background: currentPage === child.key
-                                      ? 'rgba(6, 182, 212, 0.2)'
-                                      : 'rgba(255, 255, 255, 0.05)',
+                                      ? 'var(--header-active-bg)'
+                                      : 'var(--header-icon-bg)',
                                   }}
                                 >
                                   {getDropdownIcon(child.key)}
@@ -331,7 +333,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
 
                                 <div>
                                   <div className="text-sm font-semibold">{child.name}</div>
-                                  <div className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.4)' }}>
+                                  <div className="text-xs" style={{ color: 'var(--header-text-muted)' }}>
                                     {getDropdownDescription(child.key)}
                                   </div>
                                 </div>
@@ -351,18 +353,18 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     href={item.href}
                     className="relative px-4 py-2 rounded-lg font-medium transition-all duration-300 group"
                     style={{
-                      color: currentPage === item.key ? '#06B6D4' : 'rgba(255, 255, 255, 0.85)',
-                      backgroundColor: currentPage === item.key ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+                      color: currentPage === item.key ? 'var(--header-active-color)' : 'var(--header-text)',
+                      backgroundColor: currentPage === item.key ? 'var(--header-active-bg)' : 'transparent',
                     }}
                     onMouseEnter={(e) => {
                       if (currentPage !== item.key) {
-                        e.currentTarget.style.color = '#22D3EE';
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.color = 'var(--header-text-hover)';
+                        e.currentTarget.style.backgroundColor = 'var(--header-hover-bg)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (currentPage !== item.key) {
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)';
+                        e.currentTarget.style.color = 'var(--header-text)';
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }
                     }}
@@ -380,19 +382,22 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               })}
             </nav>
 
-            {/* Cart + CTA Button */}
+            {/* Theme Switcher + Cart + CTA Button */}
             <div className="hidden md:flex items-center space-x-3">
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
+
               {/* Cart Icon */}
               <button
                 onClick={openCart}
                 className="relative p-2.5 rounded-lg transition-all duration-300 group"
-                style={{ color: 'rgba(255, 255, 255, 0.85)' }}
+                style={{ color: 'var(--header-text)' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#22D3EE';
-                  e.currentTarget.style.backgroundColor = 'rgba(6, 182, 212, 0.1)';
+                  e.currentTarget.style.color = 'var(--header-text-hover)';
+                  e.currentTarget.style.backgroundColor = 'var(--header-active-bg)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)';
+                  e.currentTarget.style.color = 'var(--header-text)';
                   e.currentTarget.style.backgroundColor = 'transparent';
                 }}
                 aria-label="Open cart"
@@ -434,12 +439,13 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               </a>
             </div>
 
-            {/* Mobile cart + menu button */}
+            {/* Mobile cart + theme + menu button */}
             <div className="md:hidden flex items-center gap-2">
+              <ThemeSwitcher />
               <button
                 onClick={openCart}
                 className="relative p-2 rounded-lg transition-colors duration-300"
-                style={{ color: 'rgba(255, 255, 255, 0.85)' }}
+                style={{ color: 'var(--header-text)' }}
                 aria-label="Open cart"
               >
                 <ShoppingCart className="w-5 h-5" />
@@ -458,7 +464,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-lg transition-colors duration-300"
-                style={{ color: 'rgba(255, 255, 255, 0.85)' }}
+                style={{ color: 'var(--header-text)' }}
                 aria-label="Toggle mobile menu"
               >
                 <svg className={`w-6 h-6 transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -481,9 +487,9 @@ export default function Header({ currentPage = '' }: HeaderProps) {
           <div
             className="px-4 py-4"
             style={{
-              background: 'rgba(15, 23, 42, 0.98)',
+              background: 'var(--header-mobile-bg)',
               backdropFilter: 'blur(20px)',
-              borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+              borderTop: '1px solid var(--header-mobile-border-top)',
             }}
           >
             <nav className="space-y-2">
@@ -497,9 +503,9 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                         onClick={() => setMobileOpenDropdown(isMobileOpen ? null : item.key)}
                         className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-all duration-300"
                         style={{
-                          color: isActive ? '#06B6D4' : 'rgba(255, 255, 255, 0.85)',
-                          backgroundColor: isActive ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
-                          borderLeft: isActive ? '4px solid #06B6D4' : '4px solid transparent',
+                          color: isActive ? 'var(--header-active-color)' : 'var(--header-text)',
+                          backgroundColor: isActive ? 'var(--header-active-bg)' : 'transparent',
+                          borderLeft: isActive ? '4px solid var(--header-active-color)' : '4px solid transparent',
                         }}
                       >
                         <span>{item.name}</span>
@@ -521,7 +527,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                           opacity: isMobileOpen ? 1 : 0,
                         }}
                       >
-                        <div className="ml-4 mt-1 space-y-1 pl-4" style={{ borderLeft: '2px solid rgba(6, 182, 212, 0.2)' }}>
+                        <div className="ml-4 mt-1 space-y-1 pl-4" style={{ borderLeft: '2px solid var(--header-mobile-dropdown-border)' }}>
                           {item.children.map((child) => (
                             <a
                               key={child.key}
@@ -529,8 +535,8 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                               onClick={() => setIsMobileMenuOpen(false)}
                               className="flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 text-sm"
                               style={{
-                                color: currentPage === child.key ? '#06B6D4' : 'rgba(255, 255, 255, 0.7)',
-                                backgroundColor: currentPage === child.key ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+                                color: currentPage === child.key ? 'var(--header-active-color)' : 'var(--header-text)',
+                                backgroundColor: currentPage === child.key ? 'var(--header-active-bg)' : 'transparent',
                               }}
                             >
                               <span className="flex-shrink-0">{getDropdownIcon(child.key)}</span>
@@ -550,16 +556,16 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-4 py-3 rounded-lg font-medium transition-all duration-300"
                     style={{
-                      color: currentPage === item.key ? '#06B6D4' : 'rgba(255, 255, 255, 0.85)',
-                      backgroundColor: currentPage === item.key ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
-                      borderLeft: currentPage === item.key ? '4px solid #06B6D4' : '4px solid transparent',
+                      color: currentPage === item.key ? 'var(--header-active-color)' : 'var(--header-text)',
+                      backgroundColor: currentPage === item.key ? 'var(--header-active-bg)' : 'transparent',
+                      borderLeft: currentPage === item.key ? '4px solid var(--header-active-color)' : '4px solid transparent',
                     }}
                   >
                     {item.name}
                   </a>
                 );
               })}
-              <div className="pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              <div className="pt-4" style={{ borderTop: '1px solid var(--header-mobile-border-top)' }}>
                 <a
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}

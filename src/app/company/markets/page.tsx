@@ -8,6 +8,7 @@ import MapSidebar from '@/components/maps/MapSidebar';
 import MapSearch from '@/components/maps/MapSearch';
 import MapControls from '@/components/maps/MapControls';
 import MapStatsPanel from '@/components/maps/MapStatsPanel';
+import { useTheme } from '@/context/ThemeContext';
 import type L from 'leaflet';
 
 // Dynamic import with ssr disabled — Leaflet requires the DOM
@@ -32,6 +33,8 @@ export default function MarketsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const focusFnRef = useRef<((name: string) => void) | null>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     const handleFocusReady = useCallback((fn: (name: string) => void) => {
         focusFnRef.current = fn;
@@ -54,34 +57,37 @@ export default function MarketsPage() {
     }, []);
 
     const handleShowAll = useCallback(() => {
-        // Trigger keyboard shortcut 'A' to show all markers
         const event = new KeyboardEvent('keydown', { key: 'A' });
         document.dispatchEvent(event);
     }, []);
 
     return (
-        <div className="min-h-screen" style={{ background: '#0B1121' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="markets" />
 
             {/* Hero Section */}
             <section
                 className="relative overflow-hidden py-20 lg:py-28"
                 style={{
-                    background: 'linear-gradient(135deg, #0B1121 0%, #1a2744 50%, #0B1121 100%)',
+                    background: isLight
+                        ? 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #F0F9FF 100%)'
+                        : 'linear-gradient(135deg, #0B1121 0%, #1a2744 50%, #0B1121 100%)',
                 }}
             >
                 {/* Background glow */}
                 <div
-                    className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-10"
+                    className="absolute top-0 left-0 w-96 h-96 rounded-full"
                     style={{
+                        opacity: isLight ? 0.04 : 0.1,
                         background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
                         filter: 'blur(80px)',
                         transform: 'translate(-30%, -30%)',
                     }}
                 />
                 <div
-                    className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-10"
+                    className="absolute bottom-0 right-0 w-96 h-96 rounded-full"
                     style={{
+                        opacity: isLight ? 0.04 : 0.1,
                         background: 'radial-gradient(circle, #2563EB, transparent 70%)',
                         filter: 'blur(80px)',
                         transform: 'translate(30%, 30%)',
@@ -92,8 +98,8 @@ export default function MarketsPage() {
                     <div
                         className="inline-flex items-center px-4 py-2 rounded-full mb-8"
                         style={{
-                            background: 'rgba(6,182,212,0.1)',
-                            border: '1px solid rgba(6,182,212,0.2)',
+                            background: isLight ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+                            border: `1px solid ${isLight ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.2)'}`,
                         }}
                     >
                         <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
@@ -120,7 +126,7 @@ export default function MarketsPage() {
 
                     <p
                         className="text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed font-medium"
-                        style={{ color: 'rgba(255,255,255,0.7)' }}
+                        style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.7)' }}
                     >
                         Explore PAFT&apos;s worldwide network spanning 13 countries across the Middle East &amp; Africa region.
                     </p>
@@ -128,7 +134,14 @@ export default function MarketsPage() {
             </section>
 
             {/* Map Section */}
-            <section className="relative" style={{ background: '#0d1529' }}>
+            <section
+                className="relative"
+                style={{
+                    background: isLight ? '#E0F2FE' : '#0d1529',
+                    borderTop: isLight ? '1px solid rgba(6,182,212,0.08)' : 'none',
+                    borderBottom: isLight ? '1px solid rgba(6,182,212,0.08)' : 'none',
+                }}
+            >
                 <div className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px]">
                     <InteractiveMap
                         onFocusReady={handleFocusReady}
@@ -150,20 +163,22 @@ export default function MarketsPage() {
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(37,99,235,0.15))',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(6,182,212,0.04), rgba(37,99,235,0.04))'
+                            : 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(37,99,235,0.15))',
                     }}
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: '#fff' }}>
+                    <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                         Want to Partner With Us?
                     </h2>
-                    <p className="text-xl mb-10" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
                         Join our growing network of partners across the Middle East &amp; Africa
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
                             href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105"
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                                 boxShadow: '0 4px 15px rgba(6,182,212,0.3)',
@@ -173,10 +188,12 @@ export default function MarketsPage() {
                         </a>
                         <a
                             href="/about"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
                             style={{
-                                border: '2px solid rgba(255,255,255,0.2)',
-                                color: 'rgba(255,255,255,0.8)',
+                                border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255,255,255,0.2)',
+                                color: isLight ? '#334155' : 'rgba(255,255,255,0.8)',
+                                background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                backdropFilter: 'blur(10px)',
                             }}
                         >
                             Learn About Us

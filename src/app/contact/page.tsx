@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useTheme } from '@/context/ThemeContext';
 
 const MAX_MESSAGE = 600;
 
@@ -24,6 +25,9 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
@@ -103,8 +107,33 @@ export default function Contact() {
     },
   ];
 
+  /* ─── Input styling helper ─── */
+  const inputStyle = (fieldError?: string) => ({
+    background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.05)',
+    border: fieldError
+      ? '1px solid #EF4444'
+      : `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}`,
+    color: isLight ? '#0F172A' : '#fff',
+    boxShadow: isLight ? '0 1px 4px rgba(0,0,0,0.03)' : 'none',
+  });
+
+  const focusBorder = (fieldError?: string) => ({
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (!fieldError) {
+        e.currentTarget.style.borderColor = '#06B6D4';
+        e.currentTarget.style.boxShadow = isLight ? '0 0 0 3px rgba(6,182,212,0.08)' : '';
+      }
+    },
+    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (!fieldError) {
+        e.currentTarget.style.borderColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+        e.currentTarget.style.boxShadow = isLight ? '0 1px 4px rgba(0,0,0,0.03)' : '';
+      }
+    },
+  });
+
   return (
-    <div className="min-h-screen" style={{ background: '#0B1121' }}>
+    <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
       <Header currentPage="contact" />
 
       {/* ── Hero Section ── */}
@@ -121,23 +150,26 @@ export default function Contact() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(135deg, rgba(11,17,33,0.92) 0%, rgba(26,39,68,0.88) 50%, rgba(11,17,33,0.94) 100%)',
+            background: isLight
+              ? 'linear-gradient(135deg, rgba(248,251,255,0.92) 0%, rgba(224,242,254,0.88) 50%, rgba(248,251,255,0.94) 100%)'
+              : 'linear-gradient(135deg, rgba(11,17,33,0.92) 0%, rgba(26,39,68,0.88) 50%, rgba(11,17,33,0.94) 100%)',
           }}
         />
 
         {/* Glow orbs */}
         <div
-          className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-15"
+          className="absolute top-0 left-0 w-96 h-96 rounded-full"
           style={{
+            opacity: isLight ? 0.04 : 0.15,
             background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
             filter: 'blur(80px)',
             transform: 'translate(-30%, -30%)',
           }}
         />
         <div
-          className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-15"
+          className="absolute bottom-0 right-0 w-96 h-96 rounded-full"
           style={{
+            opacity: isLight ? 0.04 : 0.15,
             background: 'radial-gradient(circle, #2563EB, transparent 70%)',
             filter: 'blur(80px)',
             transform: 'translate(30%, 30%)',
@@ -148,8 +180,8 @@ export default function Contact() {
           <div
             className="inline-flex items-center px-4 py-2 rounded-full mb-8"
             style={{
-              background: 'rgba(6,182,212,0.1)',
-              border: '1px solid rgba(6,182,212,0.2)',
+              background: isLight ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+              border: `1px solid ${isLight ? 'rgba(6,182,212,0.12)' : 'rgba(6,182,212,0.2)'}`,
             }}
           >
             <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
@@ -176,7 +208,7 @@ export default function Contact() {
 
           <p
             className="text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
+            style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.7)' }}
           >
             PAFT is a trusted supplier of high-quality plastic pallets, offering durable, eco-friendly,
             and cost-effective solutions for your storage and logistics needs. We provide a wide range of
@@ -187,10 +219,10 @@ export default function Contact() {
       </section>
 
       {/* ── Contact Info Cards ── */}
-      <section className="py-16 relative" style={{ background: '#0d1529' }}>
+      <section className="py-16 relative" style={{ background: isLight ? '#EFF6FF' : '#0d1529' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: '#fff' }}>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
               Reach Us{' '}
               <span
                 style={{
@@ -214,24 +246,35 @@ export default function Contact() {
                 key={i}
                 className="relative rounded-2xl p-8 text-center transition-all duration-500 group cursor-default"
                 style={{
-                  background: 'rgba(30,41,59,0.5)',
+                  background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(30,41,59,0.5)',
                   backdropFilter: 'blur(10px)',
                   borderTop: `3px solid ${item.color}`,
-                  border: `1px solid rgba(255,255,255,0.06)`,
-                  borderTopWidth: '3px',
-                  borderTopColor: item.color,
+                  borderLeft: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                  borderRight: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                  borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                  boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.04)' : 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.3), 0 0 30px ${item.glow}`;
-                  e.currentTarget.style.borderColor = item.color + '60';
-                  e.currentTarget.style.borderTopColor = item.color;
+                  const el = e.currentTarget;
+                  el.style.transform = 'translateY(-8px)';
+                  el.style.boxShadow = isLight
+                    ? `0 20px 40px rgba(0,0,0,0.08), 0 0 30px ${item.glow.replace('0.25', '0.08')}`
+                    : `0 20px 40px rgba(0,0,0,0.3), 0 0 30px ${item.glow}`;
+                  const sideColor = item.color + '40';
+                  el.style.borderLeftColor = sideColor;
+                  el.style.borderRightColor = sideColor;
+                  el.style.borderBottomColor = sideColor;
+                  el.style.borderTopColor = item.color;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = '';
-                  e.currentTarget.style.boxShadow = '';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                  e.currentTarget.style.borderTopColor = item.color;
+                  const el = e.currentTarget;
+                  el.style.transform = '';
+                  el.style.boxShadow = isLight ? '0 2px 12px rgba(0,0,0,0.04)' : '';
+                  const sideColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+                  el.style.borderLeftColor = sideColor;
+                  el.style.borderRightColor = sideColor;
+                  el.style.borderBottomColor = sideColor;
+                  el.style.borderTopColor = item.color;
                 }}
               >
                 <div
@@ -240,12 +283,12 @@ export default function Contact() {
                 >
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3" style={{ color: '#fff' }}>
+                <h3 className="text-xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                   {item.title}
                 </h3>
                 <div className="space-y-1">
                   {item.lines.map((line, j) => (
-                    <p key={j} className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                    <p key={j} className="text-sm" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.55)' }}>
                       {item.href && j === 0 ? (
                         <a
                           href={item.href}
@@ -270,7 +313,7 @@ export default function Contact() {
       <section className="py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold" style={{ color: '#fff' }}>
+            <h3 className="text-2xl font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>
               Social Networks
             </h3>
           </div>
@@ -282,8 +325,8 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300"
               style={{
-                background: 'rgba(59,89,152,0.15)',
-                border: '1px solid rgba(59,89,152,0.2)',
+                background: isLight ? 'rgba(59,89,152,0.06)' : 'rgba(59,89,152,0.15)',
+                border: `1px solid ${isLight ? 'rgba(59,89,152,0.12)' : 'rgba(59,89,152,0.2)'}`,
                 color: '#4267B2',
               }}
               onMouseEnter={(e) => {
@@ -295,7 +338,7 @@ export default function Contact() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = '';
                 e.currentTarget.style.boxShadow = '';
-                e.currentTarget.style.background = 'rgba(59,89,152,0.15)';
+                e.currentTarget.style.background = isLight ? 'rgba(59,89,152,0.06)' : 'rgba(59,89,152,0.15)';
                 e.currentTarget.style.color = '#4267B2';
               }}
               aria-label="Follow PAFT on Facebook"
@@ -311,8 +354,8 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300"
               style={{
-                background: 'rgba(0,119,181,0.15)',
-                border: '1px solid rgba(0,119,181,0.2)',
+                background: isLight ? 'rgba(0,119,181,0.06)' : 'rgba(0,119,181,0.15)',
+                border: `1px solid ${isLight ? 'rgba(0,119,181,0.12)' : 'rgba(0,119,181,0.2)'}`,
                 color: '#0077B5',
               }}
               onMouseEnter={(e) => {
@@ -324,7 +367,7 @@ export default function Contact() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = '';
                 e.currentTarget.style.boxShadow = '';
-                e.currentTarget.style.background = 'rgba(0,119,181,0.15)';
+                e.currentTarget.style.background = isLight ? 'rgba(0,119,181,0.06)' : 'rgba(0,119,181,0.15)';
                 e.currentTarget.style.color = '#0077B5';
               }}
               aria-label="Follow PAFT on LinkedIn"
@@ -341,12 +384,14 @@ export default function Contact() {
       <section
         className="py-20 relative"
         style={{
-          background: 'linear-gradient(180deg, #0B1121 0%, #111d36 50%, #0B1121 100%)',
+          background: isLight
+            ? 'linear-gradient(180deg, #F8FBFF 0%, #EFF6FF 50%, #F8FBFF 100%)'
+            : 'linear-gradient(180deg, #0B1121 0%, #111d36 50%, #0B1121 100%)',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: '#fff' }}>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
               Send Us a{' '}
               <span
                 style={{
@@ -362,7 +407,7 @@ export default function Contact() {
               className="w-16 h-1 mx-auto rounded-full mb-4"
               style={{ background: 'linear-gradient(90deg, #06B6D4, #2563EB)' }}
             />
-            <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-base max-w-xl mx-auto" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.5)' }}>
               Fill in the details below and our team will get back to you promptly.
             </p>
           </div>
@@ -372,9 +417,10 @@ export default function Contact() {
             <div
               className="lg:col-span-3 rounded-3xl p-8 md:p-10"
               style={{
-                background: 'rgba(30,41,59,0.5)',
+                background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(30,41,59,0.5)',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                boxShadow: isLight ? '0 4px 20px rgba(0,0,0,0.04)' : 'none',
               }}
             >
               {isSubmitted ? (
@@ -387,10 +433,10 @@ export default function Contact() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3" style={{ color: '#fff' }}>
+                  <h3 className="text-2xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                     Message Sent!
                   </h3>
-                  <p className="mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p className="mb-8" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.5)' }}>
                     Thank you for reaching out. We&apos;ll get back to you shortly.
                   </p>
                   <button
@@ -409,7 +455,7 @@ export default function Contact() {
                   {/* Name row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                      <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
                         First Name <span style={{ color: '#06B6D4' }}>*</span>
                       </label>
                       <input
@@ -418,25 +464,17 @@ export default function Contact() {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: errors.firstName ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
-                        }}
-                        onFocus={(e) => {
-                          if (!errors.firstName) e.currentTarget.style.borderColor = '#06B6D4';
-                        }}
-                        onBlur={(e) => {
-                          if (!errors.firstName) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                        }}
+                        className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
+                        style={inputStyle(errors.firstName)}
                         placeholder="John"
+                        {...focusBorder(errors.firstName)}
                       />
                       {errors.firstName && (
                         <p className="mt-1.5 text-xs text-red-400">{errors.firstName}</p>
                       )}
                     </div>
                     <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                      <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
                         Last Name <span style={{ color: '#06B6D4' }}>*</span>
                       </label>
                       <input
@@ -445,18 +483,10 @@ export default function Contact() {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: errors.lastName ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
-                        }}
-                        onFocus={(e) => {
-                          if (!errors.lastName) e.currentTarget.style.borderColor = '#06B6D4';
-                        }}
-                        onBlur={(e) => {
-                          if (!errors.lastName) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                        }}
+                        className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
+                        style={inputStyle(errors.lastName)}
                         placeholder="Doe"
+                        {...focusBorder(errors.lastName)}
                       />
                       {errors.lastName && (
                         <p className="mt-1.5 text-xs text-red-400">{errors.lastName}</p>
@@ -466,7 +496,7 @@ export default function Contact() {
 
                   {/* Email */}
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
                       Email <span style={{ color: '#06B6D4' }}>*</span>
                     </label>
                     <input
@@ -475,18 +505,10 @@ export default function Contact() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300"
-                      style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: errors.email ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.email) e.currentTarget.style.borderColor = '#06B6D4';
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.email) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                      }}
+                      className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
+                      style={inputStyle(errors.email)}
                       placeholder="john@company.com"
+                      {...focusBorder(errors.email)}
                     />
                     {errors.email && (
                       <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>
@@ -495,7 +517,7 @@ export default function Contact() {
 
                   {/* Message */}
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <label htmlFor="message" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
                       Comment or Message <span style={{ color: '#06B6D4' }}>*</span>
                     </label>
                     <textarea
@@ -504,18 +526,10 @@ export default function Contact() {
                       rows={5}
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300 resize-none"
-                      style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: errors.message ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.message) e.currentTarget.style.borderColor = '#06B6D4';
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.message) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                      }}
+                      className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300 resize-none"
+                      style={inputStyle(errors.message)}
                       placeholder="Tell us about your requirements or ask us anything..."
+                      {...focusBorder(errors.message)}
                     />
                     <div className="flex justify-between mt-1.5">
                       {errors.message ? (
@@ -529,7 +543,7 @@ export default function Contact() {
                           color:
                             formData.message.length > MAX_MESSAGE * 0.9
                               ? '#EF4444'
-                              : 'rgba(255,255,255,0.35)',
+                              : isLight ? '#CBD5E1' : 'rgba(255,255,255,0.35)',
                         }}
                       >
                         {formData.message.length} / {MAX_MESSAGE}
@@ -632,9 +646,10 @@ export default function Contact() {
               <div
                 className="rounded-3xl p-8"
                 style={{
-                  background: 'rgba(30,41,59,0.5)',
+                  background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(30,41,59,0.5)',
                   backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                  boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.04)' : 'none',
                 }}
               >
                 <div className="flex items-center gap-3 mb-5">
@@ -646,20 +661,20 @@ export default function Contact() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold" style={{ color: '#fff' }}>Business Hours</h3>
+                  <h3 className="text-lg font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>Business Hours</h3>
                 </div>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  <div className="flex justify-between" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
                     <span>Sunday – Thursday</span>
                     <span className="font-semibold" style={{ color: '#06B6D4' }}>9:00 AM – 6:00 PM</span>
                   </div>
                   <div
                     className="h-px"
-                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                    style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)' }}
                   />
-                  <div className="flex justify-between" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  <div className="flex justify-between" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
                     <span>Friday – Saturday</span>
-                    <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>Closed</span>
+                    <span className="font-semibold" style={{ color: isLight ? '#CBD5E1' : 'rgba(255,255,255,0.35)' }}>Closed</span>
                   </div>
                 </div>
               </div>

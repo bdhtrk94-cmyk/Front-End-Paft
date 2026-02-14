@@ -2,7 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 
 interface ApiOptions {
     method?: string;
-    body?: Record<string, unknown>;
+    body?: Record<string, unknown> | unknown[];
     token?: string;
 }
 
@@ -113,12 +113,25 @@ export interface ProductResponse {
     image: string;
     badge?: string;
     inStock: boolean;
+    stockQuantity: number;
     description: string;
     descriptionAr?: string;
     fullDescription?: string;
     fullDescriptionAr?: string;
+    // Pallet-specific fields
+    slug?: string;
+    dimensions?: string;
+    design?: string;
+    weight?: string;
+    staticLoad?: string;
+    dynamicLoad?: string;
+    rackLoad?: string;
+    expectedLife?: string;
+    isActive?: boolean;
+    sortOrder?: number;
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string;
 }
 
 export const productsApi = {
@@ -321,4 +334,54 @@ export const adminUsersApi = {
             body: userData,
             token,
         }),
+};
+
+// ── Content API helpers ───────────────────────────────
+
+export interface ContentResponse {
+    id: number;
+    page: string;
+    section: string;
+    key: string;
+    value: string;
+    valueAr?: string;
+    sortOrder: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ContentMapResponse {
+    [section: string]: {
+        [key: string]: {
+            value: string;
+            valueAr?: string;
+            id: number;
+        };
+    };
+}
+
+export const contentApi = {
+    getHomeContent: () =>
+        apiRequest<ContentMapResponse>('/content/home'),
+
+    getPageContent: (page: string) =>
+        apiRequest<ContentMapResponse>(`/content/page/${page}`),
+
+    getAll: (token: string) =>
+        apiRequest<ContentResponse[]>('/content', { token }),
+
+    getOne: (id: number, token: string) =>
+        apiRequest<ContentResponse>(`/content/${id}`, { token }),
+
+    create: (data: { page: string; section: string; key: string; value: string; valueAr?: string; sortOrder?: number }, token: string) =>
+        apiRequest<ContentResponse>('/content', { method: 'POST', body: data, token }),
+
+    update: (id: number, data: Partial<{ page: string; section: string; key: string; value: string; valueAr?: string; sortOrder?: number }>, token: string) =>
+        apiRequest<ContentResponse>(`/content/${id}`, { method: 'PATCH', body: data, token }),
+
+    bulkUpdate: (updates: { id: number; value: string }[], token: string) =>
+        apiRequest<ContentResponse[]>('/content/bulk-update', { method: 'PATCH', body: updates, token }),
+
+    delete: (id: number, token: string) =>
+        apiRequest<void>(`/content/${id}`, { method: 'DELETE', token }),
 };

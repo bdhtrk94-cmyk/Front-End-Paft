@@ -8,6 +8,7 @@ import ShopFilters from '@/components/shop/ShopFilters';
 import ShopPagination from '@/components/shop/ShopPagination';
 import { priceRanges, PRODUCTS_PER_PAGE, Product } from '@/lib/shopData';
 import { productsApi } from '@/lib/api';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -20,6 +21,9 @@ export default function ShopPage() {
     const [sort, setSort] = useState('featured');
     const [currentPage, setCurrentPage] = useState(1);
     const [cartCount] = useState(0);
+
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     // Fetch products from API
     useEffect(() => {
@@ -99,7 +103,7 @@ export default function ShopPage() {
     const handleSortChange = (v: string) => { setSort(v); setCurrentPage(1); };
 
     return (
-        <div className="min-h-screen" style={{ background: '#0B1121' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="shop" />
 
             {/* ── Hero ── */}
@@ -111,25 +115,29 @@ export default function ShopPage() {
                     backgroundPosition: 'center',
                 }}
             >
-                {/* Dark overlay */}
+                {/* Overlay */}
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(11,17,33,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(248,251,255,0.88) 0%, rgba(224,242,254,0.82) 50%, rgba(248,251,255,0.92) 100%)'
+                            : 'linear-gradient(135deg, rgba(11,17,33,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
                     }}
                 />
                 {/* Decorative gradient blurs */}
                 <div
-                    className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full opacity-15"
+                    className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full"
                     style={{
+                        opacity: isLight ? 0.04 : 0.15,
                         background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
                         filter: 'blur(100px)',
                         transform: 'translate(-30%, -30%)',
                     }}
                 />
                 <div
-                    className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full opacity-10"
+                    className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full"
                     style={{
+                        opacity: isLight ? 0.03 : 0.1,
                         background: 'radial-gradient(circle, #8B5CF6, transparent 70%)',
                         filter: 'blur(100px)',
                         transform: 'translate(30%, 30%)',
@@ -140,8 +148,8 @@ export default function ShopPage() {
                     <div
                         className="inline-flex items-center px-4 py-2 rounded-full mb-8"
                         style={{
-                            background: 'rgba(6,182,212,0.1)',
-                            border: '1px solid rgba(6,182,212,0.2)',
+                            background: isLight ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+                            border: `1px solid ${isLight ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.2)'}`,
                         }}
                     >
                         <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
@@ -168,7 +176,7 @@ export default function ShopPage() {
 
                     <p
                         className="text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed"
-                        style={{ color: 'rgba(255,255,255,0.65)' }}
+                        style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.65)' }}
                     >
                         Premium plastic pallets, containers, and logistics solutions — built for industry, designed for performance.
                     </p>
@@ -177,14 +185,15 @@ export default function ShopPage() {
                     <div
                         className="inline-flex items-center gap-2 mt-8 px-5 py-2.5 rounded-full"
                         style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            background: isLight ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'}`,
+                            backdropFilter: 'blur(10px)',
                         }}
                     >
                         <svg className="w-5 h-5" style={{ color: '#06B6D4' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
                         </svg>
-                        <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <span className="text-sm font-medium" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
                             {cartCount} item{cartCount !== 1 ? 's' : ''} in cart
                         </span>
                     </div>
@@ -192,7 +201,7 @@ export default function ShopPage() {
             </section>
 
             {/* ── Products ── */}
-            <section className="py-16 relative" style={{ background: '#0d1529' }}>
+            <section className="py-16 relative" style={{ background: isLight ? '#EFF6FF' : '#0d1529' }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ShopFilters
                         search={search}
@@ -211,9 +220,12 @@ export default function ShopPage() {
                         <div className="text-center py-20">
                             <div
                                 className="w-12 h-12 border-4 rounded-full animate-spin mx-auto mb-4"
-                                style={{ borderColor: 'rgba(255,255,255,0.1)', borderTopColor: '#06B6D4' }}
+                                style={{
+                                    borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
+                                    borderTopColor: '#06B6D4',
+                                }}
                             />
-                            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Loading products…</p>
+                            <p className="text-sm" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.5)' }}>Loading products…</p>
                         </div>
                     )}
 
@@ -228,10 +240,10 @@ export default function ShopPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-bold mb-2" style={{ color: '#fff' }}>
+                            <h3 className="text-xl font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                                 Failed to load products
                             </h3>
-                            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <p className="text-sm mb-6" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
                                 {loadError}
                             </p>
                             <button
@@ -261,16 +273,16 @@ export default function ShopPage() {
                         <div className="text-center py-20">
                             <div
                                 className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
-                                style={{ background: 'rgba(255,255,255,0.03)' }}
+                                style={{ background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)' }}
                             >
-                                <svg className="w-12 h-12" style={{ color: 'rgba(255,255,255,0.15)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-12 h-12" style={{ color: isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.15)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-bold mb-2" style={{ color: '#fff' }}>
+                            <h3 className="text-xl font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                                 No products found
                             </h3>
-                            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <p className="text-sm" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
                                 Try adjusting your search or filters
                             </p>
                             <button
@@ -304,12 +316,14 @@ export default function ShopPage() {
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.08))',
+                        background: isLight
+                            ? 'linear-gradient(135deg, rgba(6,182,212,0.03), rgba(37,99,235,0.03))'
+                            : 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.08))',
                     }}
                 />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-14">
-                        <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: '#fff' }}>
+                        <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                             Why Shop With{' '}
                             <span
                                 style={{
@@ -373,16 +387,22 @@ export default function ShopPage() {
                                 key={i}
                                 className="text-center p-8 rounded-2xl transition-all duration-500"
                                 style={{
-                                    background: 'rgba(30,41,59,0.4)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(30,41,59,0.4)',
+                                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+                                    boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
+                                    backdropFilter: 'blur(10px)',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'translateY(-6px)';
                                     e.currentTarget.style.borderColor = `${item.color}30`;
+                                    e.currentTarget.style.boxShadow = isLight
+                                        ? `0 15px 40px rgba(0,0,0,0.06), 0 0 20px ${item.color}08`
+                                        : `0 15px 40px rgba(0,0,0,0.3)`;
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = '';
-                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                                    e.currentTarget.style.borderColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+                                    e.currentTarget.style.boxShadow = isLight ? '0 2px 12px rgba(0,0,0,0.03)' : '';
                                 }}
                             >
                                 <div
@@ -391,8 +411,8 @@ export default function ShopPage() {
                                 >
                                     {item.icon}
                                 </div>
-                                <h3 className="text-lg font-bold mb-2" style={{ color: '#fff' }}>{item.title}</h3>
-                                <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{item.desc}</p>
+                                <h3 className="text-lg font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>{item.title}</h3>
+                                <p className="text-sm leading-relaxed" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.5)' }}>{item.desc}</p>
                             </div>
                         ))}
                     </div>

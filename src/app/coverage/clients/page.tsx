@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useTheme } from '@/context/ThemeContext';
 
 /* ─── Intersection Observer Hook ─── */
 function useInView(threshold = 0.1) {
@@ -68,35 +69,42 @@ const clientLogos = [
 ];
 
 /* ─── Logo Card Component ─── */
-function LogoCard({ url, index, visible }: { url: string; index: number; visible: boolean }) {
+function LogoCard({ url, index, visible, isLight }: { url: string; index: number; visible: boolean; isLight: boolean }) {
+    const cardId = `logo-card-${index}`;
     return (
         <div
-            className="logo-card rounded-2xl flex items-center justify-center p-5"
+            className={`logo-card-${isLight ? 'light' : 'dark'} rounded-2xl flex items-center justify-center p-5`}
             style={{
                 aspectRatio: '1',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+                boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
+                backdropFilter: 'blur(10px)',
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(15px)',
-                transition: `opacity 0.5s ease ${Math.min(index * 0.02, 0.4)}s, transform 0.5s ease ${Math.min(index * 0.02, 0.4)}s`,
+                transition: `opacity 0.5s ease ${Math.min(index * 0.02, 0.4)}s, transform 0.5s ease ${Math.min(index * 0.02, 0.4)}s, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease`,
             }}
         >
             <img
                 src={url}
                 alt={`Client Logo ${index + 1}`}
                 className="w-4/5 h-4/5 object-contain"
-                style={{ filter: 'brightness(0.95)' }}
+                style={{ filter: isLight ? 'none' : 'brightness(0.95)' }}
             />
 
             <style jsx>{`
-                .logo-card {
-                    transition: border-color 0.25s ease, background 0.25s ease;
+                .logo-card-light:hover {
+                    border-color: rgba(6, 182, 212, 0.2) !important;
+                    background: rgba(255,255,255,0.95) !important;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.06), 0 0 15px rgba(6,182,212,0.04) !important;
+                    transform: translateY(-4px) !important;
                 }
-                .logo-card:hover {
-                    border-color: rgba(6, 182, 212, 0.25);
-                    background: rgba(255,255,255,0.08);
+                .logo-card-dark:hover {
+                    border-color: rgba(6, 182, 212, 0.25) !important;
+                    background: rgba(255,255,255,0.08) !important;
                 }
-                .logo-card:hover img {
+                .logo-card-light:hover img,
+                .logo-card-dark:hover img {
                     filter: brightness(1.05) !important;
                 }
             `}</style>
@@ -105,7 +113,7 @@ function LogoCard({ url, index, visible }: { url: string; index: number; visible
 }
 
 /* ─── Hero Section ─── */
-function HeroSection() {
+function HeroSection({ isLight }: { isLight: boolean }) {
     const { ref, visible } = useInView(0.2);
 
     return (
@@ -120,25 +128,29 @@ function HeroSection() {
                 backgroundRepeat: 'no-repeat',
             }}
         >
-            {/* Dark overlay */}
+            {/* Overlay */}
             <div
                 className="absolute inset-0"
                 style={{
-                    background: 'linear-gradient(135deg, rgba(11,17,33,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
+                    background: isLight
+                        ? 'linear-gradient(135deg, rgba(248,251,255,0.88) 0%, rgba(224,242,254,0.82) 50%, rgba(248,251,255,0.92) 100%)'
+                        : 'linear-gradient(135deg, rgba(11,17,33,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(11,17,33,0.92) 100%)',
                 }}
             />
             {/* Decorative gradient blurs */}
             <div
-                className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full opacity-15"
+                className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full"
                 style={{
+                    opacity: isLight ? 0.05 : 0.15,
                     background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
                     filter: 'blur(100px)',
                     transform: 'translate(-30%, -30%)',
                 }}
             />
             <div
-                className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full opacity-10"
+                className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full"
                 style={{
+                    opacity: isLight ? 0.04 : 0.1,
                     background: 'radial-gradient(circle, #8B5CF6, transparent 70%)',
                     filter: 'blur(100px)',
                     transform: 'translate(30%, 30%)',
@@ -158,8 +170,8 @@ function HeroSection() {
                     <div
                         className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-6"
                         style={{
-                            background: 'rgba(6, 182, 212, 0.15)',
-                            border: '1px solid rgba(6, 182, 212, 0.3)',
+                            background: isLight ? 'rgba(6, 182, 212, 0.08)' : 'rgba(6, 182, 212, 0.15)',
+                            border: `1px solid ${isLight ? 'rgba(6, 182, 212, 0.2)' : 'rgba(6, 182, 212, 0.3)'}`,
                             color: '#06B6D4',
                             backdropFilter: 'blur(8px)',
                         }}
@@ -172,7 +184,12 @@ function HeroSection() {
 
                     <h1
                         className="text-4xl lg:text-6xl font-bold mb-6"
-                        style={{ color: '#fff', letterSpacing: '-0.03em', lineHeight: '1.1', textShadow: '0 4px 20px rgba(0,0,0,0.4)' }}
+                        style={{
+                            color: isLight ? '#0F172A' : '#fff',
+                            letterSpacing: '-0.03em',
+                            lineHeight: '1.1',
+                            textShadow: isLight ? '0 4px 20px rgba(255,255,255,0.4)' : '0 4px 20px rgba(0,0,0,0.4)',
+                        }}
                     >
                         Our{' '}
                         <span
@@ -189,7 +206,10 @@ function HeroSection() {
 
                     <p
                         className="text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto"
-                        style={{ color: 'rgba(255, 255, 255, 0.75)', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}
+                        style={{
+                            color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.75)',
+                            textShadow: isLight ? 'none' : '0 2px 10px rgba(0,0,0,0.3)',
+                        }}
                     >
                         Partnering with industry leaders across the Middle East, Africa, and beyond.
                         Over 40 brands trust PAFT for their logistics and packaging solutions.
@@ -201,7 +221,7 @@ function HeroSection() {
 }
 
 /* ─── Stats Bar ─── */
-function StatsBar() {
+function StatsBar({ isLight }: { isLight: boolean }) {
     const { ref, visible } = useInView(0.2);
 
     const stats = [
@@ -212,7 +232,7 @@ function StatsBar() {
     ];
 
     return (
-        <section ref={ref} className="py-12" style={{ background: '#0d1526' }}>
+        <section ref={ref} className="py-12" style={{ background: isLight ? '#EFF6FF' : '#0d1526' }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div
                     className="grid grid-cols-2 lg:grid-cols-4 gap-6"
@@ -224,7 +244,12 @@ function StatsBar() {
                 >
                     {stats.map((stat) => (
                         <div key={stat.label} className="text-center py-6 rounded-2xl"
-                            style={{ background: 'rgba(30, 41, 59, 0.4)', border: '1px solid rgba(255, 255, 255, 0.06)' }}
+                            style={{
+                                background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(30, 41, 59, 0.4)',
+                                border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
+                                boxShadow: isLight ? '0 4px 16px rgba(0,0,0,0.03)' : 'none',
+                                backdropFilter: 'blur(10px)',
+                            }}
                         >
                             <div
                                 className="text-3xl lg:text-4xl font-bold mb-1"
@@ -236,7 +261,7 @@ function StatsBar() {
                             >
                                 {stat.value}
                             </div>
-                            <div className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                            <div className="text-sm font-medium" style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.5)' }}>
                                 {stat.label}
                             </div>
                         </div>
@@ -248,11 +273,11 @@ function StatsBar() {
 }
 
 /* ─── Gallery Grid ─── */
-function GalleryGrid() {
+function GalleryGrid({ isLight }: { isLight: boolean }) {
     const { ref, visible } = useInView(0.05);
 
     return (
-        <section ref={ref} className="py-16 lg:py-24" style={{ background: '#0B1121' }}>
+        <section ref={ref} className="py-16 lg:py-24" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section heading */}
                 <div
@@ -263,7 +288,7 @@ function GalleryGrid() {
                         transition: 'all 0.7s ease',
                     }}
                 >
-                    <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: '#fff' }}>
+                    <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                         Brands That{' '}
                         <span style={{
                             background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -273,7 +298,7 @@ function GalleryGrid() {
                             Trust Us
                         </span>
                     </h2>
-                    <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(255, 255, 255, 0.45)' }}>
+                    <p className="text-base max-w-xl mx-auto" style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.45)' }}>
                         From FMCG giants to industrial manufacturers
                     </p>
                 </div>
@@ -286,7 +311,7 @@ function GalleryGrid() {
                     }}
                 >
                     {clientLogos.map((url, i) => (
-                        <LogoCard key={i} url={url} index={i} visible={visible} />
+                        <LogoCard key={i} url={url} index={i} visible={visible} isLight={isLight} />
                     ))}
                 </div>
             </div>
@@ -295,12 +320,20 @@ function GalleryGrid() {
 }
 
 /* ─── CTA Section ─── */
-function CTASection() {
+function CTASection({ isLight }: { isLight: boolean }) {
     const { ref, visible } = useInView(0.2);
 
     return (
-        <section ref={ref} className="py-16 lg:py-20" style={{ background: '#0d1526' }}>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <section ref={ref} className="py-16 lg:py-20 relative overflow-hidden">
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: isLight
+                        ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.03), rgba(37, 99, 235, 0.03))'
+                        : '#0d1526',
+                }}
+            />
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                 <div
                     style={{
                         opacity: visible ? 1 : 0,
@@ -308,7 +341,7 @@ function CTASection() {
                         transition: 'all 0.8s ease',
                     }}
                 >
-                    <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: '#fff' }}>
+                    <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
                         Ready to{' '}
                         <span style={{
                             background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -318,13 +351,13 @@ function CTASection() {
                             Join Them?
                         </span>
                     </h2>
-                    <p className="text-lg mb-8" style={{ color: 'rgba(255, 255, 255, 0.55)' }}>
+                    <p className="text-lg mb-8" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.55)' }}>
                         Become part of our growing network of industry leaders
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
                             href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105"
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                                 boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
@@ -334,10 +367,12 @@ function CTASection() {
                         </a>
                         <a
                             href="/products"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-white/5"
+                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
                             style={{
-                                border: '2px solid rgba(255, 255, 255, 0.2)',
-                                color: 'rgba(255, 255, 255, 0.8)',
+                                border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255, 255, 255, 0.2)',
+                                color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)',
+                                background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                backdropFilter: 'blur(10px)',
                             }}
                         >
                             Explore Products
@@ -351,13 +386,16 @@ function CTASection() {
 
 /* ─── Main Page ─── */
 export default function ClientsPage() {
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+
     return (
-        <div className="min-h-screen" style={{ background: '#0B1121' }}>
+        <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="clients" />
-            <HeroSection />
-            <StatsBar />
-            <GalleryGrid />
-            <CTASection />
+            <HeroSection isLight={isLight} />
+            <StatsBar isLight={isLight} />
+            <GalleryGrid isLight={isLight} />
+            <CTASection isLight={isLight} />
             <Footer />
         </div>
     );

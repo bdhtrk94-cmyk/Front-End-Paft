@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { adminPagesApi, type PageResponse } from '@/lib/api';
+import { adminPagesApi, contentApi, type PageResponse } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
+import HomePageEditor from './HomePageEditor';
+import AboutPageEditor from './AboutPageEditor';
+import OurJourneyPageEditor from './OurJourneyPageEditor';
+import { PlasticPalletsPageEditor } from './plastic-pallets';
 
 type FormData = {
     title: string; titleAr: string; slug: string;
@@ -11,6 +15,38 @@ type FormData = {
     metaTitle: string; metaTitleAr: string;
     metaDescription: string; metaDescriptionAr: string;
     isPublished: boolean; order: number;
+};
+
+type AboutPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
+type HomePageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
+type OurJourneyPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
+type PlasticPalletsPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
 };
 
 const emptyForm: FormData = {
@@ -25,6 +61,10 @@ export default function AdminPagesPage() {
     const { token } = useAuth();
     const searchParams = useSearchParams();
     const [pages, setPages] = useState<PageResponse[]>([]);
+    const [aboutContent, setAboutContent] = useState<AboutPageContent>({});
+    const [homeContent, setHomeContent] = useState<HomePageContent>({});
+    const [ourJourneyContent, setOurJourneyContent] = useState<OurJourneyPageContent>({});
+    const [plasticPalletsContent, setPlasticPalletsContent] = useState<PlasticPalletsPageContent>({});
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -37,6 +77,14 @@ export default function AdminPagesPage() {
     const [previewPage, setPreviewPage] = useState<PageResponse | null>(null);
     const [previewLang, setPreviewLang] = useState<'en' | 'ar'>('en');
     const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null);
+    // About page editing
+    const [showAboutModal, setShowAboutModal] = useState(false);
+    // Home page editing
+    const [showHomeModal, setShowHomeModal] = useState(false);
+    // Our Journey page editing
+    const [showOurJourneyModal, setShowOurJourneyModal] = useState(false);
+    // Plastic Pallets page editing
+    const [showPlasticPalletsModal, setShowPlasticPalletsModal] = useState(false);
 
     useEffect(() => {
         if (searchParams.get('action') === 'add') openAdd();
@@ -46,8 +94,124 @@ export default function AdminPagesPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const data = await adminPagesApi.getAll(token);
-            setPages(data);
+            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData] = await Promise.all([
+                adminPagesApi.getAll(token),
+                contentApi.getPageContent('about'),
+                contentApi.getHomeContent(),
+                contentApi.getPageContent('our-journey'),
+                contentApi.getPageContent('plastic-pallets')
+            ]);
+            setPages(pagesData);
+            
+            // For about content, we need to handle sections separately to avoid key conflicts
+            // We'll flatten all content but keep track of which section each key belongs to
+            const allAboutContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
+            
+            // Add hero section content
+            if (aboutData['hero']) {
+                Object.keys(aboutData['hero']).forEach(key => {
+                    allAboutContent[key] = aboutData['hero'][key];
+                });
+            }
+            
+            // Add who-we-are section content
+            if (aboutData['who-we-are']) {
+                Object.keys(aboutData['who-we-are']).forEach(key => {
+                    // For who-we-are section, we need to avoid conflicts with hero section
+                    if (key === 'badge-text' || key === 'title') {
+                        allAboutContent[`who-${key}`] = aboutData['who-we-are'][key];
+                    } else {
+                        allAboutContent[key] = aboutData['who-we-are'][key];
+                    }
+                });
+            }
+            
+            // Add values section content
+            if (aboutData['values']) {
+                Object.keys(aboutData['values']).forEach(key => {
+                    // For values section, avoid conflicts
+                    if (key === 'title' || key === 'subtitle') {
+                        allAboutContent[`values-${key}`] = aboutData['values'][key];
+                    } else {
+                        allAboutContent[key] = aboutData['values'][key];
+                    }
+                });
+            }
+            
+            // Add cta section content
+            if (aboutData['cta']) {
+                Object.keys(aboutData['cta']).forEach(key => {
+                    // For cta section, avoid conflicts
+                    if (key === 'title' || key === 'description') {
+                        allAboutContent[`cta-${key}`] = aboutData['cta'][key];
+                    } else {
+                        allAboutContent[key] = aboutData['cta'][key];
+                    }
+                });
+            }
+            
+            setAboutContent(allAboutContent);
+            
+            // Combine both business-units and video-hero content
+            const allHomeContent = {
+                ...homeData['business-units'] || {},
+                ...homeData['video-hero'] || {}
+            };
+            setHomeContent(allHomeContent);
+            
+            // Combine all our-journey content sections
+            const allOurJourneyContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
+            
+            // Add hero section content
+            if (ourJourneyData['hero']) {
+                Object.keys(ourJourneyData['hero']).forEach(key => {
+                    allOurJourneyContent[key] = ourJourneyData['hero'][key];
+                });
+            }
+            
+            // Add timeline section content
+            if (ourJourneyData['timeline']) {
+                Object.keys(ourJourneyData['timeline']).forEach(key => {
+                    allOurJourneyContent[key] = ourJourneyData['timeline'][key];
+                });
+            }
+            
+            // Add eras section content
+            if (ourJourneyData['eras']) {
+                Object.keys(ourJourneyData['eras']).forEach(key => {
+                    allOurJourneyContent[key] = ourJourneyData['eras'][key];
+                });
+            }
+            
+            // Add CTA section content with prefix to avoid conflicts
+            if (ourJourneyData['cta']) {
+                Object.keys(ourJourneyData['cta']).forEach(key => {
+                    allOurJourneyContent[`cta-${key}`] = ourJourneyData['cta'][key];
+                });
+            }
+            
+            setOurJourneyContent(allOurJourneyContent);
+            
+            // Combine all plastic-pallets content sections
+            const allPlasticPalletsContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
+            
+            // Add all sections content with their correct keys - include ALL sections from the API
+            Object.keys(plasticPalletsData).forEach(section => {
+                if (plasticPalletsData[section]) {
+                    Object.keys(plasticPalletsData[section]).forEach(key => {
+                        // For product sections, create unique keys by combining section and key
+                        if (section.startsWith('product-')) {
+                            const uniqueKey = `${section}-${key}`;
+                            allPlasticPalletsContent[uniqueKey] = plasticPalletsData[section][key];
+                        } else {
+                            // For non-product sections, use the key as is
+                            allPlasticPalletsContent[key] = plasticPalletsData[section][key];
+                        }
+                    });
+                }
+            });
+            
+            setPlasticPalletsContent(allPlasticPalletsContent);
         } catch { setError('Failed to load pages'); }
         finally { setLoading(false); }
     };
@@ -68,6 +232,22 @@ export default function AdminPagesPage() {
         setShowModal(true);
     };
 
+    const openAboutEdit = () => {
+        setShowAboutModal(true);
+    };
+
+    const openHomeEdit = () => {
+        setShowHomeModal(true);
+    };
+
+    const openOurJourneyEdit = () => {
+        setShowOurJourneyModal(true);
+    };
+
+    const openPlasticPalletsEdit = () => {
+        setShowPlasticPalletsModal(true);
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!token) return;
@@ -83,7 +263,208 @@ export default function AdminPagesPage() {
             }
             setShowModal(false);
             fetchPages();
-        } catch (e: any) { setError(e.message || 'Failed to save'); }
+        } catch (error: unknown) { 
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save';
+            setError(errorMessage); 
+        }
+        finally { setSaving(false); }
+    };
+
+    const handleAboutSave = async (content: {[key: string]: string}) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving about content:', content);
+            
+            // Get all about content from API to get the correct IDs
+            const allAboutData = await contentApi.getPageContent('about');
+            console.log('🔍 Fresh about data:', allAboutData);
+            
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+            
+            Object.keys(content).forEach(key => {
+                // Look through all sections to find the key
+                Object.keys(allAboutData).forEach(section => {
+                    if (allAboutData[section][key]) {
+                        updates.push({
+                            id: allAboutData[section][key].id,
+                            value: content[key]
+                        });
+                    }
+                });
+            });
+            
+            console.log('🔍 Updates to send:', updates);
+            
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('About page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            
+            setShowAboutModal(false);
+            fetchPages();
+        } catch (error: unknown) { 
+            console.error('🔍 Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save about content';
+            setError(errorMessage); 
+        }
+        finally { setSaving(false); }
+    };
+
+    const handleHomeSave = async (content: {[key: string]: string}) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving home content:', content);
+            
+            // Get all home content from API to get the correct IDs
+            const allHomeData = await contentApi.getHomeContent();
+            console.log('🔍 Fresh home data:', allHomeData);
+            
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+            
+            Object.keys(content).forEach(key => {
+                // Look through all sections to find the key
+                Object.keys(allHomeData).forEach(section => {
+                    if (allHomeData[section][key]) {
+                        updates.push({
+                            id: allHomeData[section][key].id,
+                            value: content[key]
+                        });
+                    }
+                });
+            });
+            
+            console.log('🔍 Updates to send:', updates);
+            
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Home page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            
+            setShowHomeModal(false);
+            fetchPages();
+        } catch (error: unknown) { 
+            console.error('🔍 Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save home content';
+            setError(errorMessage); 
+        }
+        finally { setSaving(false); }
+    };
+
+    const handleOurJourneySave = async (content: {[key: string]: string}) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving our journey content:', content);
+            
+            // Get all our journey content from API to get the correct IDs
+            const allOurJourneyData = await contentApi.getPageContent('our-journey');
+            console.log('🔍 Fresh our journey data:', allOurJourneyData);
+            
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+            
+            Object.keys(content).forEach(key => {
+                // Look through all sections to find the key
+                Object.keys(allOurJourneyData).forEach(section => {
+                    if (allOurJourneyData[section][key]) {
+                        updates.push({
+                            id: allOurJourneyData[section][key].id,
+                            value: content[key]
+                        });
+                    }
+                });
+            });
+            
+            console.log('🔍 Updates to send:', updates);
+            
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Our Journey page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            
+            setShowOurJourneyModal(false);
+            fetchPages();
+        } catch (error: unknown) { 
+            console.error('🔍 Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save our journey content';
+            setError(errorMessage); 
+        }
+        finally { setSaving(false); }
+    };
+
+    const handlePlasticPalletsSave = async (content: {[key: string]: string}) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving plastic pallets content:', content);
+            
+            // Get all plastic pallets content from API to get the correct IDs
+            const allPlasticPalletsData = await contentApi.getPageContent('plastic-pallets');
+            console.log('🔍 Fresh plastic pallets data:', allPlasticPalletsData);
+            
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+            
+            Object.keys(content).forEach(key => {
+                // Handle product-specific keys (e.g., "product-m1-product-name")
+                if (key.includes('product-') && key.includes('-')) {
+                    const parts = key.split('-');
+                    if (parts.length >= 3) {
+                        const section = parts.slice(0, 2).join('-'); // e.g., "product-m1"
+                        const field = parts.slice(2).join('-'); // e.g., "product-name"
+                        
+                        // Look for the content item in the correct section
+                        if (allPlasticPalletsData[section] && allPlasticPalletsData[section][field]) {
+                            updates.push({
+                                id: allPlasticPalletsData[section][field].id,
+                                value: content[key]
+                            });
+                        }
+                    }
+                } else {
+                    // Handle regular keys (non-product specific)
+                    // Look through all sections to find the key
+                    Object.keys(allPlasticPalletsData).forEach(section => {
+                        if (allPlasticPalletsData[section][key]) {
+                            updates.push({
+                                id: allPlasticPalletsData[section][key].id,
+                                value: content[key]
+                            });
+                        }
+                    });
+                }
+            });
+            
+            console.log('🔍 Updates to send:', updates);
+            
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Plastic Pallets page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            
+            setShowPlasticPalletsModal(false);
+            fetchPages();
+        } catch (error: unknown) { 
+            console.error('🔍 Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save plastic pallets content';
+            setError(errorMessage); 
+        }
         finally { setSaving(false); }
     };
 
@@ -136,6 +517,126 @@ export default function AdminPagesPage() {
                             </tr>
                         </thead>
                         <tbody>
+                            {/* Home Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-blue-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Home Page</p>
+                                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openHomeEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Home Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* About Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-cyan-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">About Page</p>
+                                        <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/about</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openAboutEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit About Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Our Journey Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-purple-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Our Journey Page</p>
+                                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/our-journey</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openOurJourneyEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Our Journey Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Plastic Pallets Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-teal-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Plastic Pallets Page</p>
+                                        <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/products/plastic-pallets</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openPlasticPalletsEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Plastic Pallets Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <tr key={i} className="border-b border-white/5">
@@ -328,6 +829,46 @@ export default function AdminPagesPage() {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Home Page Editor */}
+            {showHomeModal && (
+                <HomePageEditor
+                    content={homeContent}
+                    onSave={handleHomeSave}
+                    onClose={() => setShowHomeModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* About Page Editor */}
+            {showAboutModal && (
+                <AboutPageEditor
+                    content={aboutContent}
+                    onSave={handleAboutSave}
+                    onClose={() => setShowAboutModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* Our Journey Page Editor */}
+            {showOurJourneyModal && (
+                <OurJourneyPageEditor
+                    content={ourJourneyContent}
+                    onSave={handleOurJourneySave}
+                    onClose={() => setShowOurJourneyModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* Plastic Pallets Page Editor */}
+            {showPlasticPalletsModal && (
+                <PlasticPalletsPageEditor
+                    content={plasticPalletsContent}
+                    onSave={handlePlasticPalletsSave}
+                    onClose={() => setShowPlasticPalletsModal(false)}
+                    saving={saving}
+                />
             )}
         </div>
     );
