@@ -466,7 +466,7 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
                 </div>
 
                 <div
-                    className="relative rounded-2xl overflow-hidden"
+                    className="relative rounded-2xl overflow-hidden aspect-video"
                     style={{
                         border: isLight ? '1px solid rgba(6, 182, 212, 0.1)' : '1px solid rgba(6, 182, 212, 0.15)',
                         boxShadow: isLight
@@ -492,41 +492,49 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
                                     src={src}
                                     alt={`PAFT Testing ${index + 1}`}
                                     className="w-full h-full object-cover"
-                                    style={{
-                                        borderRadius: '16px',
-                                        objectPosition: 'center center'
-                                    }}
+                                    style={{ objectPosition: 'center center' }}
                                     loading={index === 0 ? 'eager' : 'lazy'}
                                 />
                             </div>
                         ))}
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" style={{ borderRadius: '16px' }} />
+                        {/* Subtle gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
+                        {/* Play Button */}
                         <button
                             onClick={handlePlay}
                             className="absolute inset-0 flex items-center justify-center z-10 group cursor-pointer"
                             aria-label="Play video"
                         >
                             <div className="relative">
+                                {/* Pulsing ring */}
                                 <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300 shadow-2xl">
-                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                                {/* Outer glow */}
+                                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
+                                    {/* Inner play icon */}
+                                    <svg
+                                        className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
+                                        fill="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
                                         <path d="M8 5v14l11-7z" />
                                     </svg>
                                 </div>
                             </div>
-                            <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            {/* Watch video text */}
+                            <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                 Watch Video
                             </span>
                         </button>
 
+                        {/* Slide indicators */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-10">
                             {heroImages.map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => goToSlide(index)}
-                                    className={`transition-all duration-300 rounded-full cursor-pointer ${index === currentSlide
+                                    className={`transition-all duration-500 rounded-full ${index === currentSlide
                                             ? 'w-8 h-2.5 bg-white shadow-lg shadow-white/30'
                                             : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
                                         }`}
@@ -536,27 +544,25 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
                         </div>
                     </div>
 
-                    {/* Video Player */}
+                    {/* Video Layer */}
                     <div
-                        className={`transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                             }`}
                     >
                         <video
                             ref={videoRef}
-                            controls
-                            preload="metadata"
-                            className="w-full h-auto block"
-                            style={{ borderRadius: '16px' }}
-                            onEnded={handleVideoEnd}
+                            className="w-full h-full object-cover"
                             playsInline
+                            controls
+                            onEnded={handleVideoEnd}
                         >
                             <source src="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4" type="video/mp4" />
-                            Your browser does not support the video tag.
                         </video>
 
+                        {/* Close / Back to carousel button */}
                         <button
                             onClick={handleVideoEnd}
-                            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all border border-white/20 cursor-pointer"
+                            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all duration-400 border border-white/20"
                             aria-label="Close video"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

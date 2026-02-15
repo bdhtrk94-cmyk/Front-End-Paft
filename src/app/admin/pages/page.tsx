@@ -8,6 +8,7 @@ import HomePageEditor from './HomePageEditor';
 import AboutPageEditor from './AboutPageEditor';
 import OurJourneyPageEditor from './OurJourneyPageEditor';
 import { PlasticPalletsPageEditor } from './plastic-pallets';
+import TransportLogisticsPageEditor from './TransportLogisticsPageEditor';
 
 type FormData = {
     title: string; titleAr: string; slug: string;
@@ -49,6 +50,14 @@ type PlasticPalletsPageContent = {
     };
 };
 
+type TransportLogisticsPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
 const emptyForm: FormData = {
     title: '', titleAr: '', slug: '',
     content: '', contentAr: '',
@@ -65,6 +74,7 @@ export default function AdminPagesPage() {
     const [homeContent, setHomeContent] = useState<HomePageContent>({});
     const [ourJourneyContent, setOurJourneyContent] = useState<OurJourneyPageContent>({});
     const [plasticPalletsContent, setPlasticPalletsContent] = useState<PlasticPalletsPageContent>({});
+    const [transportLogisticsContent, setTransportLogisticsContent] = useState<TransportLogisticsPageContent>({});
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -85,6 +95,8 @@ export default function AdminPagesPage() {
     const [showOurJourneyModal, setShowOurJourneyModal] = useState(false);
     // Plastic Pallets page editing
     const [showPlasticPalletsModal, setShowPlasticPalletsModal] = useState(false);
+    // Transport Logistics page editing
+    const [showTransportLogisticsModal, setShowTransportLogisticsModal] = useState(false);
 
     useEffect(() => {
         if (searchParams.get('action') === 'add') openAdd();
@@ -94,12 +106,13 @@ export default function AdminPagesPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData] = await Promise.all([
+            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData, transportLogisticsData] = await Promise.all([
                 adminPagesApi.getAll(token),
                 contentApi.getPageContent('about'),
                 contentApi.getHomeContent(),
                 contentApi.getPageContent('our-journey'),
-                contentApi.getPageContent('plastic-pallets')
+                contentApi.getPageContent('plastic-pallets'),
+                contentApi.getPageContent('transport-logistics')
             ]);
             setPages(pagesData);
             
@@ -212,6 +225,31 @@ export default function AdminPagesPage() {
             });
             
             setPlasticPalletsContent(allPlasticPalletsContent);
+            
+            // Combine all transport-logistics content sections
+            const allTransportLogisticsContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
+            
+            // Add all sections content with their correct keys
+            Object.keys(transportLogisticsData).forEach(section => {
+                if (transportLogisticsData[section] && typeof transportLogisticsData[section] === 'object') {
+                    Object.keys(transportLogisticsData[section]).forEach(key => {
+                        const item = transportLogisticsData[section][key];
+                        if (item && typeof item === 'object' && 'value' in item) {
+                            // For product sections, create unique keys by combining section and key
+                            if (section.startsWith('product-')) {
+                                const uniqueKey = `${section}-${key}`;
+                                allTransportLogisticsContent[uniqueKey] = item;
+                            } else {
+                                // For non-product sections, use the key as is
+                                allTransportLogisticsContent[key] = item;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            console.log('🔍 All transport logistics content:', allTransportLogisticsContent);
+            setTransportLogisticsContent(allTransportLogisticsContent);
         } catch { setError('Failed to load pages'); }
         finally { setLoading(false); }
     };
@@ -246,6 +284,10 @@ export default function AdminPagesPage() {
 
     const openPlasticPalletsEdit = () => {
         setShowPlasticPalletsModal(true);
+    };
+
+    const openTransportLogisticsEdit = () => {
+        setShowTransportLogisticsModal(true);
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -468,6 +510,69 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
+    const handleTransportLogisticsSave = async (content: {[key: string]: string}) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving transport logistics content:', content);
+            
+            // Get all transport logistics content from API to get the correct IDs
+            const allTransportLogisticsData = await contentApi.getPageContent('transport-logistics');
+            console.log('🔍 Fresh transport logistics data:', allTransportLogisticsData);
+            
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+            
+            Object.keys(content).forEach(key => {
+                // Handle product-specific keys (e.g., "product-1-title")
+                if (key.includes('product-') && key.includes('-')) {
+                    const parts = key.split('-');
+                    if (parts.length >= 3) {
+                        const section = parts.slice(0, 2).join('-'); // e.g., "product-1"
+                        const field = parts.slice(2).join('-'); // e.g., "title"
+                        
+                        // Look for the content item in the correct section
+                        if (allTransportLogisticsData[section] && allTransportLogisticsData[section][field]) {
+                            updates.push({
+                                id: allTransportLogisticsData[section][field].id,
+                                value: content[key]
+                            });
+                        }
+                    }
+                } else {
+                    // Handle regular keys (non-product specific)
+                    // Look through all sections to find the key
+                    Object.keys(allTransportLogisticsData).forEach(section => {
+                        if (allTransportLogisticsData[section][key]) {
+                            updates.push({
+                                id: allTransportLogisticsData[section][key].id,
+                                value: content[key]
+                            });
+                        }
+                    });
+                }
+            });
+            
+            console.log('🔍 Updates to send:', updates);
+            
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Transport Logistics page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            
+            setShowTransportLogisticsModal(false);
+            fetchPages();
+        } catch (error: unknown) { 
+            console.error('🔍 Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save transport logistics content';
+            setError(errorMessage); 
+        }
+        finally { setSaving(false); }
+    };
+
     const handleDelete = async (id: number) => {
         if (!token) return;
         try {
@@ -631,6 +736,36 @@ export default function AdminPagesPage() {
                                 <td className="px-5 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button onClick={openPlasticPalletsEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Plastic Pallets Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Transport Logistics Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-orange-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Transport Logistics Page</p>
+                                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/products/transport-logistics</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openTransportLogisticsEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Transport Logistics Content">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </button>
                                     </div>
@@ -867,6 +1002,16 @@ export default function AdminPagesPage() {
                     content={plasticPalletsContent}
                     onSave={handlePlasticPalletsSave}
                     onClose={() => setShowPlasticPalletsModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* Transport Logistics Page Editor */}
+            {showTransportLogisticsModal && (
+                <TransportLogisticsPageEditor
+                    content={transportLogisticsContent}
+                    onSave={handleTransportLogisticsSave}
+                    onClose={() => setShowTransportLogisticsModal(false)}
                     saving={saving}
                 />
             )}

@@ -1,241 +1,194 @@
-# PAFT Frontend System 🎨
+# PAFT System - Frontend
 
-Modern web application for PAFT Plastic Pallets - A leading manufacturer of premium plastic pallets in Egypt.
+![PAFT Logo](public/paft-logo.png)
 
-## 🏢 About PAFT
+## 🌟 Overview
 
-PAFT specializes in durable, eco-friendly, and cost-effective logistics solutions for various industries including industrial logistics, pharmaceutical, food industry, and export operations.
+PAFT System Frontend is a modern web application built with Next.js 16 for PAFT Plastic Pallets, a leading manufacturer of premium plastic pallets in Egypt. The application provides a comprehensive platform for customers and administrators to manage products, orders, and content.
 
-**Founded**: 2010 | **Employees**: 50+ | **Certifications**: ISO 9001, ISO 14001, HACCP
+## 🚀 Features
 
-## 🛠️ Technology Stack
+- **Modern UI/UX**: Built with Next.js 16 App Router and Tailwind CSS
+- **Product Catalog**: Browse 6+ categories of plastic pallets
+- **Admin Dashboard**: Complete CMS for product and content management
+- **E-commerce**: Shopping cart and order management
+- **Interactive Maps**: Market coverage visualization with Leaflet
+- **Responsive Design**: Mobile-first approach
+- **Multi-language Support**: English and Arabic
+- **Authentication**: JWT-based secure authentication
+- **Dynamic Content**: Database-driven content management
 
-- **Framework**: Next.js 15 with App Router
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS 4
 - **UI Components**: Custom React components with Lucide React icons
-- **Maps**: Leaflet with React Leaflet for interactive maps
+- **Maps**: Leaflet with React Leaflet
 - **Fonts**: Geist Sans and Geist Mono
-- **Development**: ESLint with Next.js config
+- **Build System**: Next.js built-in bundler
+- **Package Manager**: npm
+
+## 📋 Prerequisites
+
+- Node.js 18+ LTS
+- npm or yarn
+- Backend API running (see [Backend Repository](https://github.com/Tarqumi/Paft-System-backend))
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- npm
-
-### Installation
-
-1. **Clone the repository**
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/bdhtrk94-cmyk/paft-front.git
-cd paft-front
+git clone https://github.com/Tarqumi/PAFT_System.git
+cd PAFT_System
 ```
 
-2. **Install dependencies**
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-3. **Environment setup**
-```bash
-cp .env.example .env.local
-# Configure your API URL in .env.local
+### 3. Environment Setup
+Create a `.env.local` file in the root directory:
+```env
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+
+# Development Settings
+NEXT_PRIVATE_TURBO=false
+FAST_REFRESH=false
 ```
 
-4. **Start development server**
+### 4. Start Development Server
 ```bash
 npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
 
-## 🌟 Features
-
-### Customer Features
-- **Product Catalog**: Browse 6 main categories (Standard, Euro, Heavy Duty, Lightweight, Export, Specialized)
-- **Company Information**: Learn about PAFT's journey and certifications
-- **Interactive Maps**: Explore market coverage with Leaflet maps
-- **Contact Forms**: Request quotes and get in touch
-- **Shopping Cart**: Add products and manage orders
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
-
-### Admin Features
-- **Dashboard**: Overview of system statistics
-- **User Management**: Manage user accounts and roles
-- **Product Management**: Add, edit, and delete products
-- **Content Management**: Update site content and pages
-- **Order Processing**: View and manage customer orders
-
-## 📱 Pages & Routes
-
-### Public Pages
-- `/` - Homepage with video hero and company overview
-- `/about` - Company information and certifications
-- `/products` - Product catalog with categories
-- `/products/[category]` - Category-specific product pages
-- `/shop` - E-commerce product listing
-- `/shop/[id]` - Individual product details
-- `/company/markets` - Interactive market coverage maps
-- `/contact` - Contact form and company details
-- `/our-journey` - Company history and milestones
-
-### Authentication
-- `/login` - User login
-- `/register` - User registration
-
-### Admin Dashboard
-- `/admin` - Admin dashboard overview
-- `/admin/products` - Product management
-- `/admin/users` - User management
-- `/admin/pages` - CMS page management
-- `/admin/site-content` - Site content management
-
-## 🎨 Design System
-
-### Colors
-- **Primary**: Blue tones for trust and professionalism
-- **Secondary**: Green accents for eco-friendly messaging
-- **Neutral**: Gray scale for text and backgrounds
-- **Status**: Success, warning, and error states
-
-### Components
-- **Header**: Navigation with authentication state
-- **Footer**: Company information and links
-- **ProductCard**: Reusable product display component
-- **VideoHero**: Homepage video background
-- **InteractiveMap**: Market coverage visualization
-- **CartSidebar**: Shopping cart management
-- **AdminSidebar**: Admin navigation
-
-## 🔧 Available Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-```
-
 ## 📁 Project Structure
 
 ```
 src/
 ├── app/                    # Next.js App Router pages
-│   ├── layout.tsx          # Root layout with providers
-│   ├── page.tsx            # Homepage
-│   ├── globals.css         # Global styles
-│   ├── admin/              # Admin dashboard pages
-│   ├── products/           # Product catalog pages
-│   ├── shop/               # E-commerce pages
-│   ├── company/            # Company information pages
-│   ├── contact/            # Contact page
-│   ├── login/              # Authentication pages
-│   └── register/           # User registration
-├── components/             # Reusable React components
-│   ├── admin/              # Admin-specific components
-│   ├── auth/               # Authentication components
-│   ├── maps/               # Map-related components
-│   ├── shop/               # E-commerce components
-│   └── [Component].tsx     # Shared components
-├── context/                # React context providers
-│   ├── AuthContext.tsx     # Authentication state
-│   └── CartContext.tsx     # Shopping cart state
-├── lib/                    # Utility functions and data
-│   ├── data.ts             # Static data
-│   ├── constants.ts        # Application constants
-│   ├── colors.ts           # Color definitions
-│   └── utils.ts            # Helper functions
-├── types/                  # TypeScript type definitions
-│   └── index.ts            # Shared interfaces
-└── hooks/                  # Custom React hooks
+│   ├── admin/             # Admin dashboard
+│   ├── products/          # Product catalog
+│   ├── shop/              # E-commerce pages
+│   ├── about/             # Company information
+│   ├── contact/           # Contact form
+│   └── company/           # Company pages
+├── components/            # Reusable React components
+│   ├── admin/             # Admin-specific components
+│   ├── auth/              # Authentication components
+│   ├── maps/              # Map components
+│   └── shop/              # E-commerce components
+├── context/               # React Context providers
+├── lib/                   # Utility functions and data
+├── types/                 # TypeScript type definitions
+└── hooks/                 # Custom React hooks
 ```
 
-## 🔗 API Integration
+## 🔧 Available Scripts
 
-The frontend communicates with the PAFT Backend System:
-- **Backend Repository**: https://github.com/Tarqumi/Paft-System-backend
-- **API Base URL**: `http://localhost:3001/api` (development)
-
-### Authentication Flow
-1. User login/register through forms
-2. JWT token stored in context
-3. Protected routes check authentication state
-4. Admin routes require admin role
-
-### Data Management
-- **Products**: Fetched from `/api/products`
-- **Orders**: Managed through `/api/orders`
-- **User Profile**: Updated via `/api/users`
-- **Admin Data**: Accessed through `/api/admin/*`
-
-## 🌐 Environment Variables
-
-```env
-# Disable Turbopack for Windows compatibility
-NEXT_PRIVATE_TURBO=false
-
-# Disable fast refresh to prevent constant reloading
-FAST_REFRESH=false
-
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript type checking
 ```
+
+## 🌐 Key Pages
+
+- **Homepage** (`/`): Company overview and featured products
+- **Products** (`/products`): Product catalog with categories
+- **Shop** (`/shop`): E-commerce functionality
+- **Admin** (`/admin`): Complete admin dashboard
+- **About** (`/about`): Company information
+- **Contact** (`/contact`): Contact form and information
+
+## 🔐 Admin Features
+
+- Product management (CRUD operations)
+- Content management system
+- Order management
+- User management
+- Page content editing
+- Site settings
 
 ## 📱 Responsive Design
 
-The application is fully responsive with breakpoints:
-- **Mobile**: 320px - 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: 1024px+
+The application is fully responsive and optimized for:
+- Desktop (1920px+)
+- Laptop (1024px - 1919px)
+- Tablet (768px - 1023px)
+- Mobile (320px - 767px)
 
-### Mobile Features
-- Touch-friendly navigation
-- Optimized forms and inputs
-- Responsive images and videos
-- Mobile-first CSS approach
+## 🎨 Design System
+
+- **Colors**: Custom color palette with light/dark theme support
+- **Typography**: Geist Sans and Geist Mono fonts
+- **Components**: Consistent design system with Tailwind CSS
+- **Icons**: Lucide React icon library
+- **Animations**: Smooth transitions and micro-interactions
+
+## 🔗 API Integration
+
+The frontend communicates with the backend API for:
+- Authentication and authorization
+- Product data management
+- Order processing
+- Content management
+- File uploads
 
 ## 🚀 Deployment
 
-The application is ready for deployment on:
-- **Vercel** (Recommended for Next.js)
-- **Netlify**
-- **AWS Amplify**
-- **DigitalOcean App Platform**
+### Production Build
+```bash
+npm run build
+npm start
+```
 
-### Production Checklist
-- [ ] Update API URL for production
-- [ ] Configure environment variables
-- [ ] Set up SSL/TLS
-- [ ] Optimize images and assets
-- [ ] Configure CDN
-- [ ] Set up monitoring
+### Environment Variables for Production
+```env
+NEXT_PUBLIC_API_URL=https://your-api-domain.com/api
+NODE_ENV=production
+```
 
-## 🔐 Security Features
-
-- JWT token management
-- Protected routes with authentication
-- Role-based access control
-- Input validation and sanitization
-- CSRF protection
-- Secure headers configuration
-
-## 🎯 Performance Optimizations
-
-- Next.js App Router for optimal loading
-- Image optimization with Next.js Image
-- Code splitting and lazy loading
-- Static generation where possible
-- Efficient bundle size management
+### Deployment Options
+- **Vercel**: Automatic deployment from GitHub
+- **Netlify**: Static site deployment
+- **IIS**: Windows Server deployment
+- **Docker**: Containerized deployment
 
 ## 🤝 Contributing
 
-This is a private project for PAFT. For any questions or support, please contact the development team.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is proprietary software owned by PAFT.
+This project is proprietary software owned by PAFT Plastic Pallets.
+
+## 📞 Support
+
+For support and inquiries:
+- **Website**: [paft.eg](https://paft.eg)
+- **Email**: info@paft.eg
+- **Phone**: +20 XXX XXX XXXX
+
+## 🏢 About PAFT
+
+PAFT is a leading manufacturer of premium plastic pallets in Egypt, established in 2010. We specialize in durable, eco-friendly, and cost-effective logistics solutions for various industries including pharmaceutical, food, and export operations.
+
+**Certifications**: ISO 9001, ISO 14001, HACCP
+**Employees**: 50+
+**Business Hours**: Sunday - Thursday, 9:00 AM - 6:00 PM (Egypt timezone)
 
 ---
 
-**PAFT Frontend System** - Modern web experience for premium plastic pallet solutions 🇪🇬
+Made with ❤️ by PAFT Team

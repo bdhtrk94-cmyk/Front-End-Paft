@@ -31,7 +31,7 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
                             alt="PAFT Logo" 
                             className="w-6 h-6 object-contain filter brightness-110"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-white font-bold text-lg tracking-tight">PAFT</span>

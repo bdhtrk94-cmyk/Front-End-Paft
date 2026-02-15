@@ -20,7 +20,7 @@ const emptyForm: FormData = {
 };
 
 export default function AdminProductsPage() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const searchParams = useSearchParams();
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,13 +39,52 @@ export default function AdminProductsPage() {
     }, [searchParams]);
 
     const fetchProducts = async () => {
-        if (!token) return;
+        console.log('=== STARTING FETCH PRODUCTS ===');
+        console.log('Token from useAuth:', !!token);
+        console.log('User from useAuth:', user);
+        
+        if (!token) {
+            console.log('No token found, setting error');
+            setError('No authentication token found. Please login again.');
+            return;
+        }
+        
+        console.log('=== DEBUG INFO ===');
+        console.log('Token exists:', !!token);
+        console.log('Token preview:', token?.substring(0, 50) + '...');
+        console.log('User:', user);
+        console.log('User role:', user?.role);
+        console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/products`);
+        console.log('==================');
+        
         setLoading(true);
+        setError('');
+        
         try {
+            console.log('About to call adminProductsApi.getAll...');
             const data = await adminProductsApi.getAll(token);
+            console.log('Products loaded successfully:', data.length, 'items');
             setProducts(data);
-        } catch { setError('Failed to load products'); }
-        finally { setLoading(false); }
+        } catch (err: any) {
+            console.error('Failed to load products:', err);
+            console.error('Error details:', {
+                message: err.message,
+                statusCode: err.statusCode,
+                stack: err.stack
+            });
+            
+            if (err.statusCode === 403) {
+                setError(`Access denied. User role: ${user?.role}. Please check your admin permissions.`);
+            } else if (err.statusCode === 401) {
+                setError('Authentication failed. Please login again.');
+            } else {
+                setError(err.message || 'Failed to load products. Please try again.');
+            }
+        }
+        finally { 
+            console.log('Setting loading to false');
+            setLoading(false); 
+        }
     };
 
     useEffect(() => { fetchProducts(); }, [token]);
@@ -89,11 +128,17 @@ export default function AdminProductsPage() {
     const handleDelete = async (id: number) => {
         if (!token) return;
         try {
+            console.log('Permanently deleting product with ID:', id);
             await adminProductsApi.delete(id, token);
-            setSuccessMsg('Product deleted!');
+            console.log('Product permanently deleted successfully');
+            setSuccessMsg('Product deleted permanently!');
             setDeleteConfirm(null);
-            fetchProducts();
-        } catch { setError('Failed to delete'); }
+            // Refresh the products list to show updated data
+            await fetchProducts();
+        } catch (error: any) {
+            console.error('Failed to delete product:', error);
+            setError(`Failed to delete: ${error.message || 'Unknown error'}`);
+        }
     };
 
     useEffect(() => { if (successMsg) { const t = setTimeout(() => setSuccessMsg(''), 3000); return () => clearTimeout(t); } }, [successMsg]);
@@ -119,7 +164,21 @@ export default function AdminProductsPage() {
             </div>
 
             {successMsg && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-xl text-sm">{successMsg}</div>}
-            {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>}
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">
+                    <div className="font-medium mb-1">Error Loading Products</div>
+                    <div>{error}</div>
+                    <div className="mt-2 text-xs text-red-300">
+                        <strong>Troubleshooting:</strong>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>Make sure the backend server is running on port 3001</li>
+                            <li>Check if your user role is 'admin' or 'super_admin'</li>
+                            <li>Try logging out and logging back in</li>
+                            <li>Check browser console for detailed error logs</li>
+                        </ul>
+                    </div>
+                </div>
+            )}
 
             {/* Search */}
             <div className="relative">
@@ -182,13 +241,13 @@ export default function AdminProductsPage() {
                         <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </div>
-                        <h3 className="text-lg font-bold text-white text-center mb-2">Delete Product</h3>
+                        <h3 className="text-lg font-bold text-white text-center mb-2">Delete Product Permanently</h3>
                         <p className="text-gray-400 text-sm text-center mb-6">
-                            Are you sure you want to delete <span className="text-white font-semibold">&quot;{deleteConfirm.name}&quot;</span>? This action cannot be undone.
+                            Are you sure you want to permanently delete <span className="text-white font-semibold">&quot;{deleteConfirm.name}&quot;</span>? This action cannot be undone and the product will be removed from the database completely.
                         </p>
                         <div className="flex gap-3">
                             <button onClick={() => handleDelete(deleteConfirm.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-all">
-                                Delete
+                                Delete Permanently
                             </button>
                             <button onClick={() => setDeleteConfirm(null)} className="flex-1 bg-white/5 border border-white/10 text-gray-300 py-2.5 rounded-xl font-semibold text-sm hover:bg-white/10 transition-all">
                                 Cancel

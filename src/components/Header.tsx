@@ -208,7 +208,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                   <img
                     src="/paft-logo.png"
                     alt="PAFT Logo"
-                    className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+                    className="h-10 w-auto transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
               </Link>
@@ -229,7 +229,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                       onMouseLeave={handleDropdownLeave}
                     >
                       <button
-                        className="relative px-4 py-2 rounded-lg font-medium transition-all duration-300 group flex items-center gap-1.5"
+                        className="relative px-4 py-2 rounded-lg font-medium transition-all duration-700 group flex items-center gap-1.5"
                         style={{
                           color: isActive ? 'var(--header-active-color)' : 'var(--header-text)',
                           backgroundColor: isActive ? 'var(--header-active-bg)' : 'transparent',
@@ -250,7 +250,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                       >
                         {item.name}
                         <svg
-                          className="w-3.5 h-3.5 transition-transform duration-300"
+                          className="w-3.5 h-3.5 transition-transform duration-700"
                           style={{
                             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                           }}
@@ -261,7 +261,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                         <span
-                          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 transition-all duration-300"
+                          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 transition-all duration-700"
                           style={{
                             width: isActive ? '100%' : '0%',
                             backgroundImage: 'linear-gradient(90deg, #06B6D4, #2563EB)',
@@ -276,7 +276,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                           transform: 'translateX(-50%)',
                           opacity: isOpen ? 1 : 0,
                           visibility: isOpen ? 'visible' : 'hidden',
-                          transition: 'opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease',
+                          transition: 'opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease',
                           pointerEvents: isOpen ? 'auto' : 'none',
                         }}
                       >
@@ -301,7 +301,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                               <a
                                 key={child.key}
                                 href={child.href}
-                                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group/item"
+                                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-700 group/item"
                                 style={{
                                   color: currentPage === child.key ? 'var(--header-active-color)' : 'var(--header-text)',
                                   backgroundColor: currentPage === child.key ? 'var(--header-active-bg)' : 'transparent',
@@ -321,7 +321,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                               >
                                 {/* Icon */}
                                 <div
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-700"
                                   style={{
                                     background: currentPage === child.key
                                       ? 'var(--header-active-bg)'
@@ -351,7 +351,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                   <a
                     key={item.key}
                     href={item.href}
-                    className="relative px-4 py-2 rounded-lg font-medium transition-all duration-300 group"
+                    className="relative px-4 py-2 rounded-lg font-medium transition-all duration-700 group"
                     style={{
                       color: currentPage === item.key ? 'var(--header-active-color)' : 'var(--header-text)',
                       backgroundColor: currentPage === item.key ? 'var(--header-active-bg)' : 'transparent',
@@ -371,7 +371,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                   >
                     {item.name}
                     <span
-                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 transition-all duration-300"
+                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 transition-all duration-700"
                       style={{
                         width: currentPage === item.key ? '100%' : '0%',
                         background: 'linear-gradient(90deg, #06B6D4, #2563EB)',
@@ -390,7 +390,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               {/* Cart Icon */}
               <button
                 onClick={openCart}
-                className="relative p-2.5 rounded-lg transition-all duration-300 group"
+                className="relative p-2.5 rounded-lg transition-all duration-700 group"
                 style={{ color: 'var(--header-text)' }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.color = 'var(--header-text-hover)';
@@ -418,7 +418,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
 
               <a
                 href="/contact"
-                className="relative overflow-hidden text-white px-6 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center space-x-2 group"
+                className="relative overflow-hidden text-white px-6 py-2.5 rounded-lg font-semibold transition-all duration-700 flex items-center space-x-2 group"
                 style={{
                   background: 'linear-gradient(135deg, #06B6D4 0%, #2563EB 100%)',
                   boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
@@ -433,7 +433,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                 }}
               >
                 <span>Get Quote</span>
-                <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 transition-transform duration-700 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </a>
@@ -444,7 +444,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               <ThemeSwitcher />
               <button
                 onClick={openCart}
-                className="relative p-2 rounded-lg transition-colors duration-300"
+                className="relative p-2 rounded-lg transition-colors duration-700"
                 style={{ color: 'var(--header-text)' }}
                 aria-label="Open cart"
               >
@@ -463,11 +463,11 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               </button>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg transition-colors duration-300"
+                className="p-2 rounded-lg transition-colors duration-700"
                 style={{ color: 'var(--header-text)' }}
                 aria-label="Toggle mobile menu"
               >
-                <svg className={`w-6 h-6 transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-6 h-6 transition-transform duration-700 ${isMobileMenuOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {isMobileMenuOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   ) : (
@@ -480,7 +480,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
         </div>
 
         {/* Mobile Navigation */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen
+        <div className={`md:hidden transition-all duration-700 ease-in-out ${isMobileMenuOpen
           ? 'max-h-[500px] opacity-100'
           : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
@@ -501,7 +501,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     <div key={item.key}>
                       <button
                         onClick={() => setMobileOpenDropdown(isMobileOpen ? null : item.key)}
-                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-all duration-300"
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-all duration-700"
                         style={{
                           color: isActive ? 'var(--header-active-color)' : 'var(--header-text)',
                           backgroundColor: isActive ? 'var(--header-active-bg)' : 'transparent',
@@ -510,7 +510,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                       >
                         <span>{item.name}</span>
                         <svg
-                          className="w-4 h-4 transition-transform duration-300"
+                          className="w-4 h-4 transition-transform duration-700"
                           style={{ transform: isMobileOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                           fill="none"
                           stroke="currentColor"
@@ -521,7 +521,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                       </button>
 
                       <div
-                        className="transition-all duration-300 ease-in-out overflow-hidden"
+                        className="transition-all duration-700 ease-in-out overflow-hidden"
                         style={{
                           maxHeight: isMobileOpen ? '300px' : '0px',
                           opacity: isMobileOpen ? 1 : 0,
@@ -533,7 +533,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                               key={child.key}
                               href={child.href}
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 text-sm"
+                              className="flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-all duration-700 text-sm"
                               style={{
                                 color: currentPage === child.key ? 'var(--header-active-color)' : 'var(--header-text)',
                                 backgroundColor: currentPage === child.key ? 'var(--header-active-bg)' : 'transparent',
@@ -554,7 +554,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     key={item.key}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg font-medium transition-all duration-300"
+                    className="block px-4 py-3 rounded-lg font-medium transition-all duration-700"
                     style={{
                       color: currentPage === item.key ? 'var(--header-active-color)' : 'var(--header-text)',
                       backgroundColor: currentPage === item.key ? 'var(--header-active-bg)' : 'transparent',
@@ -569,7 +569,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                 <a
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full text-white px-4 py-3 rounded-lg font-semibold text-center transition-all duration-300"
+                  className="block w-full text-white px-4 py-3 rounded-lg font-semibold text-center transition-all duration-700"
                   style={{
                     background: 'linear-gradient(135deg, #06B6D4 0%, #2563EB 100%)',
                     boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',

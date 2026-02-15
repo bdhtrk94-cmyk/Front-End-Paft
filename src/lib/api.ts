@@ -20,13 +20,25 @@ export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}):
 
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔑 API Request with token:', {
+            endpoint,
+            method,
+            tokenPreview: token.substring(0, 20) + '...',
+            hasToken: !!token
+        });
+    } else {
+        console.log('❌ API Request WITHOUT token:', { endpoint, method });
     }
+
+    console.log('📡 Making request to:', `${API_BASE_URL}${endpoint}`);
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
     });
+
+    console.log('📥 Response status:', response.status, response.statusText);
 
     // Handle empty responses (e.g., DELETE returns 200 with no body)
     const contentType = response.headers.get('content-type');
@@ -149,11 +161,11 @@ export const productsApi = {
         if (params?.minPrice !== undefined) searchParams.set('minPrice', String(params.minPrice));
         if (params?.maxPrice !== undefined && params.maxPrice !== Infinity) searchParams.set('maxPrice', String(params.maxPrice));
         const qs = searchParams.toString();
-        return apiRequest<ProductResponse[]>(`/products${qs ? `?${qs}` : ''}`);
+        return apiRequest<ProductResponse[]>(`/products/public${qs ? `?${qs}` : ''}`);
     },
 
     getOne: (id: number) =>
-        apiRequest<ProductResponse>(`/products/${id}`),
+        apiRequest<ProductResponse>(`/products/public/${id}`),
 };
 
 // ── Admin Pages API helpers ───────────────────────────

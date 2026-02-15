@@ -58,7 +58,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
                         <img
                             src="https://paft.eg/wp-content/uploads/2025/10/cropped-cropped-cropped-cropped-PAFT-Ind-3.png"
                             alt="PAFT Logo"
-                            className="h-14 w-auto transition-transform duration-300 hover:scale-105"
+                            className="h-14 w-auto transition-transform duration-500 hover:scale-105"
                         />
                     </Link>
 

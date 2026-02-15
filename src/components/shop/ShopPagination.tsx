@@ -39,7 +39,7 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 style={{
                     background: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.05)',
                     border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
@@ -63,7 +63,7 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
                     <button
                         key={p}
                         onClick={() => onPageChange(p)}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold transition-all duration-300"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold transition-all duration-500"
                         style={
                             currentPage === p
                                 ? {
@@ -88,7 +88,7 @@ export default function ShopPagination({ currentPage, totalPages, onPageChange }
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 style={{
                     background: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.05)',
                     border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,

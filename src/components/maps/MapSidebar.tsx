@@ -86,7 +86,7 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <div className={`transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                    <div className={`transition-opacity duration-500 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
                         <div
                             className="text-lg max-sm:text-base font-bold"
                             style={{
@@ -103,12 +103,12 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
 
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className="hidden md:flex w-8 h-8 rounded-full items-center justify-center transition-all duration-300 hover:scale-110"
+                    className="hidden md:flex w-8 h-8 rounded-full items-center justify-center transition-all duration-500 hover:scale-110"
                     style={{ background: 'rgba(6,182,212,0.1)', color: '#06B6D4' }}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
                     <svg
-                        className="w-4 h-4 transition-transform duration-300"
+                        className="w-4 h-4 transition-transform duration-500"
                         style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}
                         fill="none"
                         stroke="currentColor"
@@ -121,7 +121,7 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
 
             {/* Content */}
             <div
-                className={`px-5 pt-5 pb-3 overflow-y-auto transition-opacity duration-300
+                className={`px-5 pt-5 pb-3 overflow-y-auto transition-opacity duration-500
           h-[calc(100%-85px)] max-md:h-[calc(100%-85px)] max-sm:px-4
           ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
         `}
@@ -161,7 +161,7 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                         <button
                             key={f.key}
                             onClick={() => setFilter(f.key)}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 max-sm:py-2 rounded-lg text-xs max-sm:text-[0.7rem] font-semibold transition-all duration-300 ${filter === f.key
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 max-sm:py-2 rounded-lg text-xs max-sm:text-[0.7rem] font-semibold transition-all duration-500 ${filter === f.key
                                     ? 'text-white shadow-md -translate-y-px'
                                     : 'text-gray-500 hover:text-cyan-600 hover:bg-cyan-50/50'
                                 }`}
@@ -203,7 +203,7 @@ function CountryItem({ country, onClick }: { country: PaftCountry; onClick: () =
     return (
         <button
             onClick={onClick}
-            className="w-full flex items-center p-3.5 rounded-xl cursor-pointer transition-all duration-300 text-left group relative overflow-hidden"
+            className="w-full flex items-center p-3.5 rounded-xl cursor-pointer transition-all duration-500 text-left group relative overflow-hidden"
             style={{
                 background: isHQ ? 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.04))' : 'white',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
@@ -224,7 +224,7 @@ function CountryItem({ country, onClick }: { country: PaftCountry; onClick: () =
         >
             {/* Left accent bar */}
             <div
-                className="absolute left-0 top-0 h-full w-1 transition-transform duration-300 origin-center scale-y-0 group-hover:scale-y-100"
+                className="absolute left-0 top-0 h-full w-1 transition-transform duration-500 origin-center scale-y-0 group-hover:scale-y-100"
                 style={{ background: 'linear-gradient(135deg, #06B6D4, #2563EB)' }}
             />
 

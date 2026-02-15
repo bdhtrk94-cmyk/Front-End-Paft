@@ -4,33 +4,26 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 
 interface VideoHeroProps {
   videoSrc: string;
-  content?: {
-    [key: string]: {
-      value: string;
-      valueAr?: string;
-      id: number;
-    };
-  };
+  videoSrc2?: string;
+  watchVideoText?: string;
 }
 
 const heroImages = [
   'https://paft.eg/wp-content/uploads/2026/02/Copy-of-vlcsnap-2024-07-21-14h26m13s806-scaled.png',
   'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-12.57.33-PM.jpeg',
   'https://paft.eg/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-08-at-3.13.59-PM.jpeg',
-  'https://paft.eg/wp-content/uploads/2025/10/picture.png'
+  'https://paft.eg/wp-content/uploads/2025/10/Hero-Section.png'
+  
 ];
 
-export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
+export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch Video" }: VideoHeroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef2 = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(1); // 1 for first video, 2 for second video
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Get content values with fallbacks
-  const getContentValue = (key: string, fallback: string = '') => {
-    return content[key]?.value || fallback;
-  };
 
   // Auto-rotate carousel
   const startAutoRotate = useCallback(() => {
@@ -55,10 +48,16 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
 
   const handlePlay = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    // Choose video based on current slide
+    // Slides 0,1 (first two images) → first video
+    // Slides 2,3 (last two images) → second video
+    const videoToPlay = currentSlide < 2 ? 1 : 2;
+    setCurrentVideo(videoToPlay);
     setIsPlaying(true);
     setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.play().catch(console.error);
+      const video = videoToPlay === 1 ? videoRef.current : videoRef2.current;
+      if (video) {
+        video.play().catch(console.error);
       }
     }, 100);
   };
@@ -68,6 +67,10 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
+    }
+    if (videoRef2.current) {
+      videoRef2.current.pause();
+      videoRef2.current.currentTime = 0;
     }
   };
 
@@ -118,7 +121,7 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
             {/* Pulsing ring */}
             <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
             {/* Outer glow */}
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300 shadow-2xl">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
               {/* Inner play icon */}
               <svg
                 className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
@@ -130,8 +133,8 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
             </div>
           </div>
           {/* Watch video text */}
-          <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            {getContentValue('watch-video-text', 'Watch Video')}
+          <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            {watchVideoText}
           </span>
         </button>
 
@@ -141,7 +144,7 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full ${index === currentSlide
+              className={`transition-all duration-500 rounded-full ${index === currentSlide
                 ? 'w-8 h-2.5 bg-white shadow-lg shadow-white/30'
                 : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
                 }`}
@@ -156,15 +159,29 @@ export default function VideoHero({ videoSrc, content = {} }: VideoHeroProps) {
         className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
           }`}
       >
+        {/* First Video */}
         <video
           ref={videoRef}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${currentVideo === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           playsInline
           controls
           onEnded={handleVideoEnd}
         >
           <source src={videoSrc} type="video/mp4" />
         </video>
+
+        {/* Second Video (if provided) */}
+        {videoSrc2 && (
+          <video
+            ref={videoRef2}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${currentVideo === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            playsInline
+            controls
+            onEnded={handleVideoEnd}
+          >
+            <source src={videoSrc2} type="video/mp4" />
+          </video>
+        )}
 
         {/* Close / Back to carousel button */}
         <button

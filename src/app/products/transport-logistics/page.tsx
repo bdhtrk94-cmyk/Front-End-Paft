@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useTheme } from '@/context/ThemeContext';
+import { contentApi } from '@/lib/api';
 
 /* ─── Data ─── */
 interface SpecRow {
@@ -24,114 +25,13 @@ interface Product {
     priceLabel?: string;
 }
 
-const products: Product[] = [
-    {
-        id: 'foldable-ibc',
-        title: 'Foldable IBC - 1000 Lit',
-        image: 'https://paft.eg/wp-content/uploads/2025/11/WhatsApp_Image_2025-11-25_at_5.14.27_PM-removebg-preview.png',
-        specs: {
-            headers: ['Types of Truck', '2.6m Standard Trailer', '3m Mega road train'],
-            rows: [
-                { label: 'IC 1040', values: ['208', '270'] },
-                { label: 'Industry standard IBC', values: ['130', '180'] },
-                { label: 'Improvement rate', values: ['60% More', '50% More'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'rpc-6419',
-        title: 'RPC 6419',
-        subtitle: '600×400×195mm',
-        image: 'https://paft.eg/wp-content/uploads/2026/02/WhatsApp_Image_2026-02-05_at_4.37.38_PM-removebg-preview.png',
-        specs: {
-            rows: [
-                { label: 'External Dimension', values: ['600×400×195 mm'] },
-                { label: 'Internal Dimension', values: ['576×376×180 mm'] },
-                { label: 'Tare Weight', values: ['1.8 KG'] },
-                { label: 'Volume Capacity', values: ['39 L'] },
-                { label: 'Unit Load', values: ['20 KG'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'rpc-6422',
-        title: 'RPC 6422',
-        subtitle: '600×400×225mm',
-        image: 'https://paft.eg/wp-content/uploads/2026/02/WhatsApp_Image_2026-02-05_at_4.40.55_PM-removebg-preview.png',
-        specs: {
-            rows: [
-                { label: 'External Dimension', values: ['600×400×225 mm'] },
-                { label: 'Internal Dimension', values: ['576×376×212 mm'] },
-                { label: 'Tare Weight', values: ['2.0 KG'] },
-                { label: 'Volume Capacity', values: ['47 L'] },
-                { label: 'Unit Load', values: ['22 KG'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'rpc-6430',
-        title: 'RPC 6430',
-        subtitle: '600×400×300mm',
-        image: 'https://paft.eg/wp-content/uploads/2026/02/image-removebg-preview-1.png',
-        specs: {
-            rows: [
-                { label: 'External Dimension', values: ['600×400×300 mm'] },
-                { label: 'Internal Dimension', values: ['576×376×291 mm'] },
-                { label: 'Tare Weight', values: ['2.8 KG'] },
-                { label: 'Volume Capacity', values: ['61 L'] },
-                { label: 'Unit Load', values: ['30 KG'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'large-foldable-crate',
-        title: 'Large Foldable Crate',
-        subtitle: '800×600×984mm',
-        image: 'https://paft.eg/wp-content/uploads/2026/02/image-removebg-preview.png',
-        specs: {
-            rows: [
-                { label: 'External Dimension', values: ['800×600×984 mm'] },
-                { label: 'Internal Dimension', values: ['760×560×852 mm'] },
-                { label: 'Folding Height', values: ['334 mm'] },
-                { label: 'Tare Weight', values: ['25 KG'] },
-                { label: 'Volume Capacity', values: ['368 L'] },
-                { label: 'Unit Load', values: ['250 KG'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'rpc-6411',
-        title: 'RPC 6411',
-        subtitle: '600×400×115mm',
-        image: 'https://paft.eg/wp-content/uploads/2026/02/WhatsApp_Image_2026-02-05_at_4.06.42_PM-removebg-preview-2.png',
-        specs: {
-            rows: [
-                { label: 'External Dimension', values: ['600×400×115 mm'] },
-                { label: 'Internal Dimension', values: ['576×376×105 mm'] },
-                { label: 'Tare Weight', values: ['1.5 KG'] },
-                { label: 'Volume Capacity', values: ['23 L'] },
-                { label: 'Unit Load', values: ['15 KG'] },
-            ],
-        },
-        priceLabel: 'On Call',
-    },
-    {
-        id: 'sheet-separators',
-        title: 'Sheet Separators',
-        image: 'https://paft.eg/wp-content/uploads/2025/11/WhatsApp_Image_2025-11-25_at_5.14.26_PM-removebg-preview.png',
-    },
-    {
-        id: 'gallon-racks',
-        title: 'Gallon Racks',
-        image: 'https://paft.eg/wp-content/uploads/2025/06/f2883d_1160983ac47f4db8b0586f4a4f0d4a93_mv2-removebg-preview-1.png',
-        features: ['The 4 pc\'s Set', 'The 8 pc\'s Set'],
-    },
-];
+interface PageContent {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+}
 
 /* ─── Scroll Animation Hook ─── */
 function useInView(threshold = 0.15) {
@@ -401,12 +301,211 @@ function ProductCard({ product, index, isLight }: { product: Product; index: num
     );
 }
 
+/* ─── Helper Functions ─── */
+function parseSpecRows(content: PageContent, productNum: number): SpecRow[] {
+    const rows: SpecRow[] = [];
+    let i = 1;
+    while (content[`product-${productNum}-spec-row-${i}`]) {
+        const rowData = content[`product-${productNum}-spec-row-${i}`].value;
+        if (rowData) {
+            const parts = rowData.split(',');
+            if (parts.length >= 2) {
+                rows.push({
+                    label: parts[0].trim(),
+                    values: parts.slice(1).map(v => v.trim())
+                });
+            }
+        }
+        i++;
+    }
+    return rows;
+}
+
+function buildProductsFromContent(content: PageContent): Product[] {
+    const products: Product[] = [];
+    
+    for (let i = 1; i <= 8; i++) {
+        const title = content[`product-${i}-title`]?.value;
+        const image = content[`product-${i}-image`]?.value;
+        
+        if (title && image) {
+            const product: Product = {
+                id: `product-${i}`,
+                title,
+                image,
+            };
+            
+            // Add subtitle if exists
+            const subtitle = content[`product-${i}-subtitle`]?.value;
+            if (subtitle) {
+                product.subtitle = subtitle;
+            }
+            
+            // Add features for product 8 (Gallon Racks)
+            if (i === 8) {
+                const featuresStr = content[`product-${i}-features`]?.value;
+                if (featuresStr) {
+                    product.features = featuresStr.split(',').map(f => f.trim());
+                }
+            }
+            
+            // Add specs for products with specifications (not 7 and 8)
+            if (i !== 7 && i !== 8) {
+                const specRows = parseSpecRows(content, i);
+                if (specRows.length > 0) {
+                    product.specs = { rows: specRows };
+                    
+                    // Add headers for product 1 (Foldable IBC)
+                    if (i === 1) {
+                        const headersStr = content[`product-${i}-spec-headers`]?.value;
+                        if (headersStr) {
+                            product.specs.headers = headersStr.split(',').map(h => h.trim());
+                        }
+                    }
+                }
+                
+                // Add price label
+                const priceLabel = content[`product-${i}-price-label`]?.value;
+                if (priceLabel) {
+                    product.priceLabel = priceLabel;
+                }
+            }
+            
+            products.push(product);
+        }
+    }
+    
+    return products;
+}
+
 /* ─── Main Page ─── */
 export default function TransportLogistics() {
+    console.log('🔍 TransportLogistics component loaded');
+    
     const { ref: heroRef, visible: heroVisible } = useInView(0.1);
     const { ref: gridRef, visible: gridVisible } = useInView(0.05);
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    
+    console.log('🔍 Theme:', theme, 'isLight:', isLight);
+    
+    // State for dynamic content
+    const [content, setContent] = useState<PageContent>({});
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    
+    console.log('🔍 Component state:', { contentKeys: Object.keys(content), productsCount: products.length, loading });
+    
+    // Fetch content from API
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                console.log('🔍 Starting to fetch transport logistics content...');
+                console.log('🔍 API URL:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/content/page/transport-logistics`);
+                
+                const data = await contentApi.getPageContent('transport-logistics');
+                console.log('🔍 Transport logistics content received:', data);
+                
+                // Check if data is empty or null
+                if (!data || Object.keys(data).length === 0) {
+                    console.error('❌ No data received from API');
+                    setLoading(false);
+                    return;
+                }
+                
+                // Flatten all content sections into a single object
+                const flatContent: PageContent = {};
+                
+                // Process each section
+                Object.keys(data).forEach(section => {
+                    console.log(`🔍 Processing section: ${section}`, data[section]);
+                    if (data[section] && typeof data[section] === 'object') {
+                        Object.keys(data[section]).forEach(key => {
+                            const item = data[section][key];
+                            if (item && typeof item === 'object' && 'value' in item) {
+                                // For product sections, create unique keys by combining section and key
+                                if (section.startsWith('product-')) {
+                                    const uniqueKey = `${section}-${key}`;
+                                    flatContent[uniqueKey] = item;
+                                } else {
+                                    // For non-product sections, use the key as is
+                                    flatContent[key] = item;
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                console.log('🔍 Flattened content:', flatContent);
+                console.log('🔍 Content keys:', Object.keys(flatContent));
+                console.log('🔍 Sample content values:', {
+                    'badge-text': flatContent['badge-text'],
+                    'title': flatContent['title'],
+                    'description': flatContent['description'],
+                    'section-title': flatContent['section-title']
+                });
+                
+                setContent(flatContent);
+                const builtProducts = buildProductsFromContent(flatContent);
+                console.log('🔍 Built products:', builtProducts);
+                setProducts(builtProducts);
+            } catch (error) {
+                console.error('❌ Failed to fetch transport logistics content:', error);
+                // Set some fallback content so the page doesn't stay loading forever
+                setContent({
+                    'badge-text': { value: 'PAFT Product Range', id: 0 },
+                    'title': { value: 'Transport & Logistics Items', id: 0 },
+                    'description': { value: 'Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks — engineered for modern supply chains with maximum efficiency and sustainability.', id: 0 },
+                    'section-title': { value: 'Our Catalogue', id: 0 },
+                    'section-subtitle': { value: 'Foldable IBCs · RPC Crates · Accessories', id: 0 }
+                });
+                setProducts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchContent();
+    }, []);
+    
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>Loading content...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state if no content loaded
+    if (!content || Object.keys(content).length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-xl font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>
+                        Failed to Load Content
+                    </h2>
+                    <p style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
+                        Unable to load page content. Please check your connection and try again.
+                    </p>
+                    <button 
+                        onClick={() => window.location.reload()} 
+                        className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
@@ -474,7 +573,7 @@ export default function TransportLogistics() {
                             className="text-sm font-semibold tracking-wider uppercase"
                             style={{ color: isLight ? '#0F172A' : 'rgba(255,255,255,0.9)' }}
                         >
-                            PAFT Product Range
+                            {content['badge-text']?.value || 'PAFT Product Range'}
                         </span>
                     </div>
 
@@ -487,16 +586,48 @@ export default function TransportLogistics() {
                             transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s',
                         }}
                     >
-                        <span style={{ color: isLight ? '#0F172A' : '#fff' }}>Transport &{' '}</span>
-                        <br className="hidden sm:block" />
-                        <span
-                            style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                            }}
-                        >
-                            Logistics Items
+                        <span style={{ color: isLight ? '#0F172A' : '#fff' }}>
+                            {content['title']?.value ? (
+                                content['title'].value.includes('&') ? (
+                                    <>
+                                        {content['title'].value.split('&')[0].trim()}&{' '}
+                                        <br className="hidden sm:block" />
+                                        <span
+                                            style={{
+                                                background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                            }}
+                                        >
+                                            {content['title'].value.split('&')[1].trim()}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span
+                                        style={{
+                                            background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        {content['title'].value}
+                                    </span>
+                                )
+                            ) : (
+                                <>
+                                    Transport &{' '}
+                                    <br className="hidden sm:block" />
+                                    <span
+                                        style={{
+                                            background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        Logistics Items
+                                    </span>
+                                </>
+                            )}
                         </span>
                     </h1>
 
@@ -509,7 +640,7 @@ export default function TransportLogistics() {
                             transition: 'all 0.8s ease 0.25s',
                         }}
                     >
-                        Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks — engineered for modern supply chains with maximum efficiency and sustainability.
+                        {content['description']?.value || 'Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks — engineered for modern supply chains with maximum efficiency and sustainability.'}
                     </p>
 
                     {/* Scroll indicator */}
@@ -555,19 +686,48 @@ export default function TransportLogistics() {
                         }}
                     >
                         <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                            Our{' '}
-                            <span
-                                style={{
-                                    background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
-                            >
-                                Catalogue
-                            </span>
+                            {content['section-title']?.value ? (
+                                content['section-title'].value.includes('Our') || content['section-title'].value.includes('Catalogue') ? (
+                                    <>
+                                        Our{' '}
+                                        <span
+                                            style={{
+                                                background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                            }}
+                                        >
+                                            Catalogue
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span
+                                        style={{
+                                            background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        {content['section-title'].value}
+                                    </span>
+                                )
+                            ) : (
+                                <>
+                                    Our{' '}
+                                    <span
+                                        style={{
+                                            background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        Catalogue
+                                    </span>
+                                </>
+                            )}
                         </h2>
                         <p className="text-base" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.45)' }}>
-                            Foldable IBCs · RPC Crates · Accessories
+                            {content['section-subtitle']?.value || 'Foldable IBCs · RPC Crates · Accessories'}
                         </p>
                     </div>
 
@@ -591,19 +751,48 @@ export default function TransportLogistics() {
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        Need a{' '}
-                        <span
-                            style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                            }}
-                        >
-                            Custom Quote?
-                        </span>
+                        {content['cta-title']?.value ? (
+                            content['cta-title'].value.includes('Custom') ? (
+                                <>
+                                    Need a{' '}
+                                    <span
+                                        style={{
+                                            background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        Custom Quote?
+                                    </span>
+                                </>
+                            ) : (
+                                <span
+                                    style={{
+                                        background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
+                                    {content['cta-title'].value}
+                                </span>
+                            )
+                        ) : (
+                            <>
+                                Need a{' '}
+                                <span
+                                    style={{
+                                        background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
+                                    Custom Quote?
+                                </span>
+                            </>
+                        )}
                     </h2>
                     <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                        We offer tailored solutions for crates, IBCs, and logistics accessories
+                        {content['cta-description']?.value || 'We offer tailored solutions for crates, IBCs, and logistics accessories'}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a

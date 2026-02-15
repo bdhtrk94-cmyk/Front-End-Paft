@@ -31,8 +31,9 @@ export default function Home() {
 
       {/* Video Hero Section */}
       <VideoHero
-        videoSrc="/homepage-video.mp4"
-        content={content['video-hero'] || {}}
+        videoSrc="https://paft.eg/wp-content/uploads/2025/11/Homepage.mp4"
+        videoSrc2="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4"
+        watchVideoText={content['video-hero']?.['watch-video-text']?.value || "Watch Video"}
       />
 
       {/* Business Units Section */}

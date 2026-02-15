@@ -54,8 +54,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // Load cart from localStorage on mount
     useEffect(() => {
-        setItems(loadCartFromStorage());
-        setMounted(true);
+        // Use setTimeout to avoid synchronous setState in effect
+        setTimeout(() => {
+            setItems(loadCartFromStorage());
+            setMounted(true);
+        }, 0);
     }, []);
 
     // Persist to localStorage on changes (after initial mount)

@@ -44,7 +44,7 @@ export default function Footer() {
                                 href={COMPANY_INFO.social.facebook}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ease-out"
+                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-700 ease-out"
                                 style={{
                                     background: 'var(--header-hover-bg)',
                                     border: '1px solid var(--footer-border)',
@@ -71,7 +71,7 @@ export default function Footer() {
                                 href={COMPANY_INFO.social.linkedin}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ease-out"
+                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-700 ease-out"
                                 style={{
                                     background: 'var(--header-hover-bg)',
                                     border: '1px solid var(--footer-border)',
@@ -116,12 +116,12 @@ export default function Footer() {
                                 <li key={link.label}>
                                     <a
                                         href={link.href}
-                                        className="flex items-center transition-all duration-500 ease-out group"
+                                        className="flex items-center transition-all duration-700 ease-out group"
                                         style={{ color: 'var(--footer-text)' }}
                                         onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--footer-link-hover)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--footer-text)'; }}
                                     >
-                                        <svg className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-500 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-700 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                         {link.label}
@@ -193,7 +193,7 @@ export default function Footer() {
                             </p>
                             <a
                                 href="/contact"
-                                className="inline-flex items-center text-sm font-semibold transition-all duration-500 ease-out"
+                                className="inline-flex items-center text-sm font-semibold transition-all duration-700 ease-out"
                                 style={{ color: '#06B6D4' }}
                                 onMouseEnter={(e) => { e.currentTarget.style.color = '#22D3EE'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.color = '#06B6D4'; }}
@@ -224,7 +224,7 @@ export default function Footer() {
                             <a
                                 key={item}
                                 href="#"
-                                className="text-sm transition-colors duration-500 ease-out"
+                                className="text-sm transition-colors duration-700 ease-out"
                                 style={{ color: 'var(--footer-text)', opacity: 0.7 }}
                                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--footer-link-hover)'; e.currentTarget.style.opacity = '1'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--footer-text)'; e.currentTarget.style.opacity = '0.7'; }}

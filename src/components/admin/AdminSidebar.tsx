@@ -113,7 +113,7 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
           fixed top-0 left-0 h-full z-50 lg:z-30
           w-[260px] bg-[#0f1523] border-r border-white/5
           flex flex-col
-          transition-transform duration-300 ease-in-out
+          transition-transform duration-500 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
             >
@@ -123,10 +123,10 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                         <img 
                             src="/paft-logo.png" 
                             alt="PAFT Logo" 
-                            className="w-7 h-7 object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-300"
+                            className="w-7 h-7 object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-500"
                         />
                         {/* Subtle glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                                 }}
                                 className={`
                   group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-                  transition-all duration-200
+                  transition-all duration-400
                   ${active
                                         ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/10 text-white shadow-lg shadow-blue-500/5'
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -206,7 +206,7 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                                         }}
                                         className={`
                           group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-                          transition-all duration-200
+                          transition-all duration-400
                           ${active
                                                 ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/10 text-white shadow-lg shadow-purple-500/5'
                                                 : 'text-gray-400 hover:text-white hover:bg-purple-500/5'

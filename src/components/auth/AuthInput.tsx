@@ -35,7 +35,7 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
                         ref={ref}
                         id={id}
                         type={isPassword && showPassword ? 'text' : type}
-                        className={`w-full ${icon ? 'pl-11' : 'pl-4'} ${isPassword ? 'pr-12' : 'pr-4'} py-3.5 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300 text-sm`}
+                        className={`w-full ${icon ? 'pl-11' : 'pl-4'} ${isPassword ? 'pr-12' : 'pr-4'} py-3.5 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-500 text-sm`}
                         style={{
                             background: 'rgba(255,255,255,0.05)',
                             border: error

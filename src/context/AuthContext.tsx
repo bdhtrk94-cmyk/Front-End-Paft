@@ -27,10 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Save auth data to localStorage
     const saveAuth = useCallback((authResponse: AuthResponse) => {
         const { user: userData, access_token } = authResponse;
-        setUser(userData);
+        // Convert API user data to match User interface
+        const userWithDates: User = {
+            ...userData,
+            role: userData.role as UserRole,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        setUser(userWithDates);
         setToken(access_token);
         localStorage.setItem(TOKEN_KEY, access_token);
-        localStorage.setItem(USER_KEY, JSON.stringify(userData));
+        localStorage.setItem(USER_KEY, JSON.stringify(userWithDates));
         // Set cookie so server-side middleware can read the token
         document.cookie = `paft_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     }, []);
@@ -41,15 +48,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedUser = localStorage.getItem(USER_KEY);
 
         if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            // Use setTimeout to avoid synchronous setState in effect
+            setTimeout(() => {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
+            }, 0);
 
             // Verify token is still valid by fetching profile
             authApi
                 .getProfile(storedToken)
                 .then((res) => {
-                    setUser(res.user);
-                    localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+                    // Convert API user data to match User interface
+                    const userWithDates: User = {
+                        ...res.user,
+                        role: res.user.role as UserRole,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    setUser(userWithDates);
+                    localStorage.setItem(USER_KEY, JSON.stringify(userWithDates));
                 })
                 .catch(() => {
                     // Token expired or invalid — clear everything
@@ -61,7 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 })
                 .finally(() => setIsLoading(false));
         } else {
-            setIsLoading(false);
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 0);
         }
     }, []);
 

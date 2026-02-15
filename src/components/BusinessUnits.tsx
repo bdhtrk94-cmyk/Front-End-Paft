@@ -202,7 +202,7 @@ export default function BusinessUnits({ content = {} }: BusinessUnitsProps) {
 
                                     {/* Title */}
                                     <h3
-                                        className="text-2xl font-bold mb-5 text-center transition-all duration-300 flex items-center justify-center"
+                                        className="text-2xl font-bold mb-5 text-center transition-all duration-500 flex items-center justify-center"
                                         style={{
                                             color: unit.color,
                                             textShadow: isHovered
@@ -252,7 +252,7 @@ export default function BusinessUnits({ content = {} }: BusinessUnitsProps) {
                                             <span className="relative z-10 flex items-center">
                                                 {getContentValue(unit.buttonTextKey, 'Discover more')}
                                                 <svg
-                                                    className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-2"
+                                                    className="w-5 h-5 ml-2 transition-transform duration-500 group-hover:translate-x-2"
                                                     fill="none"
                                                     stroke="currentColor"
                                                     viewBox="0 0 24 24"

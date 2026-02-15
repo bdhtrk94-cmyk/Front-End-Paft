@@ -15,23 +15,63 @@ export default function AdminDashboard() {
   const { token, user } = useAuth();
   const [stats, setStats] = useState<Stats>({ pages: 0, products: 0, siteContent: 0 });
   const [loading, setLoading] = useState(true);
+  const [hasApiErrors, setHasApiErrors] = useState(false);
 
   useEffect(() => {
     if (!token) return;
+    
+    console.log('Current user:', user);
+    console.log('User role:', user?.role);
+    console.log('Is admin?', user?.role === 'admin' || user?.role === 'super_admin');
+    
     const fetchStats = async () => {
       try {
-        const [pages, products, content] = await Promise.all([
+        console.log('Fetching admin stats with token:', token?.substring(0, 20) + '...');
+        
+        // Try to fetch stats with better error handling
+        const results = await Promise.allSettled([
           adminPagesApi.getAll(token),
           adminProductsApi.getAll(token),
           siteContentApi.getAll(token),
         ]);
-        setStats({
-          pages: pages.length,
-          products: products.length,
-          siteContent: content.length,
-        });
+
+        let pages = 0, products = 0, content = 0;
+
+        // Handle pages result
+        if (results[0].status === 'fulfilled') {
+          pages = results[0].value.length;
+        } else {
+          console.warn('Failed to fetch pages:', results[0].reason);
+        }
+
+        // Handle products result
+        if (results[1].status === 'fulfilled') {
+          products = results[1].value.length;
+        } else {
+          console.warn('Failed to fetch products:', results[1].reason);
+        }
+
+        // Handle content result
+        if (results[2].status === 'fulfilled') {
+          content = results[2].value.length;
+        } else {
+          console.warn('Failed to fetch site content:', results[2].reason);
+        }
+
+        setStats({ pages, products, siteContent: content });
+        
+        // If all failed, show a message
+        if (results.every(result => result.status === 'rejected')) {
+          console.error('All admin APIs failed. Backend might not be running or user lacks permissions.');
+          setHasApiErrors(true);
+        } else {
+          setHasApiErrors(false);
+        }
+
       } catch (e) {
         console.error('Failed to load stats', e);
+        // Set default stats if everything fails
+        setStats({ pages: 0, products: 0, siteContent: 0 });
       } finally {
         setLoading(false);
       }
@@ -123,6 +163,21 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* API Error Warning */}
+      {hasApiErrors && (
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-3 rounded-xl text-sm flex items-center gap-3">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <div>
+            <p className="font-medium">Backend Connection Issues</p>
+            <p className="text-xs text-amber-300 mt-1">
+              Some admin features may not work properly. Please ensure the backend server is running and you have admin permissions.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

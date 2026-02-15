@@ -47,7 +47,7 @@ export default function ShopFilters({
                     placeholder="Search products..."
                     value={search}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl outline-none transition-all duration-300 text-base"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl outline-none transition-all duration-500 text-base"
                     style={{
                         background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(30,41,59,0.6)',
                         backdropFilter: 'blur(10px)',
@@ -98,7 +98,7 @@ export default function ShopFilters({
                         <button
                             key={cat}
                             onClick={() => onCategoryChange(cat)}
-                            className="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300"
+                            className="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-500"
                             style={
                                 category === cat
                                     ? {
@@ -124,7 +124,7 @@ export default function ShopFilters({
                     <select
                         value={priceRange}
                         onChange={(e) => onPriceRangeChange(Number(e.target.value))}
-                        className="px-3 py-2.5 rounded-xl text-xs font-medium outline-none cursor-pointer transition-all duration-300"
+                        className="px-3 py-2.5 rounded-xl text-xs font-medium outline-none cursor-pointer transition-all duration-500"
                         style={{
                             background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.05)',
                             color: isLight ? '#334155' : 'rgba(255,255,255,0.7)',
@@ -142,7 +142,7 @@ export default function ShopFilters({
                     <select
                         value={sort}
                         onChange={(e) => onSortChange(e.target.value)}
-                        className="px-3 py-2.5 rounded-xl text-xs font-medium outline-none cursor-pointer transition-all duration-300"
+                        className="px-3 py-2.5 rounded-xl text-xs font-medium outline-none cursor-pointer transition-all duration-500"
                         style={{
                             background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.05)',
                             color: isLight ? '#334155' : 'rgba(255,255,255,0.7)',

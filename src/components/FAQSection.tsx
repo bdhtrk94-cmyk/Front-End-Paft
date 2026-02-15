@@ -52,12 +52,12 @@ export default function FAQSection() {
             Get answers to common questions about our plastic pallets and services
           </p>
         </div>
-        
+
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+              className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-500 hover:shadow-lg"
             >
               <button
                 className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
@@ -67,9 +67,8 @@ export default function FAQSection() {
                   {faq.question}
                 </span>
                 <svg
-                  className={`w-6 h-6 text-paft-primary transform transition-transform duration-300 ${
-                    openIndex === index ? 'rotate-180' : ''
-                  }`}
+                  className={`w-6 h-6 text-paft-primary transform transition-transform duration-500 ${openIndex === index ? 'rotate-180' : ''
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -77,11 +76,10 @@ export default function FAQSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                }`}
+                className={`overflow-hidden transition-all duration-500 ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
               >
                 <div className="px-8 pb-6">
                   <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
@@ -90,7 +88,7 @@ export default function FAQSection() {
             </div>
           ))}
         </div>
-        
+
         <div className="text-center mt-12">
           <p className="text-gray-600 mb-4">Still have questions?</p>
           <a

@@ -7,7 +7,7 @@ interface MapControlsProps {
 }
 
 const btnBase =
-    'relative overflow-hidden w-[50px] h-[50px] md:w-[55px] md:h-[55px] rounded-2xl flex items-center justify-center text-lg transition-all duration-300 group';
+    'relative overflow-hidden w-[50px] h-[50px] md:w-[55px] md:h-[55px] rounded-2xl flex items-center justify-center text-lg transition-all duration-500 group';
 
 export default function MapControls({ onReset, onFullscreen, onShowAll }: MapControlsProps) {
     const buttons = [
