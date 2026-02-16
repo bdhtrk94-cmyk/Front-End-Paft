@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 
 interface TransportLogisticsPageEditorProps {
-    content: {[key: string]: {value: string; valueAr?: string; id: number}};
-    onSave: (content: {[key: string]: string}) => Promise<void>;
+    content: { [key: string]: { value: string; valueAr?: string; id: number } };
+    onSave: (content: { [key: string]: string }) => Promise<void>;
     onClose: () => void;
     saving: boolean;
 }
 
 export default function TransportLogisticsPageEditor({ content, onSave, onClose, saving }: TransportLogisticsPageEditorProps) {
-    const [editingContent, setEditingContent] = useState<{[key: string]: string}>(() => {
-        const initialContent: {[key: string]: string} = {};
+    const [editingContent, setEditingContent] = useState<{ [key: string]: string }>(() => {
+        const initialContent: { [key: string]: string } = {};
         Object.keys(content).forEach(key => {
             initialContent[key] = content[key]?.value || '';
         });
@@ -20,7 +20,7 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
 
     // Update editing content when content prop changes
     useEffect(() => {
-        const newContent: {[key: string]: string} = {};
+        const newContent: { [key: string]: string } = {};
         Object.keys(content).forEach(key => {
             newContent[key] = content[key]?.value || '';
         });
@@ -61,36 +61,36 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                             </svg>
                             Hero Section
                         </h3>
-                        
+
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Badge Text</label>
-                                    <input 
-                                        value={editingContent['badge-text'] || ''} 
-                                        onChange={(e) => updateContent('badge-text', e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all" 
-                                        placeholder="PAFT Product Range" 
+                                    <input
+                                        value={editingContent['badge-text'] || ''}
+                                        onChange={(e) => updateContent('badge-text', e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                        placeholder="PAFT Product Range"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Main Title</label>
-                                    <input 
-                                        value={editingContent['title'] || ''} 
-                                        onChange={(e) => updateContent('title', e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all" 
-                                        placeholder="Transport & Logistics Items" 
+                                    <input
+                                        value={editingContent['title'] || ''}
+                                        onChange={(e) => updateContent('title', e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                        placeholder="Transport & Logistics Items"
                                     />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                                <textarea 
-                                    rows={3} 
-                                    value={editingContent['description'] || ''} 
-                                    onChange={(e) => updateContent('description', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y" 
-                                    placeholder="Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks..." 
+                                <textarea
+                                    rows={3}
+                                    value={editingContent['description'] || ''}
+                                    onChange={(e) => updateContent('description', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y"
+                                    placeholder="Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks..."
                                 />
                             </div>
                         </div>
@@ -104,24 +104,24 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                             </svg>
                             Products Section Header
                         </h3>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">Section Title</label>
-                                <input 
-                                    value={editingContent['section-title'] || ''} 
-                                    onChange={(e) => updateContent('section-title', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all" 
-                                    placeholder="Our Catalogue" 
+                                <input
+                                    value={editingContent['section-title'] || ''}
+                                    onChange={(e) => updateContent('section-title', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                    placeholder="Our Catalogue"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">Section Subtitle</label>
-                                <input 
-                                    value={editingContent['section-subtitle'] || ''} 
-                                    onChange={(e) => updateContent('section-subtitle', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all" 
-                                    placeholder="Foldable IBCs · RPC Crates · Accessories" 
+                                <input
+                                    value={editingContent['section-subtitle'] || ''}
+                                    onChange={(e) => updateContent('section-subtitle', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                    placeholder="Foldable IBCs · RPC Crates · Accessories"
                                 />
                             </div>
                         </div>
@@ -131,63 +131,52 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                     <div className="bg-cyan-600/10 border border-cyan-600/20 rounded-lg p-4">
                         <h4 className="text-cyan-300 font-medium mb-3">Product 1 - Foldable IBC</h4>
                         <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                    <input 
-                                        value={editingContent['product-1-title'] || ''} 
-                                        onChange={(e) => updateContent('product-1-title', e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                        placeholder="Foldable IBC - 1000 Lit" 
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1.5">Subtitle</label>
-                                    <input 
-                                        value={editingContent['product-1-subtitle'] || ''} 
-                                        onChange={(e) => updateContent('product-1-subtitle', e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                        placeholder="Product subtitle" 
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
+                                <input
+                                    value={editingContent['product-1-title'] || ''}
+                                    onChange={(e) => updateContent('product-1-title', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                                    placeholder="Foldable IBC - 1000 Lit"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Image URL</label>
-                                <input 
-                                    value={editingContent['product-1-image'] || ''} 
-                                    onChange={(e) => updateContent('product-1-image', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                    placeholder="https://..." 
+                                <input
+                                    value={editingContent['product-1-image'] || ''}
+                                    onChange={(e) => updateContent('product-1-image', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                                    placeholder="https://..."
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Spec Headers (comma-separated)</label>
-                                <input 
-                                    value={editingContent['product-1-spec-headers'] || ''} 
-                                    onChange={(e) => updateContent('product-1-spec-headers', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                    placeholder="Types of Truck,2.6m Standard Trailer,3m Mega road train" 
+                                <input
+                                    value={editingContent['product-1-spec-headers'] || ''}
+                                    onChange={(e) => updateContent('product-1-spec-headers', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                                    placeholder="Types of Truck,2.6m Standard Trailer,3m Mega road train"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-gray-300">Specifications (label,value1,value2)</label>
                                 {[1, 2, 3].map(i => (
-                                    <input 
+                                    <input
                                         key={i}
-                                        value={editingContent[`product-1-spec-row-${i}`] || ''} 
-                                        onChange={(e) => updateContent(`product-1-spec-row-${i}`, e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                        placeholder={`Spec row ${i}: Label,Value1,Value2`} 
+                                        value={editingContent[`product-1-spec-row-${i}`] || ''}
+                                        onChange={(e) => updateContent(`product-1-spec-row-${i}`, e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                                        placeholder={`Spec row ${i}: Label,Value1,Value2`}
                                     />
                                 ))}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Price Label</label>
-                                <input 
-                                    value={editingContent['product-1-price-label'] || ''} 
-                                    onChange={(e) => updateContent('product-1-price-label', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50" 
-                                    placeholder="On Call" 
+                                <input
+                                    value={editingContent['product-1-price-label'] || ''}
+                                    onChange={(e) => updateContent('product-1-price-label', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                                    placeholder="On Call"
                                 />
                             </div>
                         </div>
@@ -201,51 +190,51 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                        <input 
-                                            value={editingContent[`product-${productNum}-title`] || ''} 
-                                            onChange={(e) => updateContent(`product-${productNum}-title`, e.target.value)} 
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50" 
-                                            placeholder={`RPC ${productNum === 2 ? '6419' : productNum === 3 ? '6422' : productNum === 4 ? '6430' : productNum === 5 ? 'Large Foldable Crate' : '6411'}`} 
+                                        <input
+                                            value={editingContent[`product-${productNum}-title`] || ''}
+                                            onChange={(e) => updateContent(`product-${productNum}-title`, e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
+                                            placeholder={`RPC ${productNum === 2 ? '6419' : productNum === 3 ? '6422' : productNum === 4 ? '6430' : productNum === 5 ? 'Large Foldable Crate' : '6411'}`}
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-300 mb-1.5">Subtitle</label>
-                                        <input 
-                                            value={editingContent[`product-${productNum}-subtitle`] || ''} 
-                                            onChange={(e) => updateContent(`product-${productNum}-subtitle`, e.target.value)} 
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50" 
-                                            placeholder="Dimensions" 
+                                        <input
+                                            value={editingContent[`product-${productNum}-subtitle`] || ''}
+                                            onChange={(e) => updateContent(`product-${productNum}-subtitle`, e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
+                                            placeholder="Dimensions"
                                         />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Image URL</label>
-                                    <input 
-                                        value={editingContent[`product-${productNum}-image`] || ''} 
-                                        onChange={(e) => updateContent(`product-${productNum}-image`, e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50" 
-                                        placeholder="https://..." 
+                                    <input
+                                        value={editingContent[`product-${productNum}-image`] || ''}
+                                        onChange={(e) => updateContent(`product-${productNum}-image`, e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
+                                        placeholder="https://..."
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-300">Specifications (label,value)</label>
                                     {Array.from({ length: productNum === 5 ? 6 : 5 }, (_, i) => (
-                                        <input 
+                                        <input
                                             key={i}
-                                            value={editingContent[`product-${productNum}-spec-row-${i + 1}`] || ''} 
-                                            onChange={(e) => updateContent(`product-${productNum}-spec-row-${i + 1}`, e.target.value)} 
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50" 
-                                            placeholder={`Spec row ${i + 1}: Label,Value`} 
+                                            value={editingContent[`product-${productNum}-spec-row-${i + 1}`] || ''}
+                                            onChange={(e) => updateContent(`product-${productNum}-spec-row-${i + 1}`, e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
+                                            placeholder={`Spec row ${i + 1}: Label,Value`}
                                         />
                                     ))}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Price Label</label>
-                                    <input 
-                                        value={editingContent[`product-${productNum}-price-label`] || ''} 
-                                        onChange={(e) => updateContent(`product-${productNum}-price-label`, e.target.value)} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50" 
-                                        placeholder="On Call" 
+                                    <input
+                                        value={editingContent[`product-${productNum}-price-label`] || ''}
+                                        onChange={(e) => updateContent(`product-${productNum}-price-label`, e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
+                                        placeholder="On Call"
                                     />
                                 </div>
                             </div>
@@ -258,20 +247,20 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                         <div className="space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                <input 
-                                    value={editingContent['product-7-title'] || ''} 
-                                    onChange={(e) => updateContent('product-7-title', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50" 
-                                    placeholder="Sheet Separators" 
+                                <input
+                                    value={editingContent['product-7-title'] || ''}
+                                    onChange={(e) => updateContent('product-7-title', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+                                    placeholder="Sheet Separators"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Image URL</label>
-                                <input 
-                                    value={editingContent['product-7-image'] || ''} 
-                                    onChange={(e) => updateContent('product-7-image', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50" 
-                                    placeholder="https://..." 
+                                <input
+                                    value={editingContent['product-7-image'] || ''}
+                                    onChange={(e) => updateContent('product-7-image', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+                                    placeholder="https://..."
                                 />
                             </div>
                         </div>
@@ -283,29 +272,29 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                         <div className="space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                <input 
-                                    value={editingContent['product-8-title'] || ''} 
-                                    onChange={(e) => updateContent('product-8-title', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50" 
-                                    placeholder="Gallon Racks" 
+                                <input
+                                    value={editingContent['product-8-title'] || ''}
+                                    onChange={(e) => updateContent('product-8-title', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+                                    placeholder="Gallon Racks"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Image URL</label>
-                                <input 
-                                    value={editingContent['product-8-image'] || ''} 
-                                    onChange={(e) => updateContent('product-8-image', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50" 
-                                    placeholder="https://..." 
+                                <input
+                                    value={editingContent['product-8-image'] || ''}
+                                    onChange={(e) => updateContent('product-8-image', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+                                    placeholder="https://..."
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Features (comma-separated)</label>
-                                <input 
-                                    value={editingContent['product-8-features'] || ''} 
-                                    onChange={(e) => updateContent('product-8-features', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50" 
-                                    placeholder="The 4 pcs Set,The 8 pcs Set" 
+                                <input
+                                    value={editingContent['product-8-features'] || ''}
+                                    onChange={(e) => updateContent('product-8-features', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+                                    placeholder="The 4 pcs Set,The 8 pcs Set"
                                 />
                             </div>
                         </div>
@@ -319,25 +308,25 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
                             </svg>
                             Call to Action Section
                         </h3>
-                        
+
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">CTA Title</label>
-                                <input 
-                                    value={editingContent['cta-title'] || ''} 
-                                    onChange={(e) => updateContent('cta-title', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all" 
-                                    placeholder="Need a Custom Quote?" 
+                                <input
+                                    value={editingContent['cta-title'] || ''}
+                                    onChange={(e) => updateContent('cta-title', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
+                                    placeholder="Need a Custom Quote?"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">CTA Description</label>
-                                <textarea 
-                                    rows={2} 
-                                    value={editingContent['cta-description'] || ''} 
-                                    onChange={(e) => updateContent('cta-description', e.target.value)} 
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all resize-y" 
-                                    placeholder="We offer tailored solutions for crates, IBCs, and logistics accessories" 
+                                <textarea
+                                    rows={2}
+                                    value={editingContent['cta-description'] || ''}
+                                    onChange={(e) => updateContent('cta-description', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all resize-y"
+                                    placeholder="We offer tailored solutions for crates, IBCs, and logistics accessories"
                                 />
                             </div>
                         </div>
@@ -345,16 +334,16 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-2">
-                        <button 
-                            type="submit" 
-                            disabled={saving} 
+                        <button
+                            type="submit"
+                            disabled={saving}
                             className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-50"
                         >
                             {saving ? 'Saving...' : 'Update Transport & Logistics Page'}
                         </button>
-                        <button 
-                            type="button" 
-                            onClick={onClose} 
+                        <button
+                            type="button"
+                            onClick={onClose}
                             className="flex-1 bg-white/5 border border-white/10 text-gray-300 py-2.5 rounded-xl font-semibold text-sm hover:bg-white/10 transition-all"
                         >
                             Cancel

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { adminPagesApi, contentApi, type PageResponse } from '@/lib/api';
+import { adminPagesApi, contentApi, type PageResponse, ContentMapResponse } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 import HomePageEditor from './HomePageEditor';
 import AboutPageEditor from './AboutPageEditor';
 import OurJourneyPageEditor from './OurJourneyPageEditor';
 import { PlasticPalletsPageEditor } from './plastic-pallets';
 import TransportLogisticsPageEditor from './TransportLogisticsPageEditor';
+import RawMaterialsPageEditor from './RawMaterialsPageEditor';
 
 type FormData = {
     title: string; titleAr: string; slug: string;
@@ -58,6 +59,14 @@ type TransportLogisticsPageContent = {
     };
 };
 
+type RawMaterialsPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
 const emptyForm: FormData = {
     title: '', titleAr: '', slug: '',
     content: '', contentAr: '',
@@ -75,6 +84,7 @@ export default function AdminPagesPage() {
     const [ourJourneyContent, setOurJourneyContent] = useState<OurJourneyPageContent>({});
     const [plasticPalletsContent, setPlasticPalletsContent] = useState<PlasticPalletsPageContent>({});
     const [transportLogisticsContent, setTransportLogisticsContent] = useState<TransportLogisticsPageContent>({});
+    const [rawMaterialsContent, setRawMaterialsContent] = useState<RawMaterialsPageContent>({});
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -97,6 +107,8 @@ export default function AdminPagesPage() {
     const [showPlasticPalletsModal, setShowPlasticPalletsModal] = useState(false);
     // Transport Logistics page editing
     const [showTransportLogisticsModal, setShowTransportLogisticsModal] = useState(false);
+    // Raw Materials page editing
+    const [showRawMaterialsModal, setShowRawMaterialsModal] = useState(false);
 
     useEffect(() => {
         if (searchParams.get('action') === 'add') openAdd();
@@ -106,27 +118,32 @@ export default function AdminPagesPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData, transportLogisticsData] = await Promise.all([
-                adminPagesApi.getAll(token),
-                contentApi.getPageContent('about'),
-                contentApi.getHomeContent(),
-                contentApi.getPageContent('our-journey'),
-                contentApi.getPageContent('plastic-pallets'),
-                contentApi.getPageContent('transport-logistics')
+            // Fetch data with error handling for each request to prevent one failure from blocking everything
+            const pagesPromise = adminPagesApi.getAll(token).catch(e => { console.error('Pages fetch error', e); return []; });
+            const aboutPromise = contentApi.getPageContent('about').catch(e => { console.error('About fetch error', e); return {} as ContentMapResponse; });
+            const homePromise = contentApi.getHomeContent().catch(e => { console.error('Home fetch error', e); return {} as ContentMapResponse; });
+            const journeyPromise = contentApi.getPageContent('our-journey').catch(e => { console.error('Journey fetch error', e); return {} as ContentMapResponse; });
+            const plasticPromise = contentApi.getPageContent('plastic-pallets').catch(e => { console.error('Plastic fetch error', e); return {} as ContentMapResponse; });
+            const logisticsPromise = contentApi.getPageContent('transport-logistics').catch(e => { console.error('Logistics fetch error', e); return {} as ContentMapResponse; });
+            const rawPromise = contentApi.getPageContent('raw-materials').catch(e => { console.error('Raw Materials fetch error', e); return {} as ContentMapResponse; });
+
+            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData, transportLogisticsData, rawMaterialsData] = await Promise.all([
+                pagesPromise, aboutPromise, homePromise, journeyPromise, plasticPromise, logisticsPromise, rawPromise
             ]);
+
             setPages(pagesData);
-            
+
             // For about content, we need to handle sections separately to avoid key conflicts
             // We'll flatten all content but keep track of which section each key belongs to
-            const allAboutContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
-            
+            const allAboutContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+
             // Add hero section content
             if (aboutData['hero']) {
                 Object.keys(aboutData['hero']).forEach(key => {
                     allAboutContent[key] = aboutData['hero'][key];
                 });
             }
-            
+
             // Add who-we-are section content
             if (aboutData['who-we-are']) {
                 Object.keys(aboutData['who-we-are']).forEach(key => {
@@ -138,7 +155,7 @@ export default function AdminPagesPage() {
                     }
                 });
             }
-            
+
             // Add values section content
             if (aboutData['values']) {
                 Object.keys(aboutData['values']).forEach(key => {
@@ -150,7 +167,7 @@ export default function AdminPagesPage() {
                     }
                 });
             }
-            
+
             // Add cta section content
             if (aboutData['cta']) {
                 Object.keys(aboutData['cta']).forEach(key => {
@@ -162,52 +179,52 @@ export default function AdminPagesPage() {
                     }
                 });
             }
-            
+
             setAboutContent(allAboutContent);
-            
+
             // Combine both business-units and video-hero content
             const allHomeContent = {
                 ...homeData['business-units'] || {},
                 ...homeData['video-hero'] || {}
             };
             setHomeContent(allHomeContent);
-            
+
             // Combine all our-journey content sections
-            const allOurJourneyContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
-            
+            const allOurJourneyContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+
             // Add hero section content
             if (ourJourneyData['hero']) {
                 Object.keys(ourJourneyData['hero']).forEach(key => {
                     allOurJourneyContent[key] = ourJourneyData['hero'][key];
                 });
             }
-            
+
             // Add timeline section content
             if (ourJourneyData['timeline']) {
                 Object.keys(ourJourneyData['timeline']).forEach(key => {
                     allOurJourneyContent[key] = ourJourneyData['timeline'][key];
                 });
             }
-            
+
             // Add eras section content
             if (ourJourneyData['eras']) {
                 Object.keys(ourJourneyData['eras']).forEach(key => {
                     allOurJourneyContent[key] = ourJourneyData['eras'][key];
                 });
             }
-            
+
             // Add CTA section content with prefix to avoid conflicts
             if (ourJourneyData['cta']) {
                 Object.keys(ourJourneyData['cta']).forEach(key => {
                     allOurJourneyContent[`cta-${key}`] = ourJourneyData['cta'][key];
                 });
             }
-            
+
             setOurJourneyContent(allOurJourneyContent);
-            
+
             // Combine all plastic-pallets content sections
-            const allPlasticPalletsContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
-            
+            const allPlasticPalletsContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+
             // Add all sections content with their correct keys - include ALL sections from the API
             Object.keys(plasticPalletsData).forEach(section => {
                 if (plasticPalletsData[section]) {
@@ -223,12 +240,12 @@ export default function AdminPagesPage() {
                     });
                 }
             });
-            
+
             setPlasticPalletsContent(allPlasticPalletsContent);
-            
+
             // Combine all transport-logistics content sections
-            const allTransportLogisticsContent: {[key: string]: {value: string; valueAr?: string; id: number}} = {};
-            
+            const allTransportLogisticsContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+
             // Add all sections content with their correct keys
             Object.keys(transportLogisticsData).forEach(section => {
                 if (transportLogisticsData[section] && typeof transportLogisticsData[section] === 'object') {
@@ -247,9 +264,36 @@ export default function AdminPagesPage() {
                     });
                 }
             });
-            
+
             console.log('🔍 All transport logistics content:', allTransportLogisticsContent);
             setTransportLogisticsContent(allTransportLogisticsContent);
+
+            // Combine all raw-materials content sections
+            const allRawMaterialsContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+
+            // Add all sections content with their correct keys
+            Object.keys(rawMaterialsData).forEach(section => {
+                if (rawMaterialsData[section] && typeof rawMaterialsData[section] === 'object') {
+                    Object.keys(rawMaterialsData[section]).forEach(key => {
+                        const item = rawMaterialsData[section][key];
+                        if (item && typeof item === 'object' && 'value' in item) {
+                            // For product sections or simple keys, we can just use the key if we seeded it as such
+                            // Or use section-key if specified. 
+                            // The seed script used straightforward keys like `material-1` section and `title` key.
+                            // But let's check how `contentApi.getPageContent` returns it. Usually it groups by section.
+
+                            // Replicating logic similar to transport logistics:
+                            if (section.startsWith('material-') || section.startsWith('sheet-')) {
+                                const uniqueKey = `${section}-${key}`;
+                                allRawMaterialsContent[uniqueKey] = item;
+                            } else {
+                                allRawMaterialsContent[key] = item;
+                            }
+                        }
+                    });
+                }
+            });
+            setRawMaterialsContent(allRawMaterialsContent);
         } catch { setError('Failed to load pages'); }
         finally { setLoading(false); }
     };
@@ -305,26 +349,26 @@ export default function AdminPagesPage() {
             }
             setShowModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to save';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
     };
 
-    const handleAboutSave = async (content: {[key: string]: string}) => {
+    const handleAboutSave = async (content: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
             console.log('🔍 Saving about content:', content);
-            
+
             // Get all about content from API to get the correct IDs
             const allAboutData = await contentApi.getPageContent('about');
             console.log('🔍 Fresh about data:', allAboutData);
-            
+
             // Prepare bulk update data
             const updates: { id: number; value: string }[] = [];
-            
+
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allAboutData).forEach(section => {
@@ -336,9 +380,9 @@ export default function AdminPagesPage() {
                     }
                 });
             });
-            
+
             console.log('🔍 Updates to send:', updates);
-            
+
             if (updates.length > 0) {
                 // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
@@ -346,30 +390,30 @@ export default function AdminPagesPage() {
             } else {
                 setError('No valid content items found to update');
             }
-            
+
             setShowAboutModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             console.error('🔍 Save error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to save about content';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
     };
 
-    const handleHomeSave = async (content: {[key: string]: string}) => {
+    const handleHomeSave = async (content: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
             console.log('🔍 Saving home content:', content);
-            
+
             // Get all home content from API to get the correct IDs
             const allHomeData = await contentApi.getHomeContent();
             console.log('🔍 Fresh home data:', allHomeData);
-            
+
             // Prepare bulk update data
             const updates: { id: number; value: string }[] = [];
-            
+
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allHomeData).forEach(section => {
@@ -381,9 +425,9 @@ export default function AdminPagesPage() {
                     }
                 });
             });
-            
+
             console.log('🔍 Updates to send:', updates);
-            
+
             if (updates.length > 0) {
                 // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
@@ -391,30 +435,30 @@ export default function AdminPagesPage() {
             } else {
                 setError('No valid content items found to update');
             }
-            
+
             setShowHomeModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             console.error('🔍 Save error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to save home content';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
     };
 
-    const handleOurJourneySave = async (content: {[key: string]: string}) => {
+    const handleOurJourneySave = async (content: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
             console.log('🔍 Saving our journey content:', content);
-            
+
             // Get all our journey content from API to get the correct IDs
             const allOurJourneyData = await contentApi.getPageContent('our-journey');
             console.log('🔍 Fresh our journey data:', allOurJourneyData);
-            
+
             // Prepare bulk update data
             const updates: { id: number; value: string }[] = [];
-            
+
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allOurJourneyData).forEach(section => {
@@ -426,9 +470,9 @@ export default function AdminPagesPage() {
                     }
                 });
             });
-            
+
             console.log('🔍 Updates to send:', updates);
-            
+
             if (updates.length > 0) {
                 // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
@@ -436,30 +480,30 @@ export default function AdminPagesPage() {
             } else {
                 setError('No valid content items found to update');
             }
-            
+
             setShowOurJourneyModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             console.error('🔍 Save error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to save our journey content';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
     };
 
-    const handlePlasticPalletsSave = async (content: {[key: string]: string}) => {
+    const handlePlasticPalletsSave = async (content: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
             console.log('🔍 Saving plastic pallets content:', content);
-            
+
             // Get all plastic pallets content from API to get the correct IDs
             const allPlasticPalletsData = await contentApi.getPageContent('plastic-pallets');
             console.log('🔍 Fresh plastic pallets data:', allPlasticPalletsData);
-            
+
             // Prepare bulk update data
             const updates: { id: number; value: string }[] = [];
-            
+
             Object.keys(content).forEach(key => {
                 // Handle product-specific keys (e.g., "product-m1-product-name")
                 if (key.includes('product-') && key.includes('-')) {
@@ -467,7 +511,7 @@ export default function AdminPagesPage() {
                     if (parts.length >= 3) {
                         const section = parts.slice(0, 2).join('-'); // e.g., "product-m1"
                         const field = parts.slice(2).join('-'); // e.g., "product-name"
-                        
+
                         // Look for the content item in the correct section
                         if (allPlasticPalletsData[section] && allPlasticPalletsData[section][field]) {
                             updates.push({
@@ -489,9 +533,9 @@ export default function AdminPagesPage() {
                     });
                 }
             });
-            
+
             console.log('🔍 Updates to send:', updates);
-            
+
             if (updates.length > 0) {
                 // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
@@ -499,30 +543,30 @@ export default function AdminPagesPage() {
             } else {
                 setError('No valid content items found to update');
             }
-            
+
             setShowPlasticPalletsModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             console.error('🔍 Save error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to save plastic pallets content';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
     };
 
-    const handleTransportLogisticsSave = async (content: {[key: string]: string}) => {
+    const handleTransportLogisticsSave = async (content: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
             console.log('🔍 Saving transport logistics content:', content);
-            
+
             // Get all transport logistics content from API to get the correct IDs
             const allTransportLogisticsData = await contentApi.getPageContent('transport-logistics');
             console.log('🔍 Fresh transport logistics data:', allTransportLogisticsData);
-            
+
             // Prepare bulk update data
             const updates: { id: number; value: string }[] = [];
-            
+
             Object.keys(content).forEach(key => {
                 // Handle product-specific keys (e.g., "product-1-title")
                 if (key.includes('product-') && key.includes('-')) {
@@ -530,7 +574,7 @@ export default function AdminPagesPage() {
                     if (parts.length >= 3) {
                         const section = parts.slice(0, 2).join('-'); // e.g., "product-1"
                         const field = parts.slice(2).join('-'); // e.g., "title"
-                        
+
                         // Look for the content item in the correct section
                         if (allTransportLogisticsData[section] && allTransportLogisticsData[section][field]) {
                             updates.push({
@@ -552,9 +596,9 @@ export default function AdminPagesPage() {
                     });
                 }
             });
-            
+
             console.log('🔍 Updates to send:', updates);
-            
+
             if (updates.length > 0) {
                 // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
@@ -562,15 +606,72 @@ export default function AdminPagesPage() {
             } else {
                 setError('No valid content items found to update');
             }
-            
+
             setShowTransportLogisticsModal(false);
             fetchPages();
-        } catch (error: unknown) { 
+        } catch (error: unknown) {
             console.error('🔍 Save error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to save transport logistics content';
-            setError(errorMessage); 
+            setError(errorMessage);
         }
         finally { setSaving(false); }
+    };
+
+
+    const openRawMaterialsEdit = () => {
+        setShowRawMaterialsModal(true);
+    };
+
+    const handleRawMaterialsSave = async (content: { [key: string]: string }) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            console.log('🔍 Saving raw materials content:', content);
+
+            // Get all raw materials content from API to get the correct IDs
+            const allRawMaterialsData = await contentApi.getPageContent('raw-materials');
+            console.log('🔍 Fresh raw materials data:', allRawMaterialsData);
+
+            // Prepare bulk update data
+            const updates: { id: number; value: string }[] = [];
+
+            Object.keys(content).forEach(key => {
+                let found = false;
+                // Try to find the key in the fetched data structure
+                Object.keys(allRawMaterialsData).forEach(section => {
+                    // Direct key match
+                    if (allRawMaterialsData[section][key]) {
+                        updates.push({ id: allRawMaterialsData[section][key].id, value: content[key] });
+                        found = true;
+                    }
+                    if (!found) {
+                        // Check for composite keys like material-1-title
+                        if (key.startsWith(section + '-') && allRawMaterialsData[section][key.replace(section + '-', '')]) {
+                            updates.push({ id: allRawMaterialsData[section][key.replace(section + '-', '')].id, value: content[key] });
+                            found = true;
+                        }
+                    }
+                });
+            });
+
+            console.log('🔍 Updates to send:', updates);
+
+            if (updates.length > 0) {
+                // Use bulk update API
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Raw Materials page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+
+            setShowRawMaterialsModal(false);
+            fetchPages();
+        } catch (error: unknown) {
+            console.error('🔍 Save error:', error);
+            setError(error instanceof Error ? error.message : 'Failed to save raw materials content');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleDelete = async (id: number) => {
@@ -766,6 +867,36 @@ export default function AdminPagesPage() {
                                 <td className="px-5 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button onClick={openTransportLogisticsEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Transport Logistics Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Raw Materials Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-pink-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Raw Materials Page</p>
+                                        <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/products/raw-materials</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openRawMaterialsEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Raw Materials Content">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </button>
                                     </div>
@@ -1012,6 +1143,16 @@ export default function AdminPagesPage() {
                     content={transportLogisticsContent}
                     onSave={handleTransportLogisticsSave}
                     onClose={() => setShowTransportLogisticsModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* Raw Materials Page Editor */}
+            {showRawMaterialsModal && (
+                <RawMaterialsPageEditor
+                    content={rawMaterialsContent}
+                    onSave={handleRawMaterialsSave}
+                    onClose={() => setShowRawMaterialsModal(false)}
                     saving={saving}
                 />
             )}

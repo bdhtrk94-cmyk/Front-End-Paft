@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useTheme } from '@/context/ThemeContext';
+import { contentApi } from '@/lib/api';
 
 /* ─── Data ─── */
 interface MaterialCard {
@@ -27,7 +28,7 @@ interface DataSheet {
     pdfUrl: string;
 }
 
-const materials: MaterialCard[] = [
+const initialMaterials: MaterialCard[] = [
     {
         id: 'regular-grade',
         title: 'Recycled HDPE - Regular Grade',
@@ -80,7 +81,7 @@ const materials: MaterialCard[] = [
     },
 ];
 
-const dataSheets: DataSheet[] = [
+const initialDataSheets: DataSheet[] = [
     {
         id: 'ds-regular',
         title: 'Recycled HDPE - Regular Grade',
@@ -477,6 +478,49 @@ export default function RawMaterialSupply() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
 
+    const [content, setContent] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const loadContent = async () => {
+            try {
+                const data = await contentApi.getPageContent('raw-materials');
+                const flat: Record<string, string> = {};
+                Object.keys(data).forEach(section => {
+                    Object.keys(data[section]).forEach(key => {
+                        if (section.startsWith('material-') || section.startsWith('sheet-')) {
+                            flat[`${section}-${key}`] = data[section][key].value;
+                        } else {
+                            flat[key] = data[section][key].value;
+                        }
+                    });
+                });
+                setContent(flat);
+            } catch (e) { console.error('Failed to load content', e); }
+        };
+        loadContent();
+    }, []);
+
+    const displayMaterials = initialMaterials.map((m, i) => ({
+        ...m,
+        title: content[`material-${i + 1}-title`] || m.title,
+        image: content[`material-${i + 1}-image`] || m.image,
+        polymer: content[`material-${i + 1}-polymer`] || m.polymer,
+        source: content[`material-${i + 1}-source`] || m.source,
+        color: content[`material-${i + 1}-color`] || m.color,
+        additives: content[`material-${i + 1}-additives`] || m.additives,
+        link: content[`material-${i + 1}-link`] || m.link,
+    }));
+
+    const displayDataSheets = initialDataSheets.map((s, i) => ({
+        ...s,
+        title: content[`sheet-${i + 1}-title`] || s.title,
+        subtitle: content[`sheet-${i + 1}-subtitle`] || s.subtitle,
+        badges: content[`sheet-${i + 1}-badges`] ? content[`sheet-${i + 1}-badges`].split(',').map(b => b.trim()) : s.badges,
+        description: content[`sheet-${i + 1}-description`] || s.description,
+        datasheetUrl: content[`sheet-${i + 1}-datasheetUrl`] || s.datasheetUrl,
+        pdfUrl: content[`sheet-${i + 1}-pdfUrl`] || s.pdfUrl,
+    }));
+
     return (
         <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="raw-materials" />
@@ -550,7 +594,7 @@ export default function RawMaterialSupply() {
                                     className="text-sm font-semibold tracking-wider uppercase"
                                     style={{ color: isLight ? '#0F172A' : 'rgba(255,255,255,0.9)' }}
                                 >
-                                    Raw Material Supply
+                                    {content['badge-text'] || 'Raw Material Supply'}
                                 </span>
                             </div>
 
@@ -563,8 +607,10 @@ export default function RawMaterialSupply() {
                                     transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s',
                                 }}
                             >
-                                <span style={{ color: isLight ? '#0F172A' : '#fff' }}>Sustainable</span>
-                                <br />
+                                <span style={{ color: isLight ? '#0F172A' : '#fff', whiteSpace: 'pre-line' }}>
+                                    {content['title'] ? content['title'].replace(/Sustainable/i, 'Sustainable') : 'Sustainable'}
+                                </span>
+                                {!content['title'] && <br />}
                                 <span
                                     style={{
                                         background: 'linear-gradient(135deg, #10B981, #06B6D4)',
@@ -572,7 +618,7 @@ export default function RawMaterialSupply() {
                                         WebkitTextFillColor: 'transparent',
                                     }}
                                 >
-                                    Materials
+                                    {!content['title'] && 'Materials'}
                                 </span>
                             </h1>
 
@@ -586,11 +632,7 @@ export default function RawMaterialSupply() {
                                     lineHeight: '1.9',
                                 }}
                             >
-                                Our commitment to sustainability drives innovation in polymer
-                                technology. We develop advanced materials that minimize
-                                environmental impact while delivering superior performance.
-                                Explore our eco-conscious product portfolio designed for a greener
-                                future.
+                                {content['description'] || 'Our commitment to sustainability drives innovation in polymer technology. We develop advanced materials that minimize environmental impact while delivering superior performance. Explore our eco-conscious product portfolio designed for a greener future.'}
                             </p>
                         </div>
 
@@ -637,7 +679,11 @@ export default function RawMaterialSupply() {
                                         </svg>
                                     ),
                                 },
-                            ].map((stat, i) => (
+                            ].map((stat, i) => ({
+                                ...stat,
+                                value: content[`stat-${i + 1}-value`] || stat.value,
+                                label: content[`stat-${i + 1}-label`] || stat.label,
+                            })).map((stat, i) => (
                                 <div
                                     key={i}
                                     className="rounded-xl p-5 text-center"
@@ -712,7 +758,7 @@ export default function RawMaterialSupply() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {materials.map((mat, i) => (
+                        {displayMaterials.map((mat, i) => (
                             <MaterialCardComponent key={mat.id} material={mat} index={i} isLight={isLight} />
                         ))}
                     </div>
@@ -749,7 +795,7 @@ export default function RawMaterialSupply() {
                     </div>
 
                     <div className="space-y-3">
-                        {dataSheets.map((sheet, i) => (
+                        {displayDataSheets.map((sheet, i) => (
                             <AccordionItem
                                 key={sheet.id}
                                 sheet={sheet}
@@ -780,20 +826,10 @@ export default function RawMaterialSupply() {
                         className="text-4xl lg:text-5xl font-bold mb-6"
                         style={{ color: isLight ? '#0F172A' : '#fff' }}
                     >
-                        Ready to go{' '}
-                        <span
-                            style={{
-                                background: 'linear-gradient(135deg, #10B981, #06B6D4)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                            }}
-                        >
-                            Sustainable?
-                        </span>
+                        {content['cta-title'] || <>Ready to go <span style={{ background: 'linear-gradient(135deg, #10B981, #06B6D4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Sustainable?</span></>}
                     </h2>
                     <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                        Let us help you transition to high-grade recycled materials without
-                        compromising on quality
+                        {content['cta-description'] || 'Let us help you transition to high-grade recycled materials without compromising on quality'}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a

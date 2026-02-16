@@ -535,8 +535,8 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
                                     key={index}
                                     onClick={() => goToSlide(index)}
                                     className={`transition-all duration-500 rounded-full ${index === currentSlide
-                                            ? 'w-8 h-2.5 bg-white shadow-lg shadow-white/30'
-                                            : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
+                                        ? 'w-8 h-2.5 bg-white shadow-lg shadow-white/30'
+                                        : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
                                         }`}
                                     aria-label={`Go to slide ${index + 1}`}
                                 />
@@ -740,20 +740,43 @@ export default function PlasticPallets() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Fetch content and products safely
+                const contentPromise = contentApi.getPageContent('plastic-pallets').catch(err => {
+                    console.warn('Failed to fetch plastic pallets content:', err);
+                    return {};
+                });
+
+                const heavyDutyPromise = productsApi.getAll({ category: 'heavy-duty' }).catch(err => {
+                    console.error('Failed to fetch heavy duty products:', err);
+                    return [];
+                });
+
+                const lightDutyPromise = productsApi.getAll({ category: 'light-duty' }).catch(err => {
+                    console.error('Failed to fetch light duty products:', err);
+                    return [];
+                });
+
+                const rentalPromise = productsApi.getAll({ category: 'rental' }).catch(err => {
+                    console.error('Failed to fetch rental products:', err);
+                    return [];
+                });
+
                 const [contentData, heavyDutyData, lightDutyData, rentalData] = await Promise.all([
-                    contentApi.getPageContent('plastic-pallets'),
-                    productsApi.getAll({ category: 'heavy-duty' }),
-                    productsApi.getAll({ category: 'light-duty' }),
-                    productsApi.getAll({ category: 'rental' })
+                    contentPromise,
+                    heavyDutyPromise,
+                    lightDutyPromise,
+                    rentalPromise
                 ]);
 
                 setContent(prevContent => {
                     const mergedContent = { ...prevContent };
-                    Object.keys(contentData).forEach(section => {
-                        if (contentData[section]) {
-                            mergedContent[section] = { ...mergedContent[section], ...contentData[section] };
-                        }
-                    });
+                    if (contentData && Object.keys(contentData).length > 0) {
+                        Object.keys(contentData).forEach(section => {
+                            if ((contentData as any)[section]) {
+                                mergedContent[section] = { ...mergedContent[section], ...(contentData as any)[section] };
+                            }
+                        });
+                    }
                     return mergedContent;
                 });
 
@@ -762,7 +785,7 @@ export default function PlasticPallets() {
                 setRentalProducts(rentalData);
                 setProductsLoaded(true);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Critical error fetching data:', error);
                 setProductsLoaded(true);
             }
         };
