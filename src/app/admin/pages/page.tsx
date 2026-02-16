@@ -10,6 +10,7 @@ import OurJourneyPageEditor from './OurJourneyPageEditor';
 import { PlasticPalletsPageEditor } from './plastic-pallets';
 import TransportLogisticsPageEditor from './TransportLogisticsPageEditor';
 import RawMaterialsPageEditor from './RawMaterialsPageEditor';
+import InnovativeSolutionsEditor from '@/components/admin/InnovativeSolutionsEditor';
 
 type FormData = {
     title: string; titleAr: string; slug: string;
@@ -108,7 +109,10 @@ export default function AdminPagesPage() {
     // Transport Logistics page editing
     const [showTransportLogisticsModal, setShowTransportLogisticsModal] = useState(false);
     // Raw Materials page editing
+    // Raw Materials page editing
     const [showRawMaterialsModal, setShowRawMaterialsModal] = useState(false);
+    // Innovative Solutions page editing
+    const [showInnovativeSolutionsModal, setShowInnovativeSolutionsModal] = useState(false);
 
     useEffect(() => {
         if (searchParams.get('action') === 'add') openAdd();
@@ -903,6 +907,36 @@ export default function AdminPagesPage() {
                                 </td>
                             </tr>
 
+                            {/* Innovative Solutions Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-indigo-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Innovative Solutions</p>
+                                        <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/innovative-solutions</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={() => setShowInnovativeSolutionsModal(true)} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <tr key={i} className="border-b border-white/5">
@@ -1155,6 +1189,11 @@ export default function AdminPagesPage() {
                     onClose={() => setShowRawMaterialsModal(false)}
                     saving={saving}
                 />
+            )}
+
+            {/* Innovative Solutions Editor Modal */}
+            {showInnovativeSolutionsModal && (
+                <InnovativeSolutionsEditor onClose={() => setShowInnovativeSolutionsModal(false)} />
             )}
         </div>
     );

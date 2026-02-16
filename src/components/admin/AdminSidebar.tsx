@@ -120,9 +120,9 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                 {/* Logo */}
                 <div className="flex items-center gap-3 px-6 h-[70px] border-b border-white/5">
                     <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center overflow-hidden group hover:from-white/15 hover:to-white/10 transition-all duration-300">
-                        <img 
-                            src="/paft-logo.png" 
-                            alt="PAFT Logo" 
+                        <img
+                            src="/paft-logo.png"
+                            alt="PAFT Logo"
                             className="w-7 h-7 object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-500"
                         />
                         {/* Subtle glow effect */}
@@ -187,8 +187,8 @@ export default function AdminSidebar({ isOpen, onToggle }: AdminSidebarProps) {
                                     <div className="flex-1 h-px bg-gradient-to-r from-purple-500/50 to-transparent"></div>
                                     <p className="text-[10px] font-semibold text-purple-400 uppercase tracking-widest flex items-center gap-1">
                                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M5 16L3 14l5.5-5.5L16 16l-2.5 2.5L5 16z"/>
-                                            <path d="M11.5 9L16 4.5 18 6.5l-4.5 4.5L11.5 9z"/>
+                                            <path d="M5 16L3 14l5.5-5.5L16 16l-2.5 2.5L5 16z" />
+                                            <path d="M11.5 9L16 4.5 18 6.5l-4.5 4.5L11.5 9z" />
                                         </svg>
                                         Super Admin
                                     </p>
