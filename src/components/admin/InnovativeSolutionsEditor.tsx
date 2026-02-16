@@ -14,9 +14,10 @@ type InnovativeSolutionsContent = {
 
 interface InnovativeSolutionsEditorProps {
     onClose: () => void;
+    onSave?: () => void;
 }
 
-export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutionsEditorProps) {
+export default function InnovativeSolutionsEditor({ onClose, onSave }: InnovativeSolutionsEditorProps) {
     const { token } = useAuth();
     const [content, setContent] = useState<InnovativeSolutionsContent>({});
     const [loading, setLoading] = useState(true);
@@ -31,11 +32,9 @@ export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutio
             const data = await contentApi.getPageContent('innovative-solutions');
             const flattenedContent: InnovativeSolutionsContent = {};
 
-            // Flatten the structure: section -> key -> value
             Object.keys(data).forEach(section => {
                 if (data[section]) {
                     Object.keys(data[section]).forEach(key => {
-                        // Create unique keys by combining section and key
                         const uniqueKey = `${section}-${key}`;
                         flattenedContent[uniqueKey] = data[section][key];
                     });
@@ -53,6 +52,7 @@ export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutio
 
     useEffect(() => {
         fetchContent();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
     const handleSave = async (e?: React.FormEvent) => {
@@ -63,37 +63,28 @@ export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutio
         setSuccessMsg('');
 
         try {
-            // Get fresh data to ensure we have correct IDs
             const freshData = await contentApi.getPageContent('innovative-solutions');
             const updates: { id: number; value: string }[] = [];
 
             Object.keys(content).forEach(uniqueKey => {
-                const parts = uniqueKey.split('-');
-                if (parts.length >= 2) {
-                    let found = false;
-                    Object.keys(freshData).forEach(section => {
-                        Object.keys(freshData[section]).forEach(key => {
-                            const constructedKey = `${section}-${key}`;
-                            if (constructedKey === uniqueKey) {
-                                updates.push({
-                                    id: freshData[section][key].id,
-                                    value: content[uniqueKey].value
-                                });
-                                found = true;
-                            }
-                        });
+                Object.keys(freshData).forEach(section => {
+                    Object.keys(freshData[section]).forEach(key => {
+                        if (`${section}-${key}` === uniqueKey) {
+                            updates.push({
+                                id: freshData[section][key].id,
+                                value: content[uniqueKey].value
+                            });
+                        }
                     });
-                }
+                });
             });
 
             if (updates.length > 0) {
                 await contentApi.bulkUpdate(updates, token);
-                setSuccessMsg('Content updated successfully!');
-                fetchContent();
+                if (onSave) onSave(); else onClose();
             } else {
-                setSuccessMsg('No changes to save.');
+                if (onSave) onSave(); else onClose();
             }
-
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to save content';
             setError(errorMessage);
@@ -105,17 +96,39 @@ export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutio
     const handleChange = (key: string, value: string) => {
         setContent(prev => ({
             ...prev,
-            [key]: {
-                ...prev[key],
-                value
-            }
+            [key]: { ...prev[key], value }
         }));
     };
 
-    // Helper to get value safely
     const getValue = (key: string) => content[key]?.value || '';
 
-    if (loading) return null; // Or a loading spinner overlay
+    // Reusable field components
+    const InputField = ({ label, fieldKey, placeholder }: { label: string; fieldKey: string; placeholder?: string }) => (
+        <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+            <input
+                value={getValue(fieldKey)}
+                onChange={(e) => handleChange(fieldKey, e.target.value)}
+                placeholder={placeholder}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+            />
+        </div>
+    );
+
+    const TextareaField = ({ label, fieldKey, rows = 3, placeholder }: { label: string; fieldKey: string; rows?: number; placeholder?: string }) => (
+        <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+            <textarea
+                rows={rows}
+                value={getValue(fieldKey)}
+                onChange={(e) => handleChange(fieldKey, e.target.value)}
+                placeholder={placeholder}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y"
+            />
+        </div>
+    );
+
+    if (loading) return null;
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -143,141 +156,164 @@ export default function InnovativeSolutionsEditor({ onClose }: InnovativeSolutio
                         </div>
                     )}
 
-                    {/* Hero Section */}
+                    {/* ─── 1. Hero Section ─── */}
                     <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
                         <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             Hero Section
                         </h3>
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                                <input
-                                    value={getValue('hero-title')}
-                                    onChange={(e) => handleChange('hero-title', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Subtitle</label>
-                                <input
-                                    value={getValue('hero-subtitle')}
-                                    onChange={(e) => handleChange('hero-subtitle', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                                <textarea
-                                    rows={3}
-                                    value={getValue('hero-description')}
-                                    onChange={(e) => handleChange('hero-description', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
-                                <input
-                                    value={getValue('hero-image')}
-                                    onChange={(e) => handleChange('hero-image', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                />
-                            </div>
+                            <InputField label="Title Line 1" fieldKey="hero-title-line1" placeholder="WE BRING" />
+                            <InputField label="Title Highlight" fieldKey="hero-title-highlight" placeholder="INNOVATION" />
+                            <InputField label="Title Line 2" fieldKey="hero-title-line2" placeholder="TO SUPPLY CHAIN" />
                         </div>
                     </div>
 
-                    {/* Intro Section */}
-                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-4">
-                        <h3 className="text-purple-400 font-semibold mb-4 flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Intro Section
+                    {/* ─── 2. Smart Pallets Section ─── */}
+                    <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4">
+                        <h3 className="text-cyan-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                            Smart Pallets Section
                         </h3>
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Heading</label>
-                                <input
-                                    value={getValue('intro-heading')}
-                                    onChange={(e) => handleChange('intro-heading', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
-                                />
+                            <InputField label="Badge Text" fieldKey="smart-pallets-badge" placeholder="Smart Plastic Pallets" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="smart-pallets-title-plain" placeholder="Intelligent" />
+                                <InputField label="Title (Highlight)" fieldKey="smart-pallets-title-highlight" placeholder="Logistics Assets" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Text</label>
-                                <textarea
-                                    rows={3}
-                                    value={getValue('intro-text')}
-                                    onChange={(e) => handleChange('intro-text', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all resize-y"
-                                />
-                            </div>
+                            <TextareaField label="Description" fieldKey="smart-pallets-description" rows={4} />
+                            <InputField label="Features (comma-separated)" fieldKey="smart-pallets-features" placeholder="Full Life Traceability,RFID-Enabled,..." />
                         </div>
                     </div>
 
-                    {/* Solutions Grid */}
-                    <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-4">
-                        <h3 className="text-green-400 font-semibold mb-4 flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                            Solutions
+                    {/* ─── 3. RFID Technology Section ─── */}
+                    <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4">
+                        <h3 className="text-indigo-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                            RFID Technology Section
                         </h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="rfid-tech-title-plain" placeholder="RFID Technology" />
+                                <InputField label="Title (Highlight)" fieldKey="rfid-tech-title-highlight" placeholder="Integration" />
+                            </div>
+                            <InputField label="Subtitle" fieldKey="rfid-tech-subtitle" />
 
-                        <div className="space-y-6">
-                            {['1', '2', '3'].map((num) => (
-                                <div key={`solution-${num}`} className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-                                    <h4 className="text-green-300 font-medium mb-3">Solution {num}</h4>
+                            {[1, 2, 3].map(n => (
+                                <div key={n} className="bg-indigo-500/10 border border-indigo-500/15 rounded-lg p-4">
+                                    <h4 className="text-indigo-300 font-medium mb-3">Card {n}</h4>
                                     <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                            <input
-                                                value={getValue(`solution-${num}-title`)}
-                                                onChange={(e) => handleChange(`solution-${num}-title`, e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-1.5">Description</label>
-                                            <textarea
-                                                rows={2}
-                                                value={getValue(`solution-${num}-description`)}
-                                                onChange={(e) => handleChange(`solution-${num}-description`, e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50 resize-y"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-1.5">Icon Name</label>
-                                            <input
-                                                value={getValue(`solution-${num}-icon`)}
-                                                onChange={(e) => handleChange(`solution-${num}-icon`, e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50"
-                                            />
-                                        </div>
+                                        <InputField label="Title" fieldKey={`rfid-tech-card-${n}-title`} />
+                                        <TextareaField label="Description" fieldKey={`rfid-tech-card-${n}-desc`} rows={2} />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* CTA Section */}
-                    <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4">
-                        <h3 className="text-indigo-400 font-semibold mb-3 flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                            CTA Section
+                    {/* ─── 4. Process Flow Section ─── */}
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                        <h3 className="text-emerald-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            Process Flow Section
                         </h3>
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
-                                <input
-                                    value={getValue('cta-title')}
-                                    onChange={(e) => handleChange('cta-title', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="process-flow-title-plain" placeholder="How PAFT iWMS" />
+                                <InputField label="Title (Highlight)" fieldKey="process-flow-title-highlight" placeholder="Works" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1.5">Button Text</label>
-                                <input
-                                    value={getValue('cta-buttonParams')}
-                                    onChange={(e) => handleChange('cta-buttonParams', e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
-                                />
+                            <InputField label="Subtitle" fieldKey="process-flow-subtitle" />
+
+                            {[1, 2, 3, 4, 5].map(n => (
+                                <div key={n} className="bg-emerald-500/10 border border-emerald-500/15 rounded-lg p-4">
+                                    <h4 className="text-emerald-300 font-medium mb-3">Step {n}</h4>
+                                    <div className="space-y-3">
+                                        <InputField label="Title" fieldKey={`process-flow-step-${n}-title`} />
+                                        <InputField label="Description" fieldKey={`process-flow-step-${n}-desc`} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ─── 5. Business Impact Section ─── */}
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+                        <h3 className="text-amber-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            Business Impact Section
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="business-impact-title-plain" placeholder="Business" />
+                                <InputField label="Title (Highlight)" fieldKey="business-impact-title-highlight" placeholder="Impact" />
+                            </div>
+                            <TextareaField label="Description" fieldKey="business-impact-description" rows={3} />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {[1, 2, 3, 4].map(n => (
+                                    <div key={n} className="bg-amber-500/10 border border-amber-500/15 rounded-lg p-3">
+                                        <h4 className="text-amber-300 font-medium mb-2 text-sm">Stat {n}</h4>
+                                        <div className="space-y-2">
+                                            <InputField label="Value" fieldKey={`business-impact-stat-${n}-value`} />
+                                            <InputField label="Label" fieldKey={`business-impact-stat-${n}-label`} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ─── 6. RFID Understanding Section ─── */}
+                    <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
+                        <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" /></svg>
+                            RFID Understanding Section
+                        </h3>
+                        <div className="space-y-4">
+                            <InputField label="Badge Text" fieldKey="rfid-understanding-badge" placeholder="Understanding RFID" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="rfid-understanding-title-plain" placeholder="Radio Frequency" />
+                                <InputField label="Title (Highlight)" fieldKey="rfid-understanding-title-highlight" placeholder="Identification" />
+                            </div>
+                            <TextareaField label="Paragraph 1" fieldKey="rfid-understanding-paragraph-1" rows={4} />
+                            <TextareaField label="Paragraph 2" fieldKey="rfid-understanding-paragraph-2" rows={4} />
+                        </div>
+                    </div>
+
+                    {/* ─── 7. Challenges Section ─── */}
+                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-4">
+                        <h3 className="text-purple-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            Challenges &amp; Considerations
+                        </h3>
+                        <div className="space-y-4">
+                            <InputField label="Badge Text" fieldKey="challenges-badge" placeholder="Challenges & Considerations" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="challenges-title-plain" placeholder="Implementation" />
+                                <InputField label="Title (Highlight)" fieldKey="challenges-title-highlight" placeholder="Success" />
+                            </div>
+                            <TextareaField label="Paragraph 1" fieldKey="challenges-paragraph-1" rows={3} />
+                            <TextareaField label="Paragraph 2" fieldKey="challenges-paragraph-2" rows={3} />
+                            <TextareaField label="Quote" fieldKey="challenges-quote" rows={2} />
+                        </div>
+                    </div>
+
+                    {/* ─── 8. Conclusion / CTA Section ─── */}
+                    <div className="bg-teal-500/5 border border-teal-500/20 rounded-xl p-4">
+                        <h3 className="text-teal-400 font-semibold mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                            Conclusion / CTA Section
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Title (Plain)" fieldKey="conclusion-title-plain" placeholder="Transform Your" />
+                                <InputField label="Title (Highlight)" fieldKey="conclusion-title-highlight" placeholder="Operations" />
+                            </div>
+                            <TextareaField label="Paragraph 1" fieldKey="conclusion-paragraph-1" rows={3} />
+                            <TextareaField label="Paragraph 2" fieldKey="conclusion-paragraph-2" rows={3} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputField label="Primary CTA Text" fieldKey="conclusion-cta-primary" placeholder="Request a Demo →" />
+                                <InputField label="Secondary CTA Text" fieldKey="conclusion-cta-secondary" placeholder="Explore Products" />
                             </div>
                         </div>
                     </div>

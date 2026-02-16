@@ -80,7 +80,7 @@ export default function AdminSiteContentPage() {
             }
             setShowModal(false);
             fetchItems();
-        } catch (e: any) { setError(e.message || 'Failed to save'); }
+        } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Failed to save'); }
         finally { setSaving(false); }
     };
 

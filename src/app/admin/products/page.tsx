@@ -42,13 +42,13 @@ export default function AdminProductsPage() {
         console.log('=== STARTING FETCH PRODUCTS ===');
         console.log('Token from useAuth:', !!token);
         console.log('User from useAuth:', user);
-        
+
         if (!token) {
             console.log('No token found, setting error');
             setError('No authentication token found. Please login again.');
             return;
         }
-        
+
         console.log('=== DEBUG INFO ===');
         console.log('Token exists:', !!token);
         console.log('Token preview:', token?.substring(0, 50) + '...');
@@ -56,34 +56,35 @@ export default function AdminProductsPage() {
         console.log('User role:', user?.role);
         console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/products`);
         console.log('==================');
-        
+
         setLoading(true);
         setError('');
-        
+
         try {
             console.log('About to call adminProductsApi.getAll...');
             const data = await adminProductsApi.getAll(token);
             console.log('Products loaded successfully:', data.length, 'items');
             setProducts(data);
-        } catch (err: any) {
-            console.error('Failed to load products:', err);
+        } catch (err: unknown) {
+            const error = err as { message?: string; statusCode?: number; stack?: string };
+            console.error('Failed to load products:', error);
             console.error('Error details:', {
-                message: err.message,
-                statusCode: err.statusCode,
-                stack: err.stack
+                message: error.message,
+                statusCode: error.statusCode,
+                stack: error.stack
             });
-            
-            if (err.statusCode === 403) {
+
+            if (error.statusCode === 403) {
                 setError(`Access denied. User role: ${user?.role}. Please check your admin permissions.`);
-            } else if (err.statusCode === 401) {
+            } else if (error.statusCode === 401) {
                 setError('Authentication failed. Please login again.');
             } else {
-                setError(err.message || 'Failed to load products. Please try again.');
+                setError(error.message || 'Failed to load products. Please try again.');
             }
         }
-        finally { 
+        finally {
             console.log('Setting loading to false');
-            setLoading(false); 
+            setLoading(false);
         }
     };
 
@@ -121,7 +122,7 @@ export default function AdminProductsPage() {
             }
             setShowModal(false);
             fetchProducts();
-        } catch (e: any) { setError(e.message || 'Failed to save'); }
+        } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Failed to save'); }
         finally { setSaving(false); }
     };
 
@@ -135,9 +136,9 @@ export default function AdminProductsPage() {
             setDeleteConfirm(null);
             // Refresh the products list to show updated data
             await fetchProducts();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to delete product:', error);
-            setError(`Failed to delete: ${error.message || 'Unknown error'}`);
+            setError(`Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
@@ -172,7 +173,7 @@ export default function AdminProductsPage() {
                         <strong>Troubleshooting:</strong>
                         <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>Make sure the backend server is running on port 3001</li>
-                            <li>Check if your user role is 'admin' or 'super_admin'</li>
+                            <li>Check if your user role is &apos;admin&apos; or &apos;super_admin&apos;</li>
                             <li>Try logging out and logging back in</li>
                             <li>Check browser console for detailed error logs</li>
                         </ul>

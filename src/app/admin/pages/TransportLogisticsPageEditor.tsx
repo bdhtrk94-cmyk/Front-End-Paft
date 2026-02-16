@@ -24,7 +24,8 @@ export default function TransportLogisticsPageEditor({ content, onSave, onClose,
         Object.keys(content).forEach(key => {
             newContent[key] = content[key]?.value || '';
         });
-        setEditingContent(newContent);
+        const id = requestAnimationFrame(() => setEditingContent(newContent));
+        return () => cancelAnimationFrame(id);
     }, [content]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

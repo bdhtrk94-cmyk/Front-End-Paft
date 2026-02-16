@@ -770,10 +770,11 @@ export default function PlasticPallets() {
 
                 setContent(prevContent => {
                     const mergedContent = { ...prevContent };
-                    if (contentData && Object.keys(contentData).length > 0) {
-                        Object.keys(contentData).forEach(section => {
-                            if ((contentData as any)[section]) {
-                                mergedContent[section] = { ...mergedContent[section], ...(contentData as any)[section] };
+                    const typedContentData = contentData as ContentMapResponse;
+                    if (typedContentData && Object.keys(typedContentData).length > 0) {
+                        Object.keys(typedContentData).forEach(section => {
+                            if (typedContentData[section]) {
+                                mergedContent[section] = { ...mergedContent[section], ...typedContentData[section] };
                             }
                         });
                     }

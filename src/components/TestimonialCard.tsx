@@ -22,12 +22,12 @@ export default function TestimonialCard({ name, company, role, content, rating }
           </svg>
         ))}
       </div>
-      
+
       {/* Content */}
       <blockquote className="text-gray-700 mb-6 leading-relaxed">
-        "{content}"
+        &ldquo;{content}&rdquo;
       </blockquote>
-      
+
       {/* Author */}
       <div className="flex items-center">
         <div className="w-12 h-12 bg-paft-gradient rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">

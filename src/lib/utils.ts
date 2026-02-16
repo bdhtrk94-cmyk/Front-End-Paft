@@ -30,7 +30,7 @@ export function validatePhone(phone: string): boolean {
   return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
 }
 
-export function calculateTotal(items: Array<{price: string, quantity: number}>): string {
+export function calculateTotal(items: Array<{ price: string, quantity: number }>): string {
   const total = items.reduce((sum, item) => {
     const price = parseFloat(item.price.replace('$', ''));
     return sum + (price * item.quantity);
@@ -51,18 +51,26 @@ export function truncateText(text: string, maxLength: number): string {
   return text.substring(0, maxLength).trim() + '...';
 }
 
-export function getProductById(products: any[], id: number) {
+interface ProductItem {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  [key: string]: unknown;
+}
+
+export function getProductById(products: ProductItem[], id: number) {
   return products.find(product => product.id === id);
 }
 
-export function filterProductsByCategory(products: any[], category: string) {
+export function filterProductsByCategory(products: ProductItem[], category: string) {
   if (category === 'all') return products;
   return products.filter(product => product.category.toLowerCase() === category.toLowerCase());
 }
 
-export function searchProducts(products: any[], query: string) {
+export function searchProducts(products: ProductItem[], query: string) {
   const searchTerm = query.toLowerCase();
-  return products.filter(product => 
+  return products.filter(product =>
     product.name.toLowerCase().includes(searchTerm) ||
     product.description.toLowerCase().includes(searchTerm) ||
     product.category.toLowerCase().includes(searchTerm)

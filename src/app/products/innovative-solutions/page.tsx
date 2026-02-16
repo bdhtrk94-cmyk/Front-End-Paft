@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useTheme } from '@/context/ThemeContext';
+import { contentApi } from '@/lib/api';
 
 /* ─── Intersection Observer Hook ─── */
 function useInView(threshold = 0.15) {
@@ -23,7 +24,7 @@ function useInView(threshold = 0.15) {
 }
 
 /* ─── Hero Section ─── */
-function HeroSection({ isLight }: { isLight: boolean }) {
+function HeroSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.2);
 
     return (
@@ -62,7 +63,7 @@ function HeroSection({ isLight }: { isLight: boolean }) {
                         transition: 'all 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
                     }}
                 >
-                    WE BRING{' '}
+                    {content['hero-title-line1'] || 'WE BRING'}{' '}
                     <span
                         style={{
                             background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -71,10 +72,10 @@ function HeroSection({ isLight }: { isLight: boolean }) {
                             filter: 'drop-shadow(0 2px 10px rgba(6, 182, 212, 0.4))',
                         }}
                     >
-                        INNOVATION
+                        {content['hero-title-highlight'] || 'INNOVATION'}
                     </span>
                     <br />
-                    TO SUPPLY CHAIN
+                    {content['hero-title-line2'] || 'TO SUPPLY CHAIN'}
                 </h1>
             </div>
         </section>
@@ -82,7 +83,7 @@ function HeroSection({ isLight }: { isLight: boolean }) {
 }
 
 /* ─── Smart Pallets Section ─── */
-function SmartPalletsSection({ isLight }: { isLight: boolean }) {
+function SmartPalletsSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
     const [imgHovered, setImgHovered] = useState(false);
 
@@ -117,12 +118,12 @@ function SmartPalletsSection({ isLight }: { isLight: boolean }) {
                                 </svg>
                             </div>
                             <span className="text-sm font-bold tracking-widest uppercase" style={{ color: '#06B6D4' }}>
-                                Smart Plastic Pallets
+                                {content['smart-pallets-badge'] || 'Smart Plastic Pallets'}
                             </span>
                         </div>
 
                         <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={{ color: isLight ? '#0F172A' : '#fff', letterSpacing: '-0.02em' }}>
-                            Intelligent{' '}
+                            {content['smart-pallets-title-plain'] || 'Intelligent'}{' '}
                             <span
                                 style={{
                                     background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -130,19 +131,17 @@ function SmartPalletsSection({ isLight }: { isLight: boolean }) {
                                     WebkitTextFillColor: 'transparent',
                                 }}
                             >
-                                Logistics Assets
+                                {content['smart-pallets-title-highlight'] || 'Logistics Assets'}
                             </span>
                         </h2>
 
                         <p className="text-base leading-relaxed mb-6" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                            PAFT Smart Plastic Pallets are designed as intelligent logistics assets. Each pallet carries a unique
-                            RFID identity that stores and transmits its full lifecycle data, transforming traditional pallets into
-                            smart, trackable units within the warehouse ecosystem.
+                            {content['smart-pallets-description'] || 'PAFT Smart Plastic Pallets are designed as intelligent logistics assets. Each pallet carries a unique RFID identity that stores and transmits its full lifecycle data, transforming traditional pallets into smart, trackable units within the warehouse ecosystem.'}
                         </p>
 
                         {/* Feature pills */}
                         <div className="flex flex-wrap gap-3 mt-6">
-                            {['Full Life Traceability', 'RFID-Enabled', 'Real-Time Tracking', 'ERP Integration'].map((f, i) => (
+                            {(content['smart-pallets-features'] ? content['smart-pallets-features'].split(',').map(s => s.trim()) : ['Full Life Traceability', 'RFID-Enabled', 'Real-Time Tracking', 'ERP Integration']).map((f, i) => (
                                 <span
                                     key={i}
                                     className="px-4 py-2 rounded-full text-sm font-medium"
@@ -265,13 +264,13 @@ function TechCard({ card, index, visible, isLight }: {
 }
 
 /* ─── RFID Technology Cards ─── */
-function RFIDTechSection({ isLight }: { isLight: boolean }) {
+function RFIDTechSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
 
     const techCards = [
         {
-            title: 'RFID Tags',
-            description: 'Embedded RFID tags provide unique identification and real-time tracking for every pallet.',
+            title: content['rfid-tech-card-1-title'] || 'RFID Tags',
+            description: content['rfid-tech-card-1-desc'] || 'Embedded RFID tags provide unique identification and real-time tracking for every pallet.',
             icon: (
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -280,8 +279,8 @@ function RFIDTechSection({ isLight }: { isLight: boolean }) {
             accent: '#06B6D4',
         },
         {
-            title: 'Readers & Antennas',
-            description: 'Installed on forklifts, racks, aisles, and gates to capture movement automatically.',
+            title: content['rfid-tech-card-2-title'] || 'Readers & Antennas',
+            description: content['rfid-tech-card-2-desc'] || 'Installed on forklifts, racks, aisles, and gates to capture movement automatically.',
             icon: (
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" />
@@ -290,8 +289,8 @@ function RFIDTechSection({ isLight }: { isLight: boolean }) {
             accent: '#2563EB',
         },
         {
-            title: 'Cloud iWMS Platform',
-            description: 'All RFID data is processed instantly through PAFT iWMS with ERP synchronization.',
+            title: content['rfid-tech-card-3-title'] || 'Cloud iWMS Platform',
+            description: content['rfid-tech-card-3-desc'] || 'All RFID data is processed instantly through PAFT iWMS with ERP synchronization.',
             icon: (
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
@@ -317,7 +316,7 @@ function RFIDTechSection({ isLight }: { isLight: boolean }) {
                     }}
                 >
                     <h2 className="text-3xl lg:text-5xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        RFID Technology{' '}
+                        {content['rfid-tech-title-plain'] || 'RFID Technology'}{' '}
                         <span
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -325,11 +324,11 @@ function RFIDTechSection({ isLight }: { isLight: boolean }) {
                                 WebkitTextFillColor: 'transparent',
                             }}
                         >
-                            Integration
+                            {content['rfid-tech-title-highlight'] || 'Integration'}
                         </span>
                     </h2>
                     <p className="text-lg max-w-2xl mx-auto" style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.5)' }}>
-                        The core components powering our smart warehouse ecosystem
+                        {content['rfid-tech-subtitle'] || 'The core components powering our smart warehouse ecosystem'}
                     </p>
                 </div>
 
@@ -404,15 +403,15 @@ function ProcessStep({ step, index, visible, isLight }: {
 }
 
 /* ─── Process Flow Section ─── */
-function ProcessFlowSection({ isLight }: { isLight: boolean }) {
+function ProcessFlowSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
 
     const steps = [
-        { number: 1, title: 'Smart Pallets', description: 'Each plastic pallet is RFID-enabled, providing full life traceability.', accent: '#06B6D4' },
-        { number: 2, title: 'Smart Forklifts', description: 'Automatic reading of pallets during handling without manual scanning.', accent: '#2563EB' },
-        { number: 3, title: 'Smart Racks & Aisles', description: 'Instant location tracking and optimized storage management.', accent: '#8B5CF6' },
-        { number: 4, title: 'Smart Gates', description: 'Accurate inbound and outbound recording at warehouse gates.', accent: '#10B981' },
-        { number: 5, title: 'ERP Integration', description: 'Real-time synchronization between iWMS and ERP systems.', accent: '#F59E0B' },
+        { number: 1, title: content['process-flow-step-1-title'] || 'Smart Pallets', description: content['process-flow-step-1-desc'] || 'Each plastic pallet is RFID-enabled, providing full life traceability.', accent: '#06B6D4' },
+        { number: 2, title: content['process-flow-step-2-title'] || 'Smart Forklifts', description: content['process-flow-step-2-desc'] || 'Automatic reading of pallets during handling without manual scanning.', accent: '#2563EB' },
+        { number: 3, title: content['process-flow-step-3-title'] || 'Smart Racks & Aisles', description: content['process-flow-step-3-desc'] || 'Instant location tracking and optimized storage management.', accent: '#8B5CF6' },
+        { number: 4, title: content['process-flow-step-4-title'] || 'Smart Gates', description: content['process-flow-step-4-desc'] || 'Accurate inbound and outbound recording at warehouse gates.', accent: '#10B981' },
+        { number: 5, title: content['process-flow-step-5-title'] || 'ERP Integration', description: content['process-flow-step-5-desc'] || 'Real-time synchronization between iWMS and ERP systems.', accent: '#F59E0B' },
     ];
 
     return (
@@ -431,7 +430,7 @@ function ProcessFlowSection({ isLight }: { isLight: boolean }) {
                     }}
                 >
                     <h2 className="text-3xl lg:text-5xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        How PAFT iWMS{' '}
+                        {content['process-flow-title-plain'] || 'How PAFT iWMS'}{' '}
                         <span
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -439,11 +438,11 @@ function ProcessFlowSection({ isLight }: { isLight: boolean }) {
                                 WebkitTextFillColor: 'transparent',
                             }}
                         >
-                            Works
+                            {content['process-flow-title-highlight'] || 'Works'}
                         </span>
                     </h2>
                     <p className="text-lg max-w-2xl mx-auto" style={{ color: isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.5)' }}>
-                        A seamless 5-step process from pallet to ERP
+                        {content['process-flow-subtitle'] || 'A seamless 5-step process from pallet to ERP'}
                     </p>
                 </div>
 
@@ -487,7 +486,7 @@ function ProcessFlowSection({ isLight }: { isLight: boolean }) {
 }
 
 /* ─── Business Impact Section ─── */
-function BusinessImpactSection({ isLight }: { isLight: boolean }) {
+function BusinessImpactSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
 
     return (
@@ -506,7 +505,7 @@ function BusinessImpactSection({ isLight }: { isLight: boolean }) {
                     }}
                 >
                     <h2 className="text-3xl lg:text-5xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        Business{' '}
+                        {content['business-impact-title-plain'] || 'Business'}{' '}
                         <span
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -514,13 +513,11 @@ function BusinessImpactSection({ isLight }: { isLight: boolean }) {
                                 WebkitTextFillColor: 'transparent',
                             }}
                         >
-                            Impact
+                            {content['business-impact-title-highlight'] || 'Impact'}
                         </span>
                     </h2>
                     <p className="text-lg max-w-3xl mx-auto" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.55)' }}>
-                        PAFT iWMS enables real-time inventory tracking, improved accuracy, reduced labor costs, faster
-                        operations, and full warehouse visibility—positioning PAFT as a leader in smart pallet and warehouse
-                        automation solutions.
+                        {content['business-impact-description'] || 'PAFT iWMS enables real-time inventory tracking, improved accuracy, reduced labor costs, faster operations, and full warehouse visibility—positioning PAFT as a leader in smart pallet and warehouse automation solutions.'}
                     </p>
                 </div>
 
@@ -533,10 +530,10 @@ function BusinessImpactSection({ isLight }: { isLight: boolean }) {
                     }}
                 >
                     {[
-                        { label: 'Inventory Accuracy', value: '99.9%', accent: '#06B6D4' },
-                        { label: 'Faster Operations', value: '3×', accent: '#2563EB' },
-                        { label: 'Cost Reduction', value: '40%', accent: '#10B981' },
-                        { label: 'Full Visibility', value: '100%', accent: '#8B5CF6' },
+                        { label: content['business-impact-stat-1-label'] || 'Inventory Accuracy', value: content['business-impact-stat-1-value'] || '99.9%', accent: '#06B6D4' },
+                        { label: content['business-impact-stat-2-label'] || 'Faster Operations', value: content['business-impact-stat-2-value'] || '3×', accent: '#2563EB' },
+                        { label: content['business-impact-stat-3-label'] || 'Cost Reduction', value: content['business-impact-stat-3-value'] || '40%', accent: '#10B981' },
+                        { label: content['business-impact-stat-4-label'] || 'Full Visibility', value: content['business-impact-stat-4-value'] || '100%', accent: '#8B5CF6' },
                     ].map((stat) => (
                         <div key={stat.label} className="text-center py-8 rounded-2xl"
                             style={{
@@ -568,7 +565,7 @@ function BusinessImpactSection({ isLight }: { isLight: boolean }) {
 }
 
 /* ─── RFID Understanding Section ─── */
-function RFIDUnderstandingSection({ isLight }: { isLight: boolean }) {
+function RFIDUnderstandingSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
     const [imgHovered, setImgHovered] = useState(false);
 
@@ -637,32 +634,27 @@ function RFIDUnderstandingSection({ isLight }: { isLight: boolean }) {
                                 </svg>
                             </div>
                             <span className="text-sm font-bold tracking-widest uppercase" style={{ color: '#2563EB' }}>
-                                Understanding RFID
+                                {content['rfid-understanding-badge'] || 'Understanding RFID'}
                             </span>
                         </div>
 
                         <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={{ color: isLight ? '#0F172A' : '#fff', letterSpacing: '-0.02em' }}>
-                            Radio Frequency{' '}
+                            {content['rfid-understanding-title-plain'] || 'Radio Frequency'}{' '}
                             <span style={{
                                 background: 'linear-gradient(135deg, #2563EB, #06B6D4)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                             }}>
-                                Identification
+                                {content['rfid-understanding-title-highlight'] || 'Identification'}
                             </span>
                         </h2>
 
                         <div className="space-y-5">
                             <p className="text-base leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                                Radio Frequency Identification (RFID) technology uses electromagnetic fields to automatically identify
-                                and track tags attached to objects. This technology significantly enhances the visibility and traceability
-                                of inventory items, making it an essential tool for modern warehouses.
+                                {content['rfid-understanding-paragraph-1'] || 'Radio Frequency Identification (RFID) technology uses electromagnetic fields to automatically identify and track tags attached to objects. This technology significantly enhances the visibility and traceability of inventory items, making it an essential tool for modern warehouses.'}
                             </p>
                             <p className="text-base leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                                Unlike traditional barcode systems that require line-of-sight scanning, RFID enables contactless reading
-                                of multiple items simultaneously. This capability dramatically speeds up inventory counts and reduces
-                                human error, allowing warehouse staff to focus on higher-value tasks while the system handles tracking
-                                automatically.
+                                {content['rfid-understanding-paragraph-2'] || 'Unlike traditional barcode systems that require line-of-sight scanning, RFID enables contactless reading of multiple items simultaneously. This capability dramatically speeds up inventory counts and reduces human error, allowing warehouse staff to focus on higher-value tasks while the system handles tracking automatically.'}
                             </p>
                         </div>
                     </div>
@@ -673,7 +665,7 @@ function RFIDUnderstandingSection({ isLight }: { isLight: boolean }) {
 }
 
 /* ─── Challenges & Considerations Section ─── */
-function ChallengesSection({ isLight }: { isLight: boolean }) {
+function ChallengesSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
     const [imgHovered, setImgHovered] = useState(false);
 
@@ -703,31 +695,27 @@ function ChallengesSection({ isLight }: { isLight: boolean }) {
                                 </svg>
                             </div>
                             <span className="text-sm font-bold tracking-widest uppercase" style={{ color: '#8B5CF6' }}>
-                                Challenges &amp; Considerations
+                                {content['challenges-badge'] || 'Challenges & Considerations'}
                             </span>
                         </div>
 
                         <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={{ color: isLight ? '#0F172A' : '#fff', letterSpacing: '-0.02em' }}>
-                            Implementation{' '}
+                            {content['challenges-title-plain'] || 'Implementation'}{' '}
                             <span style={{
                                 background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                             }}>
-                                Success
+                                {content['challenges-title-highlight'] || 'Success'}
                             </span>
                         </h2>
 
                         <div className="space-y-5">
                             <p className="text-base leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                                While the PAFT iWMS offers numerous advantages, businesses must consider potential challenges such as
-                                initial setup costs and training requirements. Understanding these factors is crucial for a successful
-                                implementation and maximizing benefits.
+                                {content['challenges-paragraph-1'] || 'While the PAFT iWMS offers numerous advantages, businesses must consider potential challenges such as initial setup costs and training requirements. Understanding these factors is crucial for a successful implementation and maximizing benefits.'}
                             </p>
                             <p className="text-base leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                                However, the long-term ROI typically outweighs these initial investments. PAFT provides comprehensive
-                                onboarding support and training programs to ensure your team is fully equipped to leverage the system&apos;s
-                                capabilities from day one.
+                                {content['challenges-paragraph-2'] || 'However, the long-term ROI typically outweighs these initial investments. PAFT provides comprehensive onboarding support and training programs to ensure your team is fully equipped to leverage the system\u2019s capabilities from day one.'}
                             </p>
                         </div>
 
@@ -743,7 +731,7 @@ function ChallengesSection({ isLight }: { isLight: boolean }) {
                             }}
                         >
                             <p className="text-base font-medium italic" style={{ color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)' }}>
-                                &ldquo;PAFT provides comprehensive onboarding support to ensure your team is fully equipped from day one.&rdquo;
+                                &ldquo;{content['challenges-quote'] || 'PAFT provides comprehensive onboarding support to ensure your team is fully equipped from day one.'}&rdquo;
                             </p>
                         </div>
                     </div>
@@ -793,7 +781,7 @@ function ChallengesSection({ isLight }: { isLight: boolean }) {
 }
 
 /* ─── Conclusion / CTA Section ─── */
-function ConclusionSection({ isLight }: { isLight: boolean }) {
+function ConclusionSection({ isLight, content = {} }: { isLight: boolean; content?: Record<string, string> }) {
     const { ref, visible } = useInView(0.1);
     const [imgHovered, setImgHovered] = useState(false);
 
@@ -814,23 +802,20 @@ function ConclusionSection({ isLight }: { isLight: boolean }) {
                     }}
                 >
                     <h2 className="text-3xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        Transform Your{' '}
+                        {content['conclusion-title-plain'] || 'Transform Your'}{' '}
                         <span style={{
                             background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                         }}>
-                            Operations
+                            {content['conclusion-title-highlight'] || 'Operations'}
                         </span>
                     </h2>
                     <p className="text-lg max-w-3xl mx-auto mb-4" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
-                        The PAFT iWMS with RFID technology revolutionizes inventory management. By embracing
-                        this innovative solution, businesses can achieve unprecedented levels of efficiency, accuracy, and
-                        operational excellence in their warehouse operations.
+                        {content['conclusion-paragraph-1'] || 'The PAFT iWMS with RFID technology revolutionizes inventory management. By embracing this innovative solution, businesses can achieve unprecedented levels of efficiency, accuracy, and operational excellence in their warehouse operations.'}
                     </p>
                     <p className="text-lg max-w-3xl mx-auto" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
-                        From real-time tracking to seamless ERP integration, PAFT provides a complete ecosystem that transforms
-                        how you manage inventory. Take the first step towards smarter warehouse management.
+                        {content['conclusion-paragraph-2'] || 'From real-time tracking to seamless ERP integration, PAFT provides a complete ecosystem that transforms how you manage inventory. Take the first step towards smarter warehouse management.'}
                     </p>
                 </div>
 
@@ -891,7 +876,7 @@ function ConclusionSection({ isLight }: { isLight: boolean }) {
                                 boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
                             }}
                         >
-                            Request a Demo →
+                            {content['conclusion-cta-primary'] || 'Request a Demo →'}
                         </a>
                         <a
                             href="/products"
@@ -903,7 +888,7 @@ function ConclusionSection({ isLight }: { isLight: boolean }) {
                                 backdropFilter: 'blur(10px)',
                             }}
                         >
-                            Explore Products
+                            {content['conclusion-cta-secondary'] || 'Explore Products'}
                         </a>
                     </div>
                 </div>
@@ -916,18 +901,35 @@ function ConclusionSection({ isLight }: { isLight: boolean }) {
 export default function InnovativeSolutions() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const [content, setContent] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const loadContent = async () => {
+            try {
+                const data = await contentApi.getPageContent('innovative-solutions');
+                const flat: Record<string, string> = {};
+                Object.keys(data).forEach(section => {
+                    Object.keys(data[section]).forEach(key => {
+                        flat[`${section}-${key}`] = data[section][key].value;
+                    });
+                });
+                setContent(flat);
+            } catch (e) { console.error('Failed to load innovative-solutions content', e); }
+        };
+        loadContent();
+    }, []);
 
     return (
         <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
             <Header currentPage="innovative-solutions" />
-            <HeroSection isLight={isLight} />
-            <SmartPalletsSection isLight={isLight} />
-            <RFIDTechSection isLight={isLight} />
-            <ProcessFlowSection isLight={isLight} />
-            <BusinessImpactSection isLight={isLight} />
-            <RFIDUnderstandingSection isLight={isLight} />
-            <ChallengesSection isLight={isLight} />
-            <ConclusionSection isLight={isLight} />
+            <HeroSection isLight={isLight} content={content} />
+            <SmartPalletsSection isLight={isLight} content={content} />
+            <RFIDTechSection isLight={isLight} content={content} />
+            <ProcessFlowSection isLight={isLight} content={content} />
+            <BusinessImpactSection isLight={isLight} content={content} />
+            <RFIDUnderstandingSection isLight={isLight} content={content} />
+            <ChallengesSection isLight={isLight} content={content} />
+            <ConclusionSection isLight={isLight} content={content} />
             <Footer />
         </div>
     );

@@ -107,38 +107,38 @@ export const PAFT_CSS_VARS = {
   '--paft-primary': PAFT_COLORS.primary.main,
   '--paft-primary-light': PAFT_COLORS.primary.light,
   '--paft-primary-dark': PAFT_COLORS.primary.dark,
-  
+
   // Secondary Colors
   '--paft-secondary': PAFT_COLORS.secondary.main,
   '--paft-secondary-light': PAFT_COLORS.secondary.light,
   '--paft-secondary-dark': PAFT_COLORS.secondary.dark,
-  
+
   // Semantic Colors
   '--paft-success': PAFT_COLORS.success.main,
   '--paft-warning': PAFT_COLORS.warning.main,
   '--paft-error': PAFT_COLORS.error.main,
-  
+
   // Background Colors
   '--paft-bg-primary': PAFT_COLORS.background.primary,
   '--paft-bg-secondary': PAFT_COLORS.background.secondary,
   '--paft-bg-light': PAFT_COLORS.background.light,
   '--paft-bg-gray': PAFT_COLORS.background.gray,
-  
+
   // Text Colors
   '--paft-text-primary': PAFT_COLORS.text.primary,
   '--paft-text-secondary': PAFT_COLORS.text.secondary,
   '--paft-text-dark': PAFT_COLORS.text.dark,
   '--paft-text-light': PAFT_COLORS.text.light,
-  
+
   // Border Colors
   '--paft-border-primary': PAFT_COLORS.border.primary,
   '--paft-border-secondary': PAFT_COLORS.border.secondary,
   '--paft-border-light': PAFT_COLORS.border.light,
-  
+
   // Gradients
   '--paft-gradient-primary': `linear-gradient(135deg, ${PAFT_COLORS.primary.main} 0%, ${PAFT_COLORS.secondary.main} 100%)`,
   '--paft-gradient-light': `linear-gradient(135deg, ${PAFT_COLORS.primary.light} 0%, ${PAFT_COLORS.secondary.light} 100%)`,
-  
+
   // Shadow Colors
   '--paft-shadow-primary': `rgba(6, 182, 212, 0.3)`,
   '--paft-shadow-secondary': `rgba(37, 99, 235, 0.3)`,
@@ -160,7 +160,7 @@ export const PAFT_TAILWIND_CLASSES = {
     gradient: 'bg-paft-gradient',
     gradientLight: 'bg-paft-gradient-light',
   },
-  
+
   // Text Classes
   text: {
     primary: 'text-paft-primary',
@@ -170,26 +170,26 @@ export const PAFT_TAILWIND_CLASSES = {
     secondaryLight: 'text-paft-secondary-light',
     secondaryDark: 'text-paft-secondary-dark',
   },
-  
+
   // Border Classes
   border: {
     primary: 'border-paft-primary',
     secondary: 'border-paft-secondary',
     light: 'border-paft-light',
   },
-  
+
   // Ring Classes (for focus states)
   ring: {
     primary: 'ring-paft-primary',
     secondary: 'ring-paft-secondary',
   },
-  
+
   // Shadow Classes
   shadow: {
     primary: 'shadow-paft-primary',
     secondary: 'shadow-paft-secondary',
   },
-  
+
   // Hover Classes
   hover: {
     bgPrimary: 'hover:bg-paft-primary',
@@ -207,16 +207,16 @@ export const PAFT_TAILWIND_CLASSES = {
  */
 export function getColor(path: string): string {
   const keys = path.split('.');
-  let value: any = PAFT_COLORS;
-  
+  let value: unknown = PAFT_COLORS;
+
   for (const key of keys) {
-    value = value[key];
+    value = (value as Record<string, unknown>)[key];
     if (value === undefined) {
       throw new Error(`Color path "${path}" not found`);
     }
   }
-  
-  return value;
+
+  return value as string;
 }
 
 /**
@@ -229,6 +229,6 @@ export function getRgbaColor(path: string, opacity: number): string {
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
-  
+
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }

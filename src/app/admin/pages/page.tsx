@@ -1193,7 +1193,7 @@ export default function AdminPagesPage() {
 
             {/* Innovative Solutions Editor Modal */}
             {showInnovativeSolutionsModal && (
-                <InnovativeSolutionsEditor onClose={() => setShowInnovativeSolutionsModal(false)} />
+                <InnovativeSolutionsEditor onClose={() => setShowInnovativeSolutionsModal(false)} onSave={() => { setShowInnovativeSolutionsModal(false); setSuccessMsg('Innovative Solutions page updated successfully!'); }} />
             )}
         </div>
     );

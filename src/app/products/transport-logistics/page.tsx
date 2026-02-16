@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -70,7 +70,8 @@ function SpecTable({ specs, priceLabel }: { specs: Product['specs']; priceLabel?
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const id = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(id);
     }, []);
 
     const isLight = mounted && theme === 'light';
@@ -171,7 +172,8 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const id = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(id);
     }, []);
 
     const isLight = mounted && theme === 'light';
@@ -345,23 +347,29 @@ export default function TransportLogistics() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const id = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(id);
     }, []);
 
     const isLight = mounted && theme === 'light';
     const { ref: heroRef, visible: heroVisible } = useInView(0.1);
     const { ref: gridRef, visible: gridVisible } = useInView(0.05);
 
-    const [content, setContent] = useState<{ [key: string]: any }>({});
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [content, setContent] = useState<Record<string, unknown>>({});
     const [flatContent, setFlatContent] = useState<{ [key: string]: string }>({});
     const [idMap, setIdMap] = useState<{ [key: string]: number }>({});
     const [products, setProducts] = useState<Product[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
+    const loadContentCb = useCallback(() => {
         loadContent();
     }, []);
+
+    useEffect(() => {
+        loadContentCb();
+    }, [loadContentCb]);
 
     const loadContent = async () => {
         try {
@@ -528,7 +536,7 @@ export default function TransportLogistics() {
     const ctaDescColor = isLight ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.6)';
     const contactBtnBorder = isLight ? '2px solid rgba(15,23,42,0.2)' : '2px solid rgba(255,255,255,0.2)';
     const contactBtnText = isLight ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.8)';
-    const contactBtnHoverBg = isLight ? 'rgba(15,23,42,0.05)' : 'rgba(255,255,255,0.05)';
+
 
     return (
         <div className="min-h-screen" style={{ background: pageBg, transition: 'background 0.3s ease' }}>
