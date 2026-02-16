@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/context/ThemeContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransportLogisticsPageEditor from '@/app/admin/pages/TransportLogisticsPageEditor';
