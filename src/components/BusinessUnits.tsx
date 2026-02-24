@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Static configuration for business units (colors, icons, links)
 const businessUnitsConfig = [
@@ -59,10 +60,14 @@ interface BusinessUnitsProps {
 export default function BusinessUnits({ content = {} }: BusinessUnitsProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { theme } = useTheme();
+    const { language } = useLanguage();
     const isLight = theme === 'light';
 
-    // Get content values with fallbacks
+    // Get content values with fallbacks — language-aware
     const getContentValue = (key: string, fallback: string = '') => {
+        if (language === 'ar' && content[key]?.valueAr) {
+            return content[key].valueAr;
+        }
         return content[key]?.value || fallback;
     };
 

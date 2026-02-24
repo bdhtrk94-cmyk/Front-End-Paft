@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { useLanguage } from '@/context/LanguageContext';
+import { contentApi } from '@/lib/api';
 
 interface NavItem {
   name: string;
@@ -36,37 +38,62 @@ export default function Header({ currentPage = '' }: HeaderProps) {
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { totalItems, openCart } = useCart();
+  const { language, toggleLanguage } = useLanguage();
+
+  // Dynamic content from DB
+  const [navContent, setNavContent] = useState<{ [key: string]: { value: string; valueAr?: string } }>({});
+
+  useEffect(() => {
+    contentApi.getPageContent('layout').then(data => {
+      const flat: { [key: string]: { value: string; valueAr?: string } } = {};
+      Object.keys(data).forEach(section => {
+        Object.keys(data[section]).forEach(key => {
+          flat[`${section}-${key}`] = data[section][key];
+        });
+      });
+      setNavContent(flat);
+    }).catch(() => {/* fallback to hardcoded */ });
+  }, []);
+
+  // Helper to get a nav label — prefers AR when in Arabic mode
+  const n = (key: string, fallback: string) => {
+    const item = navContent[key];
+    if (!item) return fallback;
+    return language === 'ar' && item.valueAr ? item.valueAr : item.value || fallback;
+  };
+
+  const isAr = language === 'ar';
 
   const navItems: NavEntry[] = [
-    { name: 'Home', href: '/', key: 'home' },
+    { name: n('nav-home', 'Home'), href: '/', key: 'home' },
     {
-      name: 'Company',
+      name: n('nav-company', 'Company'),
       key: 'company',
       children: [
-        { name: 'About', href: '/about', key: 'about' },
-        { name: 'Our Journey', href: '/our-journey', key: 'our-journey' },
+        { name: n('nav-about', 'About'), href: '/about', key: 'about' },
+        { name: n('nav-our-journey', 'Our Journey'), href: '/our-journey', key: 'our-journey' },
       ],
     },
     {
-      name: 'Products',
+      name: n('nav-products', 'Products'),
       key: 'products',
       children: [
-        { name: 'Plastic Pallets', href: '/products/plastic-pallets', key: 'plastic-pallets' },
-        { name: 'Transport-Logistics Items', href: '/products/transport-logistics', key: 'transport-logistics' },
-        { name: 'Raw Material Supply', href: '/products/raw-materials', key: 'raw-materials' },
-        { name: 'Innovative Solutions', href: '/products/innovative-solutions', key: 'innovative-solutions' },
+        { name: n('nav-plastic-pallets', 'Plastic Pallets'), href: '/products/plastic-pallets', key: 'plastic-pallets' },
+        { name: n('nav-transport-logistics', 'Transport-Logistics Items'), href: '/products/transport-logistics', key: 'transport-logistics' },
+        { name: n('nav-raw-materials', 'Raw Material Supply'), href: '/products/raw-materials', key: 'raw-materials' },
+        { name: n('nav-innovative-solutions', 'Innovative Solutions'), href: '/products/innovative-solutions', key: 'innovative-solutions' },
       ],
     },
     {
-      name: 'Coverage',
+      name: n('nav-coverage', 'Coverage'),
       key: 'coverage',
       children: [
-        { name: 'Clients', href: '/coverage/clients', key: 'clients' },
-        { name: 'Markets', href: '/company/markets', key: 'markets' },
+        { name: n('nav-clients', 'Clients'), href: '/coverage/clients', key: 'clients' },
+        { name: n('nav-markets', 'Markets'), href: '/company/markets', key: 'markets' },
       ],
     },
-    { name: 'Shop', href: '/shop', key: 'shop' },
-    { name: 'Contact', href: '/contact', key: 'contact' },
+    { name: n('nav-shop', 'Shop'), href: '/shop', key: 'shop' },
+    { name: n('nav-contact', 'Contact'), href: '/contact', key: 'contact' },
   ];
 
   const isDropdownActive = (item: NavDropdown) => {
@@ -165,6 +192,10 @@ export default function Header({ currentPage = '' }: HeaderProps) {
   };
 
   const getDropdownDescription = (childKey: string) => {
+    const descKey = `nav-desc-${childKey}`;
+    const item = navContent[descKey];
+    if (item) return isAr && item.valueAr ? item.valueAr : item.value;
+    // fallbacks
     switch (childKey) {
       case 'about': return 'Who we are & our vision';
       case 'our-journey': return 'Our milestones & growth';
@@ -177,6 +208,8 @@ export default function Header({ currentPage = '' }: HeaderProps) {
       default: return '';
     }
   };
+
+  const getQuoteLabel = () => n('nav-get-quote', 'Get Quote');
 
   return (
     <>
@@ -198,6 +231,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
             ? 'var(--header-shadow-scrolled)'
             : 'var(--header-shadow)',
         }}
+        dir={isAr ? 'rtl' : 'ltr'}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
@@ -387,6 +421,28 @@ export default function Header({ currentPage = '' }: HeaderProps) {
               {/* Theme Switcher */}
               <ThemeSwitcher />
 
+              {/* Language Toggle */}
+              <button
+                onClick={toggleLanguage}
+                className="px-3 py-2 rounded-lg font-semibold text-xs tracking-wide transition-all duration-500"
+                style={{
+                  color: 'var(--header-text)',
+                  backgroundColor: 'var(--header-hover-bg)',
+                  border: '1px solid var(--header-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--header-active-bg)';
+                  e.currentTarget.style.color = 'var(--header-text-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--header-hover-bg)';
+                  e.currentTarget.style.color = 'var(--header-text)';
+                }}
+                aria-label="Toggle language"
+              >
+                {language === 'en' ? 'عربي' : 'EN'}
+              </button>
+
               {/* Cart Icon */}
               <button
                 onClick={openCart}
@@ -432,7 +488,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <span>Get Quote</span>
+                <span>{getQuoteLabel()}</span>
                 <svg className="w-4 h-4 transition-transform duration-700 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -442,6 +498,18 @@ export default function Header({ currentPage = '' }: HeaderProps) {
             {/* Mobile cart + theme + menu button */}
             <div className="md:hidden flex items-center gap-2">
               <ThemeSwitcher />
+              <button
+                onClick={toggleLanguage}
+                className="px-2.5 py-1.5 rounded-lg font-semibold text-xs transition-all duration-500"
+                style={{
+                  color: 'var(--header-text)',
+                  backgroundColor: 'var(--header-hover-bg)',
+                  border: '1px solid var(--header-border)',
+                }}
+                aria-label="Toggle language"
+              >
+                {language === 'en' ? 'عربي' : 'EN'}
+              </button>
               <button
                 onClick={openCart}
                 className="relative p-2 rounded-lg transition-colors duration-700"
@@ -505,7 +573,8 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                         style={{
                           color: isActive ? 'var(--header-active-color)' : 'var(--header-text)',
                           backgroundColor: isActive ? 'var(--header-active-bg)' : 'transparent',
-                          borderLeft: isActive ? '4px solid var(--header-active-color)' : '4px solid transparent',
+                          borderLeft: isAr ? 'none' : (isActive ? '4px solid var(--header-active-color)' : '4px solid transparent'),
+                          borderRight: isAr ? (isActive ? '4px solid var(--header-active-color)' : '4px solid transparent') : 'none',
                         }}
                       >
                         <span>{item.name}</span>
@@ -527,7 +596,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                           opacity: isMobileOpen ? 1 : 0,
                         }}
                       >
-                        <div className="ml-4 mt-1 space-y-1 pl-4" style={{ borderLeft: '2px solid var(--header-mobile-dropdown-border)' }}>
+                        <div className="ml-4 mt-1 space-y-1 pl-4" style={{ borderLeft: isAr ? 'none' : '2px solid var(--header-mobile-dropdown-border)', borderRight: isAr ? '2px solid var(--header-mobile-dropdown-border)' : 'none' }}>
                           {item.children.map((child) => (
                             <a
                               key={child.key}
@@ -558,7 +627,8 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     style={{
                       color: currentPage === item.key ? 'var(--header-active-color)' : 'var(--header-text)',
                       backgroundColor: currentPage === item.key ? 'var(--header-active-bg)' : 'transparent',
-                      borderLeft: currentPage === item.key ? '4px solid var(--header-active-color)' : '4px solid transparent',
+                      borderLeft: isAr ? 'none' : (currentPage === item.key ? '4px solid var(--header-active-color)' : '4px solid transparent'),
+                      borderRight: isAr ? (currentPage === item.key ? '4px solid var(--header-active-color)' : '4px solid transparent') : 'none',
                     }}
                   >
                     {item.name}
@@ -575,7 +645,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                     boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
                   }}
                 >
-                  Get Quote
+                  {getQuoteLabel()}
                 </a>
               </div>
             </nav>
@@ -584,7 +654,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
       </header >
 
       {/* Spacer to prevent content from hiding behind fixed header */}
-      < div className="h-16" ></div >
+      <div className="h-16" ></div >
     </>
   );
 }

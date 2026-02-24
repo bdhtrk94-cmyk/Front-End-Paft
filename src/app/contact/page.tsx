@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { contentApi } from '@/lib/api';
 
 const MAX_MESSAGE = 600;
 
@@ -13,6 +15,8 @@ interface FormErrors {
   email?: string;
   message?: string;
 }
+
+type ContentMap = { [key: string]: string };
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -28,17 +32,60 @@ export default function Contact() {
 
   const { theme } = useTheme();
   const isLight = theme === 'light';
+  const { language } = useLanguage();
+  const isAr = language === 'ar';
+
+  // Dynamic content state
+  const [contentEn, setContentEn] = useState<ContentMap>({});
+  const [contentAr, setContentAr] = useState<ContentMap>({});
+  const [contentLoaded, setContentLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const data = await contentApi.getPageContent('contact');
+        const en: ContentMap = {};
+        const ar: ContentMap = {};
+        Object.keys(data).forEach(section => {
+          if (data[section] && typeof data[section] === 'object') {
+            Object.keys(data[section]).forEach(key => {
+              const item = data[section][key];
+              if (item && typeof item === 'object' && 'value' in item) {
+                const fullKey = section === 'hero' ? key : `${section}-${key}`;
+                en[fullKey] = item.value || '';
+                ar[fullKey] = item.valueAr || '';
+              }
+            });
+          }
+        });
+        setContentEn(en);
+        setContentAr(ar);
+        setContentLoaded(true);
+      } catch (e) {
+        console.error('Failed to load contact content:', e);
+        setContentLoaded(true);
+      }
+    };
+    fetchContent();
+  }, []);
+
+  // Helper to get content value with fallback
+  const c = (key: string, fallback: string): string => {
+    if (!contentLoaded) return fallback;
+    const val = isAr ? (contentAr[key] || contentEn[key]) : contentEn[key];
+    return val || fallback;
+  };
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
-    if (!formData.firstName.trim()) errs.firstName = 'First name is required';
-    if (!formData.lastName.trim()) errs.lastName = 'Last name is required';
+    if (!formData.firstName.trim()) errs.firstName = c('validation-first-name', 'First name is required');
+    if (!formData.lastName.trim()) errs.lastName = c('validation-last-name', 'Last name is required');
     if (!formData.email.trim()) {
-      errs.email = 'Email is required';
+      errs.email = c('validation-email-required', 'Email is required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errs.email = 'Enter a valid email address';
+      errs.email = c('validation-email-invalid', 'Enter a valid email address');
     }
-    if (!formData.message.trim()) errs.message = 'Message is required';
+    if (!formData.message.trim()) errs.message = c('validation-message', 'Message is required');
     return errs;
   };
 
@@ -73,11 +120,11 @@ export default function Contact() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
-      title: 'Visit Us',
+      title: c('contact-cards-card-1-title', 'Visit Us'),
       lines: [
-        'T 29, IDG, Industrial Square Area E2,',
-        'October 6th Industrial Area Zone 4.',
-        'Giza, Egypt.',
+        c('contact-cards-card-1-line-1', 'T 29, IDG, Industrial Square Area E2,'),
+        c('contact-cards-card-1-line-2', 'October 6th Industrial Area Zone 4.'),
+        c('contact-cards-card-1-line-3', 'Giza, Egypt.'),
       ],
       color: '#06B6D4',
       glow: 'rgba(6, 182, 212, 0.25)',
@@ -88,8 +135,8 @@ export default function Contact() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
       ),
-      title: 'Call Us',
-      lines: ['+201022239770', 'Sales Unit Manager'],
+      title: c('contact-cards-card-2-title', 'Call Us'),
+      lines: [c('contact-cards-card-2-line-1', '+201022239770'), c('contact-cards-card-2-line-2', 'Sales Unit Manager')],
       color: '#2563EB',
       glow: 'rgba(37, 99, 235, 0.25)',
     },
@@ -99,11 +146,11 @@ export default function Contact() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       ),
-      title: 'Email Us',
-      lines: ['info@paft.net'],
+      title: c('contact-cards-card-3-title', 'Email Us'),
+      lines: [c('contact-cards-card-3-line-1', 'info@paft.net')],
       color: '#10B981',
       glow: 'rgba(16, 185, 129, 0.25)',
-      href: 'mailto:info@paft.net',
+      href: 'mailto:' + c('contact-cards-card-3-line-1', 'info@paft.net'),
     },
   ];
 
@@ -133,7 +180,7 @@ export default function Contact() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
+    <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }} dir={isAr ? 'rtl' : 'ltr'}>
       <Header currentPage="contact" />
 
       {/* ── Hero Section ── */}
@@ -185,7 +232,7 @@ export default function Contact() {
             }}
           >
             <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-              Contact
+              {c('badge', 'Contact')}
             </span>
           </div>
 
@@ -198,7 +245,7 @@ export default function Contact() {
               letterSpacing: '-0.03em',
             }}
           >
-            We&apos;d Love to Hear From&nbsp;You
+            {c('title', "We'd Love to Hear From\u00a0You")}
           </h1>
 
           <div
@@ -210,10 +257,7 @@ export default function Contact() {
             className="text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed"
             style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.7)' }}
           >
-            PAFT is a trusted supplier of high-quality plastic pallets, offering durable, eco-friendly,
-            and cost-effective solutions for your storage and logistics needs. We provide a wide range of
-            plastic pallet options designed to meet the demands of various industries, ensuring safe handling,
-            easy transportation, and optimal warehouse efficiency.
+            {c('description', 'PAFT is a trusted supplier of high-quality plastic pallets, offering durable, eco-friendly, and cost-effective solutions for your storage and logistics needs. We provide a wide range of plastic pallet options designed to meet the demands of various industries, ensuring safe handling, easy transportation, and optimal warehouse efficiency.')}
           </p>
         </div>
       </section>
@@ -223,7 +267,7 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-              Reach Us{' '}
+              {c('contact-cards-section-title', isAr ? '' : 'Reach Us')}{' '}
               <span
                 style={{
                   background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -231,7 +275,7 @@ export default function Contact() {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                Through
+                {c('contact-cards-section-highlight', isAr ? '' : 'Through')}
               </span>
             </h2>
             <div
@@ -314,13 +358,13 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h3 className="text-2xl font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-              Social Networks
+              {c('social-title', 'Social Networks')}
             </h3>
           </div>
           <div className="flex justify-center gap-5">
             {/* Facebook */}
             <a
-              href="https://web.facebook.com/paft.pallets/?locale=ar_AR&_rdc=1&_rdr#"
+              href={c('social-facebook-url', 'https://web.facebook.com/paft.pallets/?locale=ar_AR&_rdc=1&_rdr#')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300"
@@ -341,7 +385,7 @@ export default function Contact() {
                 e.currentTarget.style.background = isLight ? 'rgba(59,89,152,0.06)' : 'rgba(59,89,152,0.15)';
                 e.currentTarget.style.color = '#4267B2';
               }}
-              aria-label="Follow PAFT on Facebook"
+              aria-label={c('social-facebook-label', 'Follow PAFT on Facebook')}
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -349,7 +393,7 @@ export default function Contact() {
             </a>
             {/* LinkedIn */}
             <a
-              href="https://www.linkedin.com/company/packaging-&-food-technology-paft/posts/?feedView=all"
+              href={c('social-linkedin-url', 'https://www.linkedin.com/company/packaging-&-food-technology-paft/posts/?feedView=all')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300"
@@ -370,7 +414,7 @@ export default function Contact() {
                 e.currentTarget.style.background = isLight ? 'rgba(0,119,181,0.06)' : 'rgba(0,119,181,0.15)';
                 e.currentTarget.style.color = '#0077B5';
               }}
-              aria-label="Follow PAFT on LinkedIn"
+              aria-label={c('social-linkedin-label', 'Follow PAFT on LinkedIn')}
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -392,7 +436,7 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-              Send Us a{' '}
+              {c('form-title', 'Send Us a')}{' '}
               <span
                 style={{
                   background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -400,7 +444,7 @@ export default function Contact() {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                Message
+                {c('form-title-highlight', 'Message')}
               </span>
             </h2>
             <div
@@ -408,7 +452,7 @@ export default function Contact() {
               style={{ background: 'linear-gradient(90deg, #06B6D4, #2563EB)' }}
             />
             <p className="text-base max-w-xl mx-auto" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.5)' }}>
-              Fill in the details below and our team will get back to you promptly.
+              {c('form-subtitle', 'Fill in the details below and our team will get back to you promptly.')}
             </p>
           </div>
 
@@ -434,10 +478,10 @@ export default function Contact() {
                     </svg>
                   </div>
                   <h3 className="text-2xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                    Message Sent!
+                    {c('form-success-title', 'Message Sent!')}
                   </h3>
                   <p className="mb-8" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.5)' }}>
-                    Thank you for reaching out. We&apos;ll get back to you shortly.
+                    {c('form-success-description', "Thank you for reaching out. We'll get back to you shortly.")}
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
@@ -447,7 +491,7 @@ export default function Contact() {
                       boxShadow: '0 4px 15px rgba(6,182,212,0.3)',
                     }}
                   >
-                    Send Another Message
+                    {c('form-success-button', 'Send Another Message')}
                   </button>
                 </div>
               ) : (
@@ -456,7 +500,7 @@ export default function Contact() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
-                        First Name <span style={{ color: '#06B6D4' }}>*</span>
+                        {c('form-first-name', 'First Name')} <span style={{ color: '#06B6D4' }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -466,7 +510,8 @@ export default function Contact() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
                         style={inputStyle(errors.firstName)}
-                        placeholder="John"
+                        placeholder={c('form-placeholder-first', 'John')}
+                        dir={isAr ? 'rtl' : 'ltr'}
                         {...focusBorder(errors.firstName)}
                       />
                       {errors.firstName && (
@@ -475,7 +520,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
-                        Last Name <span style={{ color: '#06B6D4' }}>*</span>
+                        {c('form-last-name', 'Last Name')} <span style={{ color: '#06B6D4' }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -485,7 +530,8 @@ export default function Contact() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
                         style={inputStyle(errors.lastName)}
-                        placeholder="Doe"
+                        placeholder={c('form-placeholder-last', 'Doe')}
+                        dir={isAr ? 'rtl' : 'ltr'}
                         {...focusBorder(errors.lastName)}
                       />
                       {errors.lastName && (
@@ -497,7 +543,7 @@ export default function Contact() {
                   {/* Email */}
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
-                      Email <span style={{ color: '#06B6D4' }}>*</span>
+                      {c('form-email', 'Email')} <span style={{ color: '#06B6D4' }}>*</span>
                     </label>
                     <input
                       type="email"
@@ -507,7 +553,8 @@ export default function Contact() {
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300"
                       style={inputStyle(errors.email)}
-                      placeholder="john@company.com"
+                      placeholder={c('form-placeholder-email', 'john@company.com')}
+                      dir="ltr"
                       {...focusBorder(errors.email)}
                     />
                     {errors.email && (
@@ -518,7 +565,7 @@ export default function Contact() {
                   {/* Message */}
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium mb-2" style={{ color: isLight ? '#334155' : 'rgba(255,255,255,0.7)' }}>
-                      Comment or Message <span style={{ color: '#06B6D4' }}>*</span>
+                      {c('form-message-label', 'Comment or Message')} <span style={{ color: '#06B6D4' }}>*</span>
                     </label>
                     <textarea
                       id="message"
@@ -528,7 +575,8 @@ export default function Contact() {
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl outline-none transition-all duration-300 resize-none"
                       style={inputStyle(errors.message)}
-                      placeholder="Tell us about your requirements or ask us anything..."
+                      placeholder={c('form-placeholder-message', 'Tell us about your requirements or ask us anything...')}
+                      dir={isAr ? 'rtl' : 'ltr'}
                       {...focusBorder(errors.message)}
                     />
                     <div className="flex justify-between mt-1.5">
@@ -577,12 +625,12 @@ export default function Contact() {
                           className="w-5 h-5 border-2 rounded-full animate-spin"
                           style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}
                         />
-                        Sending…
+                        {c('form-sending', 'Sending…')}
                       </>
                     ) : (
                       <>
-                        Submit
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {c('form-submit', 'Submit')}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={isAr ? { transform: 'rotate(180deg)' } : undefined}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                       </>
@@ -618,16 +666,16 @@ export default function Contact() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">Quick Response Guarantee</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{c('quick-response-title', 'Quick Response Guarantee')}</h3>
                   <p className="text-white/80 text-sm mb-6 leading-relaxed">
-                    We respond to all inquiries within 24 hours during business days.
+                    {c('quick-response-description', 'We respond to all inquiries within 24 hours during business days.')}
                   </p>
                   <ul className="space-y-3">
                     {[
-                      'Free quotes and consultations',
-                      'Custom solutions available',
-                      'Bulk order discounts',
-                      'Fast delivery nationwide',
+                      c('quick-response-item-1', 'Free quotes and consultations'),
+                      c('quick-response-item-2', 'Custom solutions available'),
+                      c('quick-response-item-3', 'Bulk order discounts'),
+                      c('quick-response-item-4', 'Fast delivery nationwide'),
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-sm text-white/90">
                         <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
@@ -661,20 +709,20 @@ export default function Contact() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>Business Hours</h3>
+                  <h3 className="text-lg font-bold" style={{ color: isLight ? '#0F172A' : '#fff' }}>{c('business-hours-title', 'Business Hours')}</h3>
                 </div>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                    <span>Sunday – Thursday</span>
-                    <span className="font-semibold" style={{ color: '#06B6D4' }}>9:00 AM – 6:00 PM</span>
+                    <span>{c('business-hours-weekdays', 'Sunday – Thursday')}</span>
+                    <span className="font-semibold" style={{ color: '#06B6D4' }}>{c('business-hours-weekday-time', '9:00 AM – 6:00 PM')}</span>
                   </div>
                   <div
                     className="h-px"
                     style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)' }}
                   />
                   <div className="flex justify-between" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                    <span>Friday – Saturday</span>
-                    <span className="font-semibold" style={{ color: isLight ? '#CBD5E1' : 'rgba(255,255,255,0.35)' }}>Closed</span>
+                    <span>{c('business-hours-weekend', 'Friday – Saturday')}</span>
+                    <span className="font-semibold" style={{ color: isLight ? '#CBD5E1' : 'rgba(255,255,255,0.35)' }}>{c('business-hours-weekend-status', 'Closed')}</span>
                   </div>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import ShopPagination from '@/components/shop/ShopPagination';
 import { priceRanges, PRODUCTS_PER_PAGE, Product } from '@/lib/shopData';
 import { productsApi } from '@/lib/api';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -24,6 +25,8 @@ export default function ShopPage() {
 
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
 
     // Fetch products from API
     useEffect(() => {
@@ -54,7 +57,10 @@ export default function ShopPage() {
                 (p) =>
                     p.name.toLowerCase().includes(q) ||
                     p.category.toLowerCase().includes(q) ||
-                    p.description.toLowerCase().includes(q),
+                    p.description.toLowerCase().includes(q) ||
+                    (p.nameAr && p.nameAr.includes(q)) ||
+                    (p.categoryAr && p.categoryAr.includes(q)) ||
+                    (p.descriptionAr && p.descriptionAr.includes(q)),
             );
         }
 
@@ -153,7 +159,7 @@ export default function ShopPage() {
                         }}
                     >
                         <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-                            PAFT Store
+                            {isAr ? 'متجر PAFT' : 'PAFT Store'}
                         </span>
                     </div>
 
@@ -166,7 +172,7 @@ export default function ShopPage() {
                             letterSpacing: '-0.03em',
                         }}
                     >
-                        Shop Our Products
+                        {isAr ? 'تسوق منتجاتنا' : 'Shop Our Products'}
                     </h1>
 
                     <div
@@ -178,7 +184,10 @@ export default function ShopPage() {
                         className="text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed"
                         style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.65)' }}
                     >
-                        Premium plastic pallets, containers, and logistics solutions — built for industry, designed for performance.
+                        {isAr
+                            ? 'باليتات بلاستيكية متميزة، حاويات، وحلول لوجستية — مصنعة للصناعة، مصممة للأداء.'
+                            : 'Premium plastic pallets, containers, and logistics solutions — built for industry, designed for performance.'
+                        }
                     </p>
 
                     {/* Mini cart indicator */}
@@ -194,7 +203,10 @@ export default function ShopPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
                         </svg>
                         <span className="text-sm font-medium" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                            {cartCount} item{cartCount !== 1 ? 's' : ''} in cart
+                            {isAr
+                                ? `${cartCount} ${cartCount !== 1 ? 'عناصر' : 'عنصر'} في السلة`
+                                : `${cartCount} item${cartCount !== 1 ? 's' : ''} in cart`
+                            }
                         </span>
                     </div>
                 </div>
@@ -225,7 +237,7 @@ export default function ShopPage() {
                                     borderTopColor: '#06B6D4',
                                 }}
                             />
-                            <p className="text-sm" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.5)' }}>Loading products…</p>
+                            <p className="text-sm" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.5)' }}>{isAr ? 'جاري تحميل المنتجات…' : 'Loading products…'}</p>
                         </div>
                     )}
 
@@ -241,7 +253,7 @@ export default function ShopPage() {
                                 </svg>
                             </div>
                             <h3 className="text-xl font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                                Failed to load products
+                                {isAr ? 'فشل في تحميل المنتجات' : 'Failed to load products'}
                             </h3>
                             <p className="text-sm mb-6" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
                                 {loadError}
@@ -254,7 +266,7 @@ export default function ShopPage() {
                                     boxShadow: '0 4px 12px rgba(6,182,212,0.3)',
                                 }}
                             >
-                                Try Again
+                                {isAr ? 'حاول مرة أخرى' : 'Try Again'}
                             </button>
                         </div>
                     )}
@@ -280,10 +292,10 @@ export default function ShopPage() {
                                 </svg>
                             </div>
                             <h3 className="text-xl font-bold mb-2" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                                No products found
+                                {isAr ? 'لا توجد منتجات' : 'No products found'}
                             </h3>
                             <p className="text-sm" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
-                                Try adjusting your search or filters
+                                {isAr ? 'حاول تعديل البحث أو الفلاتر' : 'Try adjusting your search or filters'}
                             </p>
                             <button
                                 onClick={() => {
@@ -298,7 +310,7 @@ export default function ShopPage() {
                                     boxShadow: '0 4px 12px rgba(6,182,212,0.3)',
                                 }}
                             >
-                                Clear All Filters
+                                {isAr ? 'مسح جميع الفلاتر' : 'Clear All Filters'}
                             </button>
                         </div>
                     )}
@@ -324,7 +336,7 @@ export default function ShopPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-14">
                         <h2 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                            Why Shop With{' '}
+                            {isAr ? 'لماذا تتسوق من ' : 'Why Shop With '}
                             <span
                                 style={{
                                     background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
@@ -334,6 +346,7 @@ export default function ShopPage() {
                             >
                                 PAFT
                             </span>
+                            {isAr ? '؟' : ''}
                         </h2>
                         <div
                             className="w-16 h-1 mx-auto rounded-full"
@@ -348,8 +361,8 @@ export default function ShopPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                                     </svg>
                                 ),
-                                title: 'Fast Delivery',
-                                desc: 'Nationwide shipping with tracking available on all orders.',
+                                title: isAr ? 'توصيل سريع' : 'Fast Delivery',
+                                desc: isAr ? 'شحن على مستوى الدولة مع تتبع متاح لجميع الطلبات.' : 'Nationwide shipping with tracking available on all orders.',
                                 color: '#06B6D4',
                             },
                             {
@@ -358,8 +371,8 @@ export default function ShopPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                     </svg>
                                 ),
-                                title: 'Secure Payments',
-                                desc: 'Multiple payment options with encrypted checkout process.',
+                                title: isAr ? 'مدفوعات آمنة' : 'Secure Payments',
+                                desc: isAr ? 'خيارات دفع متعددة مع عملية شراء مشفرة.' : 'Multiple payment options with encrypted checkout process.',
                                 color: '#2563EB',
                             },
                             {
@@ -368,8 +381,8 @@ export default function ShopPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                 ),
-                                title: 'Eco-Friendly',
-                                desc: 'Products made from recycled and sustainable materials.',
+                                title: isAr ? 'صديق للبيئة' : 'Eco-Friendly',
+                                desc: isAr ? 'منتجات مصنوعة من مواد معاد تدويرها ومستدامة.' : 'Products made from recycled and sustainable materials.',
                                 color: '#10B981',
                             },
                             {
@@ -378,8 +391,8 @@ export default function ShopPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                                     </svg>
                                 ),
-                                title: 'Quality Guaranteed',
-                                desc: 'All products meet international quality standards.',
+                                title: isAr ? 'جودة مضمونة' : 'Quality Guaranteed',
+                                desc: isAr ? 'جميع المنتجات تلتزم بمعايير الجودة الدولية.' : 'All products meet international quality standards.',
                                 color: '#F59E0B',
                             },
                         ].map((item, i) => (

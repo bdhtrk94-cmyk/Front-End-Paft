@@ -24,6 +24,9 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [activeTab, setActiveTab] = useState<'en' | 'ar'>('en');
+
+    const isAr = activeTab === 'ar';
 
     const fetchContent = async () => {
         if (!token) return;
@@ -64,16 +67,20 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
 
         try {
             const freshData = await contentApi.getPageContent('innovative-solutions');
-            const updates: { id: number; value: string }[] = [];
+            const updates: { id: number; value: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(uniqueKey => {
                 Object.keys(freshData).forEach(section => {
                     Object.keys(freshData[section]).forEach(key => {
                         if (`${section}-${key}` === uniqueKey) {
-                            updates.push({
+                            const update: { id: number; value: string; valueAr?: string } = {
                                 id: freshData[section][key].id,
                                 value: content[uniqueKey].value
-                            });
+                            };
+                            if (content[uniqueKey].valueAr !== undefined) {
+                                update.valueAr = content[uniqueKey].valueAr || '';
+                            }
+                            updates.push(update);
                         }
                     });
                 });
@@ -81,7 +88,10 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
 
             if (updates.length > 0) {
                 await contentApi.bulkUpdate(updates, token);
-                if (onSave) onSave(); else onClose();
+                setSuccessMsg('Content updated successfully!');
+                setTimeout(() => {
+                    if (onSave) onSave(); else onClose();
+                }, 800);
             } else {
                 if (onSave) onSave(); else onClose();
             }
@@ -94,36 +104,58 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
     };
 
     const handleChange = (key: string, value: string) => {
-        setContent(prev => ({
-            ...prev,
-            [key]: { ...prev[key], value }
-        }));
+        if (isAr) {
+            setContent(prev => ({
+                ...prev,
+                [key]: { ...prev[key], valueAr: value }
+            }));
+        } else {
+            setContent(prev => ({
+                ...prev,
+                [key]: { ...prev[key], value }
+            }));
+        }
     };
 
-    const getValue = (key: string) => content[key]?.value || '';
+    const getValue = (key: string) => {
+        if (isAr) return content[key]?.valueAr || '';
+        return content[key]?.value || '';
+    };
 
-    // Reusable field components
-    const InputField = ({ label, fieldKey, placeholder }: { label: string; fieldKey: string; placeholder?: string }) => (
+    // Render helper functions (NOT components — avoids remount/focus-loss on each keystroke)
+    const renderInput = (label: string, fieldKey: string, placeholder: string = '', placeholderAr: string = '') => (
         <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+                {label} {isAr && <span className="text-amber-400 text-xs">(عربي)</span>}
+            </label>
             <input
                 value={getValue(fieldKey)}
                 onChange={(e) => handleChange(fieldKey, e.target.value)}
-                placeholder={placeholder}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                placeholder={isAr ? placeholderAr : placeholder}
+                dir={isAr ? 'rtl' : 'ltr'}
+                className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none transition-all ${isAr
+                    ? 'border-amber-500/20 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50'
+                    : 'border-white/10 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50'
+                    }`}
             />
         </div>
     );
 
-    const TextareaField = ({ label, fieldKey, rows = 3, placeholder }: { label: string; fieldKey: string; rows?: number; placeholder?: string }) => (
+    const renderTextarea = (label: string, fieldKey: string, rows: number = 3, placeholder: string = '', placeholderAr: string = '') => (
         <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+                {label} {isAr && <span className="text-amber-400 text-xs">(عربي)</span>}
+            </label>
             <textarea
                 rows={rows}
                 value={getValue(fieldKey)}
                 onChange={(e) => handleChange(fieldKey, e.target.value)}
-                placeholder={placeholder}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y"
+                placeholder={isAr ? placeholderAr : placeholder}
+                dir={isAr ? 'rtl' : 'ltr'}
+                className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none transition-all resize-y ${isAr
+                    ? 'border-amber-500/20 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50'
+                    : 'border-white/10 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50'
+                    }`}
             />
         </div>
     );
@@ -136,11 +168,36 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                 {/* Header */}
                 <div className="sticky top-0 bg-[#151b2e] border-b border-white/5 px-6 py-4 flex items-center justify-between z-10">
                     <h2 className="text-lg font-bold text-white">Edit Innovative Solutions</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {/* Language Tabs */}
+                        <div className="flex items-center gap-1 p-1 bg-white/5 rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('en')}
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'en'
+                                    ? 'bg-blue-600 text-white shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                🇬🇧 English
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('ar')}
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'ar'
+                                    ? 'bg-amber-600 text-white shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                🇸🇦 العربية
+                            </button>
+                        </div>
+                        <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSave} className="p-6 space-y-6">
@@ -156,6 +213,14 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                         </div>
                     )}
 
+                    {/* Active language indicator */}
+                    {isAr && (
+                        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                            <span>🇸🇦</span>
+                            <span>أنت تقوم بتعديل المحتوى العربي — You are editing Arabic content</span>
+                        </div>
+                    )}
+
                     {/* ─── 1. Hero Section ─── */}
                     <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
                         <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
@@ -163,9 +228,9 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                             Hero Section
                         </h3>
                         <div className="space-y-4">
-                            <InputField label="Title Line 1" fieldKey="hero-title-line1" placeholder="WE BRING" />
-                            <InputField label="Title Highlight" fieldKey="hero-title-highlight" placeholder="INNOVATION" />
-                            <InputField label="Title Line 2" fieldKey="hero-title-line2" placeholder="TO SUPPLY CHAIN" />
+                            {renderInput('Title Line 1', 'hero-title-line1', 'WE BRING', 'نحن نقدم')}
+                            {renderInput('Title Highlight', 'hero-title-highlight', 'INNOVATION', 'الابتكار')}
+                            {renderInput('Title Line 2', 'hero-title-line2', 'TO SUPPLY CHAIN', 'لسلسلة التوريد')}
                         </div>
                     </div>
 
@@ -176,13 +241,13 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                             Smart Pallets Section
                         </h3>
                         <div className="space-y-4">
-                            <InputField label="Badge Text" fieldKey="smart-pallets-badge" placeholder="Smart Plastic Pallets" />
+                            {renderInput('Badge Text', 'smart-pallets-badge', 'Smart Plastic Pallets', 'البالتات البلاستيكية الذكية')}
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="smart-pallets-title-plain" placeholder="Intelligent" />
-                                <InputField label="Title (Highlight)" fieldKey="smart-pallets-title-highlight" placeholder="Logistics Assets" />
+                                {renderInput('Title (Plain)', 'smart-pallets-title-plain', 'Intelligent', 'أصول لوجستية')}
+                                {renderInput('Title (Highlight)', 'smart-pallets-title-highlight', 'Logistics Assets', 'ذكية')}
                             </div>
-                            <TextareaField label="Description" fieldKey="smart-pallets-description" rows={4} />
-                            <InputField label="Features (comma-separated)" fieldKey="smart-pallets-features" placeholder="Full Life Traceability,RFID-Enabled,..." />
+                            {renderTextarea('Description', 'smart-pallets-description', 4)}
+                            {renderInput('Features (comma-separated)', 'smart-pallets-features', 'Full Life Traceability,RFID-Enabled,...', 'تتبع دورة الحياة الكاملة,تقنية RFID,...')}
                         </div>
                     </div>
 
@@ -194,17 +259,17 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                         </h3>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="rfid-tech-title-plain" placeholder="RFID Technology" />
-                                <InputField label="Title (Highlight)" fieldKey="rfid-tech-title-highlight" placeholder="Integration" />
+                                {renderInput('Title (Plain)', 'rfid-tech-title-plain', 'RFID Technology', 'تقنية RFID')}
+                                {renderInput('Title (Highlight)', 'rfid-tech-title-highlight', 'Integration', 'والتكامل')}
                             </div>
-                            <InputField label="Subtitle" fieldKey="rfid-tech-subtitle" />
+                            {renderInput('Subtitle', 'rfid-tech-subtitle')}
 
                             {[1, 2, 3].map(n => (
                                 <div key={n} className="bg-indigo-500/10 border border-indigo-500/15 rounded-lg p-4">
                                     <h4 className="text-indigo-300 font-medium mb-3">Card {n}</h4>
                                     <div className="space-y-3">
-                                        <InputField label="Title" fieldKey={`rfid-tech-card-${n}-title`} />
-                                        <TextareaField label="Description" fieldKey={`rfid-tech-card-${n}-desc`} rows={2} />
+                                        {renderInput('Title', `rfid-tech-card-${n}-title`)}
+                                        {renderTextarea('Description', `rfid-tech-card-${n}-desc`, 2)}
                                     </div>
                                 </div>
                             ))}
@@ -219,17 +284,17 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                         </h3>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="process-flow-title-plain" placeholder="How PAFT iWMS" />
-                                <InputField label="Title (Highlight)" fieldKey="process-flow-title-highlight" placeholder="Works" />
+                                {renderInput('Title (Plain)', 'process-flow-title-plain', 'How PAFT iWMS', 'كيف يعمل PAFT iWMS')}
+                                {renderInput('Title (Highlight)', 'process-flow-title-highlight', 'Works', 'يعمل')}
                             </div>
-                            <InputField label="Subtitle" fieldKey="process-flow-subtitle" />
+                            {renderInput('Subtitle', 'process-flow-subtitle')}
 
                             {[1, 2, 3, 4, 5].map(n => (
                                 <div key={n} className="bg-emerald-500/10 border border-emerald-500/15 rounded-lg p-4">
                                     <h4 className="text-emerald-300 font-medium mb-3">Step {n}</h4>
                                     <div className="space-y-3">
-                                        <InputField label="Title" fieldKey={`process-flow-step-${n}-title`} />
-                                        <InputField label="Description" fieldKey={`process-flow-step-${n}-desc`} />
+                                        {renderInput('Title', `process-flow-step-${n}-title`)}
+                                        {renderInput('Description', `process-flow-step-${n}-desc`)}
                                     </div>
                                 </div>
                             ))}
@@ -244,18 +309,18 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                         </h3>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="business-impact-title-plain" placeholder="Business" />
-                                <InputField label="Title (Highlight)" fieldKey="business-impact-title-highlight" placeholder="Impact" />
+                                {renderInput('Title (Plain)', 'business-impact-title-plain', 'Business', 'التأثير')}
+                                {renderInput('Title (Highlight)', 'business-impact-title-highlight', 'Impact', 'التجاري')}
                             </div>
-                            <TextareaField label="Description" fieldKey="business-impact-description" rows={3} />
+                            {renderTextarea('Description', 'business-impact-description', 3)}
 
                             <div className="grid grid-cols-2 gap-4">
                                 {[1, 2, 3, 4].map(n => (
                                     <div key={n} className="bg-amber-500/10 border border-amber-500/15 rounded-lg p-3">
                                         <h4 className="text-amber-300 font-medium mb-2 text-sm">Stat {n}</h4>
                                         <div className="space-y-2">
-                                            <InputField label="Value" fieldKey={`business-impact-stat-${n}-value`} />
-                                            <InputField label="Label" fieldKey={`business-impact-stat-${n}-label`} />
+                                            {renderInput('Value', `business-impact-stat-${n}-value`)}
+                                            {renderInput('Label', `business-impact-stat-${n}-label`)}
                                         </div>
                                     </div>
                                 ))}
@@ -270,13 +335,13 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                             RFID Understanding Section
                         </h3>
                         <div className="space-y-4">
-                            <InputField label="Badge Text" fieldKey="rfid-understanding-badge" placeholder="Understanding RFID" />
+                            {renderInput('Badge Text', 'rfid-understanding-badge', 'Understanding RFID', 'فهم تقنية RFID')}
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="rfid-understanding-title-plain" placeholder="Radio Frequency" />
-                                <InputField label="Title (Highlight)" fieldKey="rfid-understanding-title-highlight" placeholder="Identification" />
+                                {renderInput('Title (Plain)', 'rfid-understanding-title-plain', 'Radio Frequency', 'تحديد الهوية')}
+                                {renderInput('Title (Highlight)', 'rfid-understanding-title-highlight', 'Identification', 'بالترددات الراديوية')}
                             </div>
-                            <TextareaField label="Paragraph 1" fieldKey="rfid-understanding-paragraph-1" rows={4} />
-                            <TextareaField label="Paragraph 2" fieldKey="rfid-understanding-paragraph-2" rows={4} />
+                            {renderTextarea('Paragraph 1', 'rfid-understanding-paragraph-1', 4)}
+                            {renderTextarea('Paragraph 2', 'rfid-understanding-paragraph-2', 4)}
                         </div>
                     </div>
 
@@ -287,14 +352,14 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                             Challenges &amp; Considerations
                         </h3>
                         <div className="space-y-4">
-                            <InputField label="Badge Text" fieldKey="challenges-badge" placeholder="Challenges & Considerations" />
+                            {renderInput('Badge Text', 'challenges-badge', 'Challenges & Considerations', 'التحديات والاعتبارات')}
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="challenges-title-plain" placeholder="Implementation" />
-                                <InputField label="Title (Highlight)" fieldKey="challenges-title-highlight" placeholder="Success" />
+                                {renderInput('Title (Plain)', 'challenges-title-plain', 'Implementation', 'نجاح')}
+                                {renderInput('Title (Highlight)', 'challenges-title-highlight', 'Success', 'التطبيق')}
                             </div>
-                            <TextareaField label="Paragraph 1" fieldKey="challenges-paragraph-1" rows={3} />
-                            <TextareaField label="Paragraph 2" fieldKey="challenges-paragraph-2" rows={3} />
-                            <TextareaField label="Quote" fieldKey="challenges-quote" rows={2} />
+                            {renderTextarea('Paragraph 1', 'challenges-paragraph-1', 3)}
+                            {renderTextarea('Paragraph 2', 'challenges-paragraph-2', 3)}
+                            {renderTextarea('Quote', 'challenges-quote', 2)}
                         </div>
                     </div>
 
@@ -306,14 +371,14 @@ export default function InnovativeSolutionsEditor({ onClose, onSave }: Innovativ
                         </h3>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Title (Plain)" fieldKey="conclusion-title-plain" placeholder="Transform Your" />
-                                <InputField label="Title (Highlight)" fieldKey="conclusion-title-highlight" placeholder="Operations" />
+                                {renderInput('Title (Plain)', 'conclusion-title-plain', 'Transform Your', 'حوّل')}
+                                {renderInput('Title (Highlight)', 'conclusion-title-highlight', 'Operations', 'عملياتك')}
                             </div>
-                            <TextareaField label="Paragraph 1" fieldKey="conclusion-paragraph-1" rows={3} />
-                            <TextareaField label="Paragraph 2" fieldKey="conclusion-paragraph-2" rows={3} />
+                            {renderTextarea('Paragraph 1', 'conclusion-paragraph-1', 3)}
+                            {renderTextarea('Paragraph 2', 'conclusion-paragraph-2', 3)}
                             <div className="grid grid-cols-2 gap-4">
-                                <InputField label="Primary CTA Text" fieldKey="conclusion-cta-primary" placeholder="Request a Demo →" />
-                                <InputField label="Secondary CTA Text" fieldKey="conclusion-cta-secondary" placeholder="Explore Products" />
+                                {renderInput('Primary CTA Text', 'conclusion-cta-primary', 'Request a Demo →', 'اطلب عرضًا توضيحيًا ←')}
+                                {renderInput('Secondary CTA Text', 'conclusion-cta-secondary', 'Explore Products', 'استكشف المنتجات')}
                             </div>
                         </div>
                     </div>

@@ -10,15 +10,19 @@ export interface ContentMap {
     };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export const contentService = {
     async getContentByPage(page: string): Promise<ContentMap> {
-        const response = await fetch(`${API_URL}/content/page/${page}`, {
+        const url = `${API_URL}/content/page/${page}`;
+        console.log(`📡 Fetching content from: ${url}`);
+        const response = await fetch(url, {
             cache: 'no-store',
         });
         if (!response.ok) {
-            throw new Error('Failed to fetch content');
+            const errorBody = await response.text().catch(() => 'Could not read body');
+            console.error(`❌ Content fetch failed: status=${response.status}, url=${url}, body=${errorBody}`);
+            throw new Error(`Failed to fetch content: ${response.status} - ${errorBody}`);
         }
         return response.json();
     },
@@ -39,7 +43,7 @@ export const contentService = {
         }
     },
 
-    async bulkUpdateContent(updates: { id: number; value: string }[]): Promise<void> {
+    async bulkUpdateContent(updates: { id: number; value?: string; valueAr?: string }[]): Promise<void> {
         const response = await fetch(`${API_URL}/content/bulk-update`, {
             method: 'PATCH',
             headers: {
@@ -57,19 +61,28 @@ export const contentService = {
         const flat: { [key: string]: string } = {};
         Object.keys(contentMap).forEach(section => {
             Object.keys(contentMap[section]).forEach(key => {
-                // Determine if we should prefix with section name
-                // Editor expects 'title' for hero title, but 'product-1-title' for product
-                // This mapping logic is specific to how the seed data was structured vs editor expectations
-
-                // If section is 'hero', we might want to keep keys as is if they are unique enough?
-                // Seed: hero -> title, description, badge-text
-                // Editor: title, description, badge-text
                 if (section === 'hero' || section === 'products' || section === 'cta') {
                     flat[key] = contentMap[section][key].value;
                 } else {
-                    // Seed: product-1 -> title
-                    // Editor: product-1-title
                     flat[`${section}-${key}`] = contentMap[section][key].value;
+                }
+            });
+        });
+        return flat;
+    },
+
+    // Helper to flatten Arabic content from the nested map
+    flattenContentAr(contentMap: ContentMap): { [key: string]: string } {
+        const flat: { [key: string]: string } = {};
+        Object.keys(contentMap).forEach(section => {
+            Object.keys(contentMap[section]).forEach(key => {
+                const ar = contentMap[section][key].valueAr;
+                if (ar) {
+                    if (section === 'hero' || section === 'products' || section === 'cta') {
+                        flat[key] = ar;
+                    } else {
+                        flat[`${section}-${key}`] = ar;
+                    }
                 }
             });
         });

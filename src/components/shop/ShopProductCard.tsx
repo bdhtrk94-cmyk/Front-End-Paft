@@ -6,6 +6,7 @@ import { Product } from '@/lib/shopData';
 import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProductCardProps {
     product: Product;
@@ -17,6 +18,11 @@ export default function ShopProductCard({ product }: ProductCardProps) {
     const { addItem } = useCart();
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
+
+    const displayName = (isAr && product.nameAr) ? product.nameAr : product.name;
+    const displayCategory = (isAr && product.categoryAr) ? product.categoryAr : product.category;
 
     const price = Number(product.price);
     const originalPrice = product.originalPrice ? Number(product.originalPrice) : undefined;
@@ -157,7 +163,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                             onMouseEnter={(e) => { e.currentTarget.style.background = '#06B6D4'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(6,182,212,0.85)'; }}
                         >
-                            Quick View
+                            {isAr ? 'عرض سريع' : 'Quick View'}
                         </button>
                     </div>
                 </div>
@@ -166,7 +172,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                 <div className="p-5">
                     {/* Category */}
                     <span className="text-[0.7rem] font-semibold uppercase tracking-wider" style={{ color: '#06B6D4' }}>
-                        {product.category}
+                        {displayCategory}
                     </span>
 
                     {/* Name */}
@@ -174,7 +180,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                         className="text-sm font-bold mt-1.5 mb-2 line-clamp-2 leading-snug"
                         style={{ color: isLight ? '#0F172A' : '#fff' }}
                     >
-                        {product.name}
+                        {displayName}
                     </h3>
 
                     {/* Rating */}
@@ -207,7 +213,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                                 className="w-1.5 h-1.5 rounded-full"
                                 style={{ background: product.inStock ? '#10B981' : '#EF4444' }}
                             />
-                            {product.inStock ? 'In Stock' : 'Out of Stock'}
+                            {product.inStock ? (isAr ? 'متوفر' : 'In Stock') : (isAr ? 'غير متوفر' : 'Out of Stock')}
                         </span>
 
                         <button
@@ -240,14 +246,14 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    Added
+                                    {isAr ? 'تمت الإضافة' : 'Added'}
                                 </>
                             ) : (
                                 <>
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
                                     </svg>
-                                    Add to Cart
+                                    {isAr ? 'أضف للسلة' : 'Add to Cart'}
                                 </>
                             )}
                         </button>

@@ -295,16 +295,12 @@ function AccordionItem({
     isOpen,
     onToggle,
     isLight,
-    t,
-    language,
 }: {
     sheet: DataSheet;
     index: number;
     isOpen: boolean;
     onToggle: () => void;
     isLight: boolean;
-    t: (key: string, fallback: string) => string;
-    language: string;
 }) {
     const { ref, visible } = useInView(0.1);
     const accents = ['#10B981', '#06B6D4', '#8B5CF6', '#F59E0B', '#EC4899'];
@@ -444,7 +440,7 @@ function AccordionItem({
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            {t('ui-labels-open-datasheet', language === 'ar' ? 'فتح ورقة البيانات' : 'Open Datasheet')}
+                            {t('open-datasheet', language === 'ar' ? 'فتح ورقة البيانات' : 'Open Datasheet')}
                         </a>
                         <a
                             href={sheet.pdfUrl}
@@ -467,7 +463,7 @@ function AccordionItem({
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                 />
                             </svg>
-                            {t('ui-labels-download-pdf', language === 'ar' ? 'تحميل PDF' : 'Download PDF')}
+                            {t('download-pdf', language === 'ar' ? 'تحميل PDF' : 'Download PDF')}
                         </a>
                     </div>
                 </div>
@@ -500,22 +496,22 @@ export default function RawMaterialSupply() {
         setIsSaving(true);
         try {
             const updates: { id: number; value?: string; valueAr?: string }[] = [];
-
+            
             // Check for English content changes
             Object.keys(newContent).forEach(key => {
                 if (newContent[key] !== content[key] && idMap[key]) {
                     const update: { id: number; value?: string; valueAr?: string } = { id: idMap[key] };
                     update.value = newContent[key];
-
+                    
                     // Add Arabic content if provided
                     if (newContentAr && newContentAr[key] !== contentAr[key]) {
                         update.valueAr = newContentAr[key];
                     }
-
+                    
                     updates.push(update);
                 }
             });
-
+            
             // Check for Arabic-only changes
             if (newContentAr) {
                 Object.keys(newContentAr).forEach(key => {
@@ -525,10 +521,10 @@ export default function RawMaterialSupply() {
                         if (existingUpdate) {
                             existingUpdate.valueAr = newContentAr[key];
                         } else {
-                            updates.push({
-                                id: idMap[key],
+                            updates.push({ 
+                                id: idMap[key], 
                                 value: content[key], // Keep existing English
-                                valueAr: newContentAr[key]
+                                valueAr: newContentAr[key] 
                             });
                         }
                     }
@@ -556,19 +552,19 @@ export default function RawMaterialSupply() {
             try {
                 const data = await contentApi.getPageContent('raw-materials');
                 setRawContent(data); // Save raw content for editor
-
+                
                 const flat: Record<string, string> = {};
                 const flatAr: Record<string, string> = {};
                 const ids: { [key: string]: number } = {};
-
+                
                 Object.keys(data).forEach(section => {
                     Object.keys(data[section]).forEach(key => {
-                        // Only hero and cta keys are used without prefix
-                        // All other sections (material-N, sheet-N, materials-section, datasheets-section, ui-labels) need prefix
-                        const fullKey = (section === 'hero' || section === 'cta')
-                            ? key
-                            : `${section}-${key}`;
-
+                        // For materials and sheets, add section prefix
+                        // For other sections, just use the key
+                        const fullKey = (section.startsWith('material-') || section.startsWith('sheet-')) 
+                            ? `${section}-${key}` 
+                            : key;
+                        
                         flat[fullKey] = data[section][key].value;
                         if (data[section][key].valueAr) {
                             flatAr[fullKey] = data[section][key].valueAr;
@@ -626,10 +622,10 @@ export default function RawMaterialSupply() {
                 <RawMaterialsPageEditor
                     content={Object.keys(content).length > 0 ?
                         Object.keys(content).reduce((acc, key) => {
-                            acc[key] = {
-                                value: content[key],
+                            acc[key] = { 
+                                value: content[key], 
                                 valueAr: contentAr[key] || '',
-                                id: idMap[key] || 0
+                                id: idMap[key] || 0 
                             };
                             return acc;
                         }, {} as { [key: string]: { value: string; valueAr?: string; id: number } })
@@ -933,8 +929,6 @@ export default function RawMaterialSupply() {
                                     setOpenAccordion(openAccordion === sheet.id ? null : sheet.id)
                                 }
                                 isLight={isLight}
-                                t={t}
-                                language={language}
                             />
                         ))}
                     </div>

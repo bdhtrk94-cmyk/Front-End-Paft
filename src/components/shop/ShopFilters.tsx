@@ -2,6 +2,7 @@
 
 import { categories, priceRanges, sortOptions } from '@/lib/shopData';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ShopFiltersProps {
     search: string;
@@ -28,13 +29,15 @@ export default function ShopFilters({
 }: ShopFiltersProps) {
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
 
     return (
-        <div className="space-y-6 mb-10">
+        <div className="space-y-6 mb-10" dir={isAr ? 'rtl' : 'ltr'}>
             {/* Search bar */}
             <div className="relative max-w-2xl mx-auto">
                 <svg
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                    className={`absolute ${isAr ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 w-5 h-5`}
                     style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.35)' }}
                     fill="none"
                     stroke="currentColor"
@@ -44,10 +47,10 @@ export default function ShopFilters({
                 </svg>
                 <input
                     type="text"
-                    placeholder="Search products..."
+                    placeholder={isAr ? 'ابحث عن المنتجات...' : 'Search products...'}
                     value={search}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl outline-none transition-all duration-500 text-base"
+                    className={`w-full ${isAr ? 'pr-12 pl-4' : 'pl-12 pr-4'} py-4 rounded-2xl outline-none transition-all duration-500 text-base`}
                     style={{
                         background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(30,41,59,0.6)',
                         backdropFilter: 'blur(10px)',
@@ -69,7 +72,7 @@ export default function ShopFilters({
                 {search && (
                     <button
                         onClick={() => onSearchChange('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center"
+                        className={`absolute ${isAr ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center`}
                         style={{
                             background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
                             color: isLight ? '#64748B' : 'rgba(255,255,255,0.5)',
@@ -96,11 +99,11 @@ export default function ShopFilters({
                 <div className="flex flex-wrap gap-2">
                     {categories.map((cat) => (
                         <button
-                            key={cat}
-                            onClick={() => onCategoryChange(cat)}
+                            key={cat.en}
+                            onClick={() => onCategoryChange(cat.en)}
                             className="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-500"
                             style={
-                                category === cat
+                                category === cat.en
                                     ? {
                                         background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                                         color: '#fff',
@@ -113,7 +116,7 @@ export default function ShopFilters({
                                     }
                             }
                         >
-                            {cat}
+                            {isAr ? cat.ar : cat.en}
                         </button>
                     ))}
                 </div>
@@ -133,7 +136,7 @@ export default function ShopFilters({
                     >
                         {priceRanges.map((r, i) => (
                             <option key={i} value={i} style={{ background: isLight ? '#fff' : '#1e293b', color: isLight ? '#0F172A' : '#fff' }}>
-                                {r.label}
+                                {isAr ? r.ar : r.en}
                             </option>
                         ))}
                     </select>
@@ -151,7 +154,7 @@ export default function ShopFilters({
                     >
                         {sortOptions.map((s) => (
                             <option key={s.value} value={s.value} style={{ background: isLight ? '#fff' : '#1e293b', color: isLight ? '#0F172A' : '#fff' }}>
-                                {s.label}
+                                {isAr ? s.ar : s.en}
                             </option>
                         ))}
                     </select>
@@ -160,7 +163,11 @@ export default function ShopFilters({
 
             {/* Result count */}
             <div className="text-sm font-medium" style={{ color: isLight ? '#94A3B8' : 'rgba(255,255,255,0.4)' }}>
-                Showing <span style={{ color: '#06B6D4' }}>{resultCount}</span> product{resultCount !== 1 ? 's' : ''}
+                {isAr ? (
+                    <>عرض <span style={{ color: '#06B6D4' }}>{resultCount}</span> منتج{resultCount !== 1 ? 'ات' : ''}</>
+                ) : (
+                    <>Showing <span style={{ color: '#06B6D4' }}>{resultCount}</span> product{resultCount !== 1 ? 's' : ''}</>
+                )}
             </div>
         </div>
     );

@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { contentApi, ContentMapResponse } from '@/lib/api';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const values = [
   {
@@ -53,7 +54,15 @@ export default function About() {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   const [content, setContent] = useState<ContentMapResponse>({});
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const isLight = theme === 'light';
+
+  // Language-aware content value getter
+  const cv = (item: { value: string; valueAr?: string | null } | undefined, fallback: string = '') => {
+    if (!item) return fallback;
+    if (language === 'ar' && item.valueAr) return item.valueAr;
+    return item.value || fallback;
+  };
 
   useEffect(() => {
     async function fetchContent() {
@@ -124,7 +133,7 @@ export default function About() {
             }}
           >
             <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-              {heroContent['badge-text']?.value || 'About PAFT'}
+              {cv(heroContent['badge-text'], 'About PAFT')}
             </span>
           </div>
 
@@ -137,7 +146,7 @@ export default function About() {
               letterSpacing: '-0.03em',
             }}
           >
-            {heroContent['title']?.value || 'Our Vision'}
+            {cv(heroContent['title'], 'Our Vision')}
           </h1>
 
           <div
@@ -149,7 +158,7 @@ export default function About() {
             className="text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed font-medium"
             style={{ color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.7)' }}
           >
-            {heroContent['description']?.value || 'Be, & be recognized as the pace setters in providing optimal transport logistics & technical packaging technology solutions.'}
+            {cv(heroContent['description'], 'Be, & be recognized as the pace setters in providing optimal transport logistics & technical packaging technology solutions.')}
           </p>
         </div>
       </section>
@@ -173,7 +182,7 @@ export default function About() {
                 }}
               >
                 <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-                  {whoWeAreContent['badge-text']?.value || 'Who We Are'}
+                  {cv(whoWeAreContent['badge-text'], 'Who We Are')}
                 </span>
               </div>
 
@@ -188,22 +197,22 @@ export default function About() {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {whoWeAreContent['title']?.value || 'Packaging Applications & Future Technologies'}
+                  {cv(whoWeAreContent['title'], 'Packaging Applications & Future Technologies')}
                 </span>
               </h2>
 
               <div className="space-y-5">
                 <p className="text-lg leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                  {whoWeAreContent['paragraph1']?.value || 'PAFT (Packaging Applications & Future Technologies) is a leading provider of innovative supply chain solutions in the MENA region.'}
+                  {cv(whoWeAreContent['paragraph1'], 'PAFT (Packaging Applications & Future Technologies) is a leading provider of innovative supply chain solutions in the MENA region.')}
                 </p>
                 <p className="text-lg leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                  {whoWeAreContent['paragraph2']?.value || 'Our commitment to excellence is reflected in our use of premium materials, cutting-edge technology, and our tailored service offerings.'}
+                  {cv(whoWeAreContent['paragraph2'], 'Our commitment to excellence is reflected in our use of premium materials, cutting-edge technology, and our tailored service offerings.')}
                 </p>
                 <p className="text-lg leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                  {whoWeAreContent['paragraph3']?.value || 'At PAFT, we understand the challenges faced by industries in managing their supply chains.'}
+                  {cv(whoWeAreContent['paragraph3'], 'At PAFT, we understand the challenges faced by industries in managing their supply chains.')}
                 </p>
                 <p className="text-lg leading-relaxed" style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.65)' }}>
-                  {whoWeAreContent['paragraph4']?.value || 'Whether you need heavy-duty pallets that can withstand significant loads, flexible rental solutions, or specialized containers for liquid storage, PAFT has the expertise and products to support your business needs.'}
+                  {cv(whoWeAreContent['paragraph4'], 'Whether you need heavy-duty pallets that can withstand significant loads, flexible rental solutions, or specialized containers for liquid storage, PAFT has the expertise and products to support your business needs.')}
                 </p>
               </div>
 
@@ -218,7 +227,7 @@ export default function About() {
                 }}
               >
                 <p className="text-lg font-semibold italic" style={{ color: '#06B6D4' }}>
-                  &ldquo;{whoWeAreContent['quote']?.value || 'At PAFT, innovation delivered at great value is at the heart of everything we do, making us the trusted partner for businesses across various industries.'}&rdquo;
+                  &ldquo;{cv(whoWeAreContent['quote'], 'At PAFT, innovation delivered at great value is at the heart of everything we do, making us the trusted partner for businesses across various industries.')}&rdquo;
                 </p>
               </div>
             </div>
@@ -268,10 +277,10 @@ export default function About() {
                 }}
               >
                 <div className="text-3xl font-bold" style={{ color: '#06B6D4' }}>
-                  {whoWeAreContent['stat1-number']?.value || '10+'}
+                  {cv(whoWeAreContent['stat1-number'], '10+')}
                 </div>
                 <div className="text-sm" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
-                  {whoWeAreContent['stat1-text']?.value || 'Years Experience'}
+                  {cv(whoWeAreContent['stat1-text'], 'Years Experience')}
                 </div>
               </div>
 
@@ -285,10 +294,10 @@ export default function About() {
                 }}
               >
                 <div className="text-3xl font-bold" style={{ color: '#2563EB' }}>
-                  {whoWeAreContent['stat2-number']?.value || 'MENA'}
+                  {cv(whoWeAreContent['stat2-number'], 'MENA')}
                 </div>
                 <div className="text-sm" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
-                  {whoWeAreContent['stat2-text']?.value || 'Region Leader'}
+                  {cv(whoWeAreContent['stat2-text'], 'Region Leader')}
                 </div>
               </div>
             </div>
@@ -318,7 +327,7 @@ export default function About() {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                {valuesContent['title']?.value || 'Our Core Values'}
+                {cv(valuesContent['title'], 'Our Core Values')}
               </span>
             </h2>
             <div
@@ -329,7 +338,7 @@ export default function About() {
               className="text-lg max-w-2xl mx-auto"
               style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.5)' }}
             >
-              {valuesContent['subtitle']?.value || 'The principles that guide everything we do at PAFT'}
+              {cv(valuesContent['subtitle'], 'The principles that guide everything we do at PAFT')}
             </p>
           </div>
 
@@ -337,8 +346,8 @@ export default function About() {
             {values.map((value, index) => {
               const isHovered = hoveredValue === index;
               const valueNumber = index + 1;
-              const title = valuesContent[`value${valueNumber}-title`]?.value || '';
-              const description = valuesContent[`value${valueNumber}-description`]?.value || '';
+              const title = cv(valuesContent[`value${valueNumber}-title`]);
+              const description = cv(valuesContent[`value${valueNumber}-description`]);
               const glow = isLight ? value.glowLight : value.glow;
 
               return (
@@ -411,13 +420,13 @@ export default function About() {
             className="text-4xl lg:text-5xl font-bold mb-6"
             style={{ color: isLight ? '#0F172A' : '#fff' }}
           >
-            {ctaContent['title']?.value || 'Ready to Work With Us?'}
+            {cv(ctaContent['title'], 'Ready to Work With Us?')}
           </h2>
           <p
             className="text-xl mb-10"
             style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}
           >
-            {ctaContent['description']?.value || "Let's discuss how PAFT can help optimize your logistics operations"}
+            {cv(ctaContent['description'], "Let's discuss how PAFT can help optimize your logistics operations")}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <a
@@ -428,7 +437,7 @@ export default function About() {
                 boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
               }}
             >
-              {ctaContent['button1-text']?.value || 'Get in Touch →'}
+              {cv(ctaContent['button1-text'], 'Get in Touch →')}
             </a>
             <a
               href="/products"
@@ -440,7 +449,7 @@ export default function About() {
                 backdropFilter: 'blur(10px)',
               }}
             >
-              {ctaContent['button2-text']?.value || 'Browse Products'}
+              {cv(ctaContent['button2-text'], 'Browse Products')}
             </a>
           </div>
         </div>

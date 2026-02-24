@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { adminPagesApi, contentApi, type PageResponse, ContentMapResponse } from '@/lib/api';
+import { adminPagesApi, adminProductsApi, contentApi, type PageResponse, ContentMapResponse } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 import HomePageEditor from './HomePageEditor';
 import AboutPageEditor from './AboutPageEditor';
@@ -11,6 +11,8 @@ import { PlasticPalletsPageEditor } from './plastic-pallets';
 import TransportLogisticsPageEditor from './TransportLogisticsPageEditor';
 import RawMaterialsPageEditor from './RawMaterialsPageEditor';
 import InnovativeSolutionsEditor from '@/components/admin/InnovativeSolutionsEditor';
+import ContactPageEditor from './ContactPageEditor';
+import HeaderFooterEditor from './HeaderFooterEditor';
 
 type FormData = {
     title: string; titleAr: string; slug: string;
@@ -68,6 +70,22 @@ type RawMaterialsPageContent = {
     };
 };
 
+type ContactPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
+type LayoutPageContent = {
+    [key: string]: {
+        value: string;
+        valueAr?: string;
+        id: number;
+    };
+};
+
 const emptyForm: FormData = {
     title: '', titleAr: '', slug: '',
     content: '', contentAr: '',
@@ -86,6 +104,7 @@ export default function AdminPagesPage() {
     const [plasticPalletsContent, setPlasticPalletsContent] = useState<PlasticPalletsPageContent>({});
     const [transportLogisticsContent, setTransportLogisticsContent] = useState<TransportLogisticsPageContent>({});
     const [rawMaterialsContent, setRawMaterialsContent] = useState<RawMaterialsPageContent>({});
+    const [contactContent, setContactContent] = useState<ContactPageContent>({});
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -113,6 +132,11 @@ export default function AdminPagesPage() {
     const [showRawMaterialsModal, setShowRawMaterialsModal] = useState(false);
     // Innovative Solutions page editing
     const [showInnovativeSolutionsModal, setShowInnovativeSolutionsModal] = useState(false);
+    // Contact page editing
+    const [showContactModal, setShowContactModal] = useState(false);
+    // Header & Footer editing
+    const [layoutContent, setLayoutContent] = useState<LayoutPageContent>({});
+    const [showLayoutModal, setShowLayoutModal] = useState(false);
 
     useEffect(() => {
         if (searchParams.get('action') === 'add') openAdd();
@@ -130,9 +154,11 @@ export default function AdminPagesPage() {
             const plasticPromise = contentApi.getPageContent('plastic-pallets').catch(e => { console.error('Plastic fetch error', e); return {} as ContentMapResponse; });
             const logisticsPromise = contentApi.getPageContent('transport-logistics').catch(e => { console.error('Logistics fetch error', e); return {} as ContentMapResponse; });
             const rawPromise = contentApi.getPageContent('raw-materials').catch(e => { console.error('Raw Materials fetch error', e); return {} as ContentMapResponse; });
+            const contactPromise = contentApi.getPageContent('contact').catch(e => { console.error('Contact fetch error', e); return {} as ContentMapResponse; });
+            const layoutPromise = contentApi.getPageContent('layout').catch(e => { console.error('Layout fetch error', e); return {} as ContentMapResponse; });
 
-            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData, transportLogisticsData, rawMaterialsData] = await Promise.all([
-                pagesPromise, aboutPromise, homePromise, journeyPromise, plasticPromise, logisticsPromise, rawPromise
+            const [pagesData, aboutData, homeData, ourJourneyData, plasticPalletsData, transportLogisticsData, rawMaterialsData, contactData, layoutData] = await Promise.all([
+                pagesPromise, aboutPromise, homePromise, journeyPromise, plasticPromise, logisticsPromise, rawPromise, contactPromise, layoutPromise
             ]);
 
             setPages(pagesData);
@@ -237,8 +263,12 @@ export default function AdminPagesPage() {
                         if (section.startsWith('product-')) {
                             const uniqueKey = `${section}-${key}`;
                             allPlasticPalletsContent[uniqueKey] = plasticPalletsData[section][key];
+                        } else if (section === 'light-duty-features') {
+                            // For light-duty-features, create unique keys by combining section and key
+                            const uniqueKey = `${section}-${key}`;
+                            allPlasticPalletsContent[uniqueKey] = plasticPalletsData[section][key];
                         } else {
-                            // For non-product sections, use the key as is
+                            // For other non-product sections, use the key as is
                             allPlasticPalletsContent[key] = plasticPalletsData[section][key];
                         }
                     });
@@ -286,18 +316,52 @@ export default function AdminPagesPage() {
                             // The seed script used straightforward keys like `material-1` section and `title` key.
                             // But let's check how `contentApi.getPageContent` returns it. Usually it groups by section.
 
-                            // Replicating logic similar to transport logistics:
-                            if (section.startsWith('material-') || section.startsWith('sheet-')) {
+                            // Only hero and cta keys are used without prefix
+                            // All other sections need section-key format
+                            if (section === 'hero' || section === 'cta') {
+                                allRawMaterialsContent[key] = item;
+                            } else {
                                 const uniqueKey = `${section}-${key}`;
                                 allRawMaterialsContent[uniqueKey] = item;
-                            } else {
-                                allRawMaterialsContent[key] = item;
                             }
                         }
                     });
                 }
             });
             setRawMaterialsContent(allRawMaterialsContent);
+
+            // Combine all contact content sections
+            const allContactContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+            Object.keys(contactData).forEach(section => {
+                if (contactData[section] && typeof contactData[section] === 'object') {
+                    Object.keys(contactData[section]).forEach(key => {
+                        const item = contactData[section][key];
+                        if (item && typeof item === 'object' && 'value' in item) {
+                            if (section === 'hero') {
+                                allContactContent[key] = item;
+                            } else {
+                                const uniqueKey = `${section}-${key}`;
+                                allContactContent[uniqueKey] = item;
+                            }
+                        }
+                    });
+                }
+            });
+            setContactContent(allContactContent);
+
+            // Flatten all layout (header/footer) content sections with section prefix
+            const allLayoutContent: { [key: string]: { value: string; valueAr?: string; id: number } } = {};
+            Object.keys(layoutData).forEach(section => {
+                if (layoutData[section] && typeof layoutData[section] === 'object') {
+                    Object.keys(layoutData[section]).forEach(key => {
+                        const item = layoutData[section][key];
+                        if (item && typeof item === 'object' && 'value' in item) {
+                            allLayoutContent[`${section}-${key}`] = item;
+                        }
+                    });
+                }
+            });
+            setLayoutContent(allLayoutContent);
         } catch { setError('Failed to load pages'); }
         finally { setLoading(false); }
     };
@@ -338,6 +402,57 @@ export default function AdminPagesPage() {
         setShowTransportLogisticsModal(true);
     };
 
+    const openLayoutEdit = () => {
+        setShowLayoutModal(true);
+    };
+
+    const handleLayoutSave = async (content: { [key: string]: string }, contentAr?: { [key: string]: string }) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            const freshLayoutData = await contentApi.getPageContent('layout');
+            const updates: { id: number; value?: string; valueAr?: string }[] = [];
+
+            // content keys are like "nav-home", "footer-brand-description", "nav-desc-about"
+            // layoutData sections are "nav", "footer", "nav-desc"
+            // Edge case: nav-desc-* keys need to be matched against section="nav-desc"
+            Object.keys(content).forEach(flatKey => {
+                let matched = false;
+                // Try longest-matching section prefix first (handles "nav-desc" before "nav")
+                const sections = Object.keys(freshLayoutData).sort((a, b) => b.length - a.length);
+                for (const section of sections) {
+                    const prefix = `${section}-`;
+                    if (flatKey.startsWith(prefix)) {
+                        const itemKey = flatKey.slice(prefix.length);
+                        if (freshLayoutData[section][itemKey]) {
+                            updates.push({
+                                id: freshLayoutData[section][itemKey].id,
+                                value: content[flatKey],
+                                ...(contentAr && contentAr[flatKey] !== undefined ? { valueAr: contentAr[flatKey] } : {}),
+                            });
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (!matched) console.warn('Layout key not matched:', flatKey);
+            });
+
+            if (updates.length > 0) {
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Header & Footer content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+            setShowLayoutModal(false);
+            fetchPages();
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save layout content';
+            setError(errorMessage);
+        }
+        finally { setSaving(false); }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!token) return;
@@ -360,27 +475,31 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
-    const handleAboutSave = async (content: { [key: string]: string }) => {
+    const handleAboutSave = async (content: { [key: string]: string }, contentAr: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            console.log('🔍 Saving about content:', content);
+            console.log('🔍 Saving about content:', content, 'Arabic:', contentAr);
 
             // Get all about content from API to get the correct IDs
             const allAboutData = await contentApi.getPageContent('about');
             console.log('🔍 Fresh about data:', allAboutData);
 
-            // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            // Prepare bulk update data with both value and valueAr
+            const updates: { id: number; value?: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allAboutData).forEach(section => {
                     if (allAboutData[section][key]) {
-                        updates.push({
+                        const update: { id: number; value?: string; valueAr?: string } = {
                             id: allAboutData[section][key].id,
                             value: content[key]
-                        });
+                        };
+                        if (contentAr[key] !== undefined) {
+                            update.valueAr = contentAr[key];
+                        }
+                        updates.push(update);
                     }
                 });
             });
@@ -388,7 +507,6 @@ export default function AdminPagesPage() {
             console.log('🔍 Updates to send:', updates);
 
             if (updates.length > 0) {
-                // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
                 setSuccessMsg('About page content updated successfully!');
             } else {
@@ -405,27 +523,32 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
-    const handleHomeSave = async (content: { [key: string]: string }) => {
+    const handleHomeSave = async (content: { [key: string]: string }, contentAr: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            console.log('🔍 Saving home content:', content);
+            console.log('🔍 Saving home content:', content, 'Arabic:', contentAr);
 
             // Get all home content from API to get the correct IDs
             const allHomeData = await contentApi.getHomeContent();
             console.log('🔍 Fresh home data:', allHomeData);
 
-            // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            // Prepare bulk update data with both value and valueAr
+            const updates: { id: number; value?: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allHomeData).forEach(section => {
                     if (allHomeData[section][key]) {
-                        updates.push({
+                        const update: { id: number; value?: string; valueAr?: string } = {
                             id: allHomeData[section][key].id,
                             value: content[key]
-                        });
+                        };
+                        // Include Arabic value if provided
+                        if (contentAr[key] !== undefined) {
+                            update.valueAr = contentAr[key];
+                        }
+                        updates.push(update);
                     }
                 });
             });
@@ -450,27 +573,31 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
-    const handleOurJourneySave = async (content: { [key: string]: string }) => {
+    const handleOurJourneySave = async (content: { [key: string]: string }, contentAr: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            console.log('🔍 Saving our journey content:', content);
+            console.log('🔍 Saving our journey content:', content, 'Arabic:', contentAr);
 
             // Get all our journey content from API to get the correct IDs
             const allOurJourneyData = await contentApi.getPageContent('our-journey');
             console.log('🔍 Fresh our journey data:', allOurJourneyData);
 
-            // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            // Prepare bulk update data with both value and valueAr
+            const updates: { id: number; value?: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allOurJourneyData).forEach(section => {
                     if (allOurJourneyData[section][key]) {
-                        updates.push({
+                        const update: { id: number; value?: string; valueAr?: string } = {
                             id: allOurJourneyData[section][key].id,
                             value: content[key]
-                        });
+                        };
+                        if (contentAr[key] !== undefined) {
+                            update.valueAr = contentAr[key];
+                        }
+                        updates.push(update);
                     }
                 });
             });
@@ -478,7 +605,6 @@ export default function AdminPagesPage() {
             console.log('🔍 Updates to send:', updates);
 
             if (updates.length > 0) {
-                // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
                 setSuccessMsg('Our Journey page content updated successfully!');
             } else {
@@ -495,59 +621,79 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
-    const handlePlasticPalletsSave = async (content: { [key: string]: string }) => {
+    const handlePlasticPalletsSave = async (content: { [key: string]: string }, contentAr: { [key: string]: string }, imageUpdates?: { productId: number; image: string }[]) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            console.log('🔍 Saving plastic pallets content:', content);
+            console.log('🔍 Saving plastic pallets content:', content, 'Arabic:', contentAr);
 
-            // Get all plastic pallets content from API to get the correct IDs
+            // 1. Save content updates (text fields)
             const allPlasticPalletsData = await contentApi.getPageContent('plastic-pallets');
             console.log('🔍 Fresh plastic pallets data:', allPlasticPalletsData);
 
-            // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            const updates: { id: number; value: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(key => {
-                // Handle product-specific keys (e.g., "product-m1-product-name")
-                if (key.includes('product-') && key.includes('-')) {
-                    const parts = key.split('-');
-                    if (parts.length >= 3) {
-                        const section = parts.slice(0, 2).join('-'); // e.g., "product-m1"
-                        const field = parts.slice(2).join('-'); // e.g., "product-name"
+                // Try to find the matching section and field in the fresh DB data
+                let matched = false;
 
-                        // Look for the content item in the correct section
-                        if (allPlasticPalletsData[section] && allPlasticPalletsData[section][field]) {
-                            updates.push({
+                // First, try to match as a product key by checking all product sections
+                const allSections = Object.keys(allPlasticPalletsData);
+
+                // Sort sections by length (longest first) to match the most specific section
+                const sortedSections = [...allSections].sort((a, b) => b.length - a.length);
+
+                for (const section of sortedSections) {
+                    if (matched) break;
+
+                    // Check if the key starts with this section name followed by a dash
+                    if (key.startsWith(section + '-')) {
+                        const field = key.slice(section.length + 1); // Remove section prefix and dash
+                        if (allPlasticPalletsData[section][field]) {
+                            const update: { id: number; value: string; valueAr?: string } = {
                                 id: allPlasticPalletsData[section][field].id,
                                 value: content[key]
-                            });
+                            };
+                            if (contentAr[key] !== undefined) {
+                                update.valueAr = contentAr[key];
+                            }
+                            updates.push(update);
+                            matched = true;
                         }
                     }
-                } else {
-                    // Handle regular keys (non-product specific)
-                    // Look through all sections to find the key
-                    Object.keys(allPlasticPalletsData).forEach(section => {
-                        if (allPlasticPalletsData[section][key]) {
-                            updates.push({
-                                id: allPlasticPalletsData[section][key].id,
-                                value: content[key]
-                            });
+
+                    // Also check if the key directly exists in the section (no prefix)
+                    if (!matched && allPlasticPalletsData[section][key]) {
+                        const update: { id: number; value: string; valueAr?: string } = {
+                            id: allPlasticPalletsData[section][key].id,
+                            value: content[key]
+                        };
+                        if (contentAr[key] !== undefined) {
+                            update.valueAr = contentAr[key];
                         }
-                    });
+                        updates.push(update);
+                        matched = true;
+                    }
                 }
             });
 
-            console.log('🔍 Updates to send:', updates);
+            console.log('🔍 Content updates to send:', updates);
 
             if (updates.length > 0) {
-                // Use bulk update API
                 await contentApi.bulkUpdate(updates, token);
-                setSuccessMsg('Plastic Pallets page content updated successfully!');
-            } else {
-                setError('No valid content items found to update');
             }
 
+            // 2. Save product image updates
+            if (imageUpdates && imageUpdates.length > 0) {
+                console.log('🔍 Image updates to send:', imageUpdates);
+                await Promise.all(
+                    imageUpdates.map(({ productId, image }) =>
+                        adminProductsApi.update(productId, { image }, token)
+                    )
+                );
+            }
+
+            setSuccessMsg('Plastic Pallets page content updated successfully!');
             setShowPlasticPalletsModal(false);
             fetchPages();
         } catch (error: unknown) {
@@ -558,7 +704,7 @@ export default function AdminPagesPage() {
         finally { setSaving(false); }
     };
 
-    const handleTransportLogisticsSave = async (content: { [key: string]: string }) => {
+    const handleTransportLogisticsSave = async (content: { [key: string]: string }, contentAr?: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
@@ -569,7 +715,7 @@ export default function AdminPagesPage() {
             console.log('🔍 Fresh transport logistics data:', allTransportLogisticsData);
 
             // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            const updates: { id: number; value: string; valueAr?: string }[] = [];
 
             Object.keys(content).forEach(key => {
                 // Handle product-specific keys (e.g., "product-1-title")
@@ -581,10 +727,14 @@ export default function AdminPagesPage() {
 
                         // Look for the content item in the correct section
                         if (allTransportLogisticsData[section] && allTransportLogisticsData[section][field]) {
-                            updates.push({
+                            const update: { id: number; value: string; valueAr?: string } = {
                                 id: allTransportLogisticsData[section][field].id,
                                 value: content[key]
-                            });
+                            };
+                            if (contentAr && contentAr[key] !== undefined) {
+                                update.valueAr = contentAr[key];
+                            }
+                            updates.push(update);
                         }
                     }
                 } else {
@@ -592,10 +742,14 @@ export default function AdminPagesPage() {
                     // Look through all sections to find the key
                     Object.keys(allTransportLogisticsData).forEach(section => {
                         if (allTransportLogisticsData[section][key]) {
-                            updates.push({
+                            const update: { id: number; value: string; valueAr?: string } = {
                                 id: allTransportLogisticsData[section][key].id,
                                 value: content[key]
-                            });
+                            };
+                            if (contentAr && contentAr[key] !== undefined) {
+                                update.valueAr = contentAr[key];
+                            }
+                            updates.push(update);
                         }
                     });
                 }
@@ -626,33 +780,61 @@ export default function AdminPagesPage() {
         setShowRawMaterialsModal(true);
     };
 
-    const handleRawMaterialsSave = async (content: { [key: string]: string }) => {
+    const openContactEdit = () => {
+        setShowContactModal(true);
+    };
+
+    const handleRawMaterialsSave = async (content: { [key: string]: string }, contentAr?: { [key: string]: string }) => {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            console.log('🔍 Saving raw materials content:', content);
+            console.log('🔍 Saving raw materials content:', content, 'Arabic:', contentAr);
 
             // Get all raw materials content from API to get the correct IDs
             const allRawMaterialsData = await contentApi.getPageContent('raw-materials');
             console.log('🔍 Fresh raw materials data:', allRawMaterialsData);
 
-            // Prepare bulk update data
-            const updates: { id: number; value: string }[] = [];
+            // Prepare bulk update data with both value and valueAr
+            const updates: { id: number; value: string; valueAr?: string }[] = [];
+            const processedIds = new Set<number>();
 
             Object.keys(content).forEach(key => {
                 let found = false;
                 // Try to find the key in the fetched data structure
                 Object.keys(allRawMaterialsData).forEach(section => {
-                    // Direct key match
+                    if (found) return;
+                    // Direct key match (for hero/cta keys stored without prefix)
                     if (allRawMaterialsData[section][key]) {
-                        updates.push({ id: allRawMaterialsData[section][key].id, value: content[key] });
-                        found = true;
+                        const id = allRawMaterialsData[section][key].id;
+                        if (!processedIds.has(id)) {
+                            const update: { id: number; value: string; valueAr?: string } = {
+                                id,
+                                value: content[key]
+                            };
+                            if (contentAr && contentAr[key] !== undefined) {
+                                update.valueAr = contentAr[key];
+                            }
+                            updates.push(update);
+                            processedIds.add(id);
+                            found = true;
+                        }
                     }
                     if (!found) {
-                        // Check for composite keys like material-1-title
+                        // Check for composite keys like material-1-title, materials-section-title
                         if (key.startsWith(section + '-') && allRawMaterialsData[section][key.replace(section + '-', '')]) {
-                            updates.push({ id: allRawMaterialsData[section][key.replace(section + '-', '')].id, value: content[key] });
-                            found = true;
+                            const id = allRawMaterialsData[section][key.replace(section + '-', '')].id;
+                            if (!processedIds.has(id)) {
+                                const update: { id: number; value: string; valueAr?: string } = {
+                                    id,
+                                    value: content[key]
+                                };
+                                if (contentAr && contentAr[key] !== undefined) {
+                                    update.valueAr = contentAr[key];
+                                }
+                                updates.push(update);
+                                processedIds.add(id);
+                                found = true;
+                            }
                         }
                     }
                 });
@@ -676,6 +858,55 @@ export default function AdminPagesPage() {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleContactSave = async (content: { [key: string]: string }, contentAr?: { [key: string]: string }) => {
+        if (!token) return;
+        setSaving(true); setError('');
+        try {
+            const allContactData = await contentApi.getPageContent('contact');
+            const updates: { id: number; value: string; valueAr?: string }[] = [];
+
+            Object.keys(content).forEach(key => {
+                // Try to find the item in all sections
+                Object.keys(allContactData).forEach(section => {
+                    // For hero section, keys are used directly; for others, section-key format
+                    const lookupKey = section === 'hero' ? key : key.replace(`${section}-`, '');
+                    if (section === 'hero' && allContactData[section][key]) {
+                        const update: { id: number; value: string; valueAr?: string } = {
+                            id: allContactData[section][key].id,
+                            value: content[key]
+                        };
+                        if (contentAr && contentAr[key] !== undefined) update.valueAr = contentAr[key];
+                        updates.push(update);
+                    } else if (section !== 'hero' && key.startsWith(`${section}-`)) {
+                        const fieldKey = key.replace(`${section}-`, '');
+                        if (allContactData[section][fieldKey]) {
+                            const update: { id: number; value: string; valueAr?: string } = {
+                                id: allContactData[section][fieldKey].id,
+                                value: content[key]
+                            };
+                            if (contentAr && contentAr[key] !== undefined) update.valueAr = contentAr[key];
+                            updates.push(update);
+                        }
+                    }
+                });
+            });
+
+            if (updates.length > 0) {
+                await contentApi.bulkUpdate(updates, token);
+                setSuccessMsg('Contact page content updated successfully!');
+            } else {
+                setError('No valid content items found to update');
+            }
+
+            setShowContactModal(false);
+            fetchPages();
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save contact content';
+            setError(errorMessage);
+        }
+        finally { setSaving(false); }
     };
 
     const handleDelete = async (id: number) => {
@@ -937,6 +1168,65 @@ export default function AdminPagesPage() {
                                 </td>
                             </tr>
 
+                            {/* Contact Page Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-teal-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Contact Page</p>
+                                        <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">/contact</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openContactEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Contact Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Header & Footer Row */}
+                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors bg-cyan-500/5">
+                                <td className="px-5 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                                        <p className="text-white text-sm font-medium">Header &amp; Footer</p>
+                                        <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">Dynamic Content</span>
+                                    </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <code className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">All Pages</code>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Published
+                                    </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                    <span className="text-xs text-gray-600">— Not applicable</span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button onClick={openLayoutEdit} className="text-gray-400 hover:text-amber-400 p-1.5 rounded-lg hover:bg-amber-500/10 transition-all" title="Edit Header & Footer Content">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <tr key={i} className="border-b border-white/5">
@@ -1194,6 +1484,26 @@ export default function AdminPagesPage() {
             {/* Innovative Solutions Editor Modal */}
             {showInnovativeSolutionsModal && (
                 <InnovativeSolutionsEditor onClose={() => setShowInnovativeSolutionsModal(false)} onSave={() => { setShowInnovativeSolutionsModal(false); setSuccessMsg('Innovative Solutions page updated successfully!'); }} />
+            )}
+
+            {/* Contact Page Editor */}
+            {showContactModal && (
+                <ContactPageEditor
+                    content={contactContent}
+                    onSave={handleContactSave}
+                    onClose={() => setShowContactModal(false)}
+                    saving={saving}
+                />
+            )}
+
+            {/* Header & Footer Editor */}
+            {showLayoutModal && (
+                <HeaderFooterEditor
+                    content={layoutContent}
+                    onSave={handleLayoutSave}
+                    onClose={() => setShowLayoutModal(false)}
+                    saving={saving}
+                />
             )}
         </div>
     );

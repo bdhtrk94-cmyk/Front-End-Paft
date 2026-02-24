@@ -112,7 +112,13 @@ export default function AdminProductsPage() {
         if (!token) return;
         setSaving(true); setError('');
         try {
-            const body: Record<string, unknown> = { ...form };
+            const body: Record<string, unknown> = {
+                ...form,
+                price: Number(form.price) || 0,
+                originalPrice: Number(form.originalPrice) || undefined,
+            };
+            // Remove originalPrice if not set (avoid sending 0)
+            if (!body.originalPrice) delete body.originalPrice;
             if (editingId) {
                 await adminProductsApi.update(editingId, body, token);
                 setSuccessMsg('Product updated!');

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { contentApi, productsApi, ContentMapResponse } from '@/lib/api';
 import { Product } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 /* ─── Data ─── */
 // Static data removed - now using dynamic data from database
@@ -34,12 +35,14 @@ function ProductCard({
     accent = '#06B6D4',
     content,
     isLight,
+    cv,
 }: {
     product: Product;
     index: number;
     accent?: string;
     content: ContentMapResponse;
     isLight: boolean;
+    cv: (section: string, key: string, fallback: string) => string;
 }) {
     const { ref, visible } = useInView(0.1);
     const [hovered, setHovered] = useState(false);
@@ -61,14 +64,14 @@ function ProductCard({
     const sectionName = slugToSection[product.slug || ''] || product.slug || '';
 
     const specs = [
-        { label: content['product-specs']?.['dimensions-label']?.value || 'Dimensions', value: content[sectionName]?.['dimensions']?.value || product.dimensions || 'N/A' },
-        { label: content['product-specs']?.['design-label']?.value || 'Design', value: content[sectionName]?.['design']?.value || product.design || 'N/A' },
-        ...(product.weight || content[sectionName]?.['weight']?.value ? [{ label: content['product-specs']?.['weight-label']?.value || 'Weight', value: content[sectionName]?.['weight']?.value || product.weight }] : []),
-        { label: content['product-specs']?.['static-load-label']?.value || 'Static Load', value: content[sectionName]?.['static-load']?.value || product.staticLoad || 'N/A' },
-        { label: content['product-specs']?.['dynamic-load-label']?.value || 'Dynamic Load', value: content[sectionName]?.['dynamic-load']?.value || product.dynamicLoad || 'N/A' },
-        { label: content['product-specs']?.['rack-load-label']?.value || 'Rack Load', value: content[sectionName]?.['rack-load']?.value || product.rackLoad || 'N/A' },
-        { label: content['product-specs']?.['expected-life-label']?.value || 'Expected Life', value: content[sectionName]?.['expected-life']?.value || product.expectedLife || 'N/A' },
-    ];
+        { label: cv('product-specs', 'dimensions-label', 'Dimensions'), value: cv(sectionName, 'dimensions', product.dimensions || '') },
+        { label: cv('product-specs', 'design-label', 'Design'), value: cv(sectionName, 'design', product.design || '') },
+        ...(product.weight || content[sectionName]?.['weight']?.value ? [{ label: cv('product-specs', 'weight-label', 'Weight'), value: cv(sectionName, 'weight', product.weight || '') }] : []),
+        { label: cv('product-specs', 'static-load-label', 'Static Load'), value: cv(sectionName, 'static-load', product.staticLoad || '') },
+        { label: cv('product-specs', 'dynamic-load-label', 'Dynamic Load'), value: cv(sectionName, 'dynamic-load', product.dynamicLoad || '') },
+        { label: cv('product-specs', 'rack-load-label', 'Rack Load'), value: cv(sectionName, 'rack-load', product.rackLoad || '') },
+        { label: cv('product-specs', 'expected-life-label', 'Expected Life'), value: cv(sectionName, 'expected-life', product.expectedLife || '') },
+    ].filter(spec => spec.value && spec.label);
 
     return (
         <div
@@ -132,18 +135,20 @@ function ProductCard({
                         }}
                         loading="lazy"
                     />
-                    {/* Model badge */}
-                    <div
-                        className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase z-20"
-                        style={{
-                            background: `${accent}20`,
-                            color: accent,
-                            border: `1px solid ${accent}30`,
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
-                        {sectionName && content[sectionName]?.['product-name']?.value || product.name}
-                    </div>
+                    {/* Model badge — hidden when name is empty */}
+                    {cv(sectionName, 'product-name', product.name) && (
+                        <div
+                            className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase z-20"
+                            style={{
+                                background: `${accent}20`,
+                                color: accent,
+                                border: `1px solid ${accent}30`,
+                                backdropFilter: 'blur(8px)',
+                            }}
+                        >
+                            {cv(sectionName, 'product-name', product.name)}
+                        </div>
+                    )}
                 </div>
 
                 {/* Specs Section */}
@@ -243,27 +248,33 @@ function SectionHero({
                             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                         }}
                     >
-                        <h2
-                            className="text-4xl lg:text-6xl font-bold mb-6"
-                            style={{ letterSpacing: '-0.03em' }}
-                        >
-                            <span style={{ color: isLight ? '#0F172A' : '#fff' }}>{title} </span>
-                            <span
-                                style={{
-                                    background: `linear-gradient(135deg, ${accent}, #2563EB)`,
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
+                        {(title || highlight) && (
+                            <h2
+                                className="text-4xl lg:text-6xl font-bold mb-6"
+                                style={{ letterSpacing: '-0.03em' }}
                             >
-                                {highlight}
-                            </span>
-                        </h2>
-                        <p
-                            className="text-lg lg:text-xl leading-relaxed max-w-3xl"
-                            style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.7)' }}
-                        >
-                            {description}
-                        </p>
+                                {title && <span style={{ color: isLight ? '#0F172A' : '#fff' }}>{title} </span>}
+                                {highlight && (
+                                    <span
+                                        style={{
+                                            background: `linear-gradient(135deg, ${accent}, #2563EB)`,
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                        }}
+                                    >
+                                        {highlight}
+                                    </span>
+                                )}
+                            </h2>
+                        )}
+                        {description && (
+                            <p
+                                className="text-lg lg:text-xl leading-relaxed max-w-3xl"
+                                style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.7)' }}
+                            >
+                                {description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Optional hero image */}
@@ -293,28 +304,35 @@ function SectionHero({
 /* ─── Info Cards ─── */
 function InfoCards({ content, isLight }: { content: ContentMapResponse; isLight: boolean }) {
     const { ref, visible } = useInView(0.15);
+    const { language } = useLanguage();
+    const cv = (section: string, key: string, fallback: string) => {
+        const item = content[section]?.[key];
+        if (!item) return fallback;
+        if (language === 'ar' && item.valueAr != null && item.valueAr !== '') return item.valueAr;
+        return item.value != null ? item.value : fallback;
+    };
     const cards = [
         {
-            title: content['info-cards']?.['design-title']?.value || 'Design',
+            title: cv('info-cards', 'design-title', 'Design'),
             icon: (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
             ),
-            content: content['info-cards']?.['design-content']?.value || 'Best used for racking system • Can be reinforced up to 10 metal bars and up to 2.0mm thickness • Compatible with RFID for pallet tracing • Free entry for manual hand pallet • Anti-slip stoppers • Perforated top and bottom • Client logos engraved on both sides • Full traceability solution available',
+            content: cv('info-cards', 'design-content', 'Best used for racking system • Can be reinforced up to 10 metal bars and up to 2.0mm thickness • Compatible with RFID for pallet tracing • Free entry for manual hand pallet • Anti-slip stoppers • Perforated top and bottom • Client logos engraved on both sides • Full traceability solution available'),
             accent: '#06B6D4',
         },
         {
-            title: content['info-cards']?.['material-title']?.value || 'Material',
+            title: cv('info-cards', 'material-title', 'Material'),
             icon: (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
             ),
-            content: content['info-cards']?.['material-content']?.value || 'Can be produced in 6 different formulas with HDPE/PP • High impact composite material • Virgin Material • Partially recycled materials plus enhancement additives (Optional) • Elastomer and UV protection additives (Optional) • Electro-static coated steel reinforcement bars • Certified food grade material • Certified Hygienic design',
+            content: cv('info-cards', 'material-content', 'Can be produced in 6 different formulas with HDPE/PP • High impact composite material • Virgin Material • Partially recycled materials plus enhancement additives (Optional) • Elastomer and UV protection additives (Optional) • Electro-static coated steel reinforcement bars • Certified food grade material • Certified Hygienic design'),
             accent: '#10B981',
         },
-    ];
+    ].filter(card => card.title || card.content);
 
     return (
         <section
@@ -369,44 +387,17 @@ function InfoCards({ content, isLight }: { content: ContentMapResponse; isLight:
     );
 }
 
-/* ─── Video Section ─── */
-function VideoSection({ content, isLight }: { content: ContentMapResponse; isLight: boolean }) {
-    const { ref, visible } = useInView(0.15);
+/* ─── Video Section (matching Home VideoHero style) ─── */
+function VideoSection({ content, isLight, cv }: { content: ContentMapResponse; isLight: boolean; cv: (section: string, key: string, fallback: string) => string }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const { language } = useLanguage();
+    const { ref, visible } = useInView(0.2);
 
-    const heroImages = [
-        'https://paft.eg/wp-content/uploads/2026/02/Copy-of-vlcsnap-2024-07-21-14h26m13s806-scaled.png',
-        'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-12.57.33-PM.jpeg',
-        'https://paft.eg/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-08-at-3.13.59-PM.jpeg',
-        'https://paft.eg/wp-content/uploads/2025/10/picture.png'
-    ];
-
-    const startAutoRotate = useCallback(() => {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        intervalRef.current = setInterval(() => {
-            setIsTransitioning(true);
-            setTimeout(() => {
-                setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-                setIsTransitioning(false);
-            }, 500);
-        }, 4000);
-    }, [heroImages.length]);
-
-    useEffect(() => {
-        if (!isPlaying) {
-            startAutoRotate();
-        }
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-        };
-    }, [isPlaying, startAutoRotate]);
+    // Single background image
+    const bgImage = 'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-5.17.46-PM.jpeg';
 
     const handlePlay = () => {
-        if (intervalRef.current) clearInterval(intervalRef.current);
         setIsPlaying(true);
         setTimeout(() => {
             if (videoRef.current) {
@@ -423,156 +414,133 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
         }
     };
 
-    const goToSlide = (index: number) => {
-        if (index === currentSlide) return;
-        setIsTransitioning(true);
-        setTimeout(() => {
-            setCurrentSlide(index);
-            setIsTransitioning(false);
-        }, 400);
-        startAutoRotate();
-    };
+    const videoTitle = cv('video', 'video-title', 'Product');
+    const videoHighlight = cv('video', 'video-highlight', 'Testing');
+    const videoDescription = cv('video', 'video-description', 'Watch our rigorous quality testing in action');
 
     return (
-        <section
-            ref={ref}
-            className="py-16 lg:py-24"
-            style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}
-        >
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div
-                    className="text-center mb-10"
-                    style={{
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? 'translateY(0)' : 'translateY(20px)',
-                        transition: 'all 0.7s ease',
-                    }}
-                >
-                    <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        {content.video?.['video-title']?.value || 'Product'}{' '}
-                        <span
+        <div>
+            {/* Video Title Section */}
+            <section
+                ref={ref}
+                className="py-16 lg:py-20 text-center"
+                style={{ background: isLight ? '#F0F9FF' : '#0B1121' }}
+            >
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {(videoTitle || videoHighlight) && (
+                        <h2
+                            className="text-4xl lg:text-6xl font-bold mb-6"
                             style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '-0.03em',
+                                opacity: visible ? 1 : 0,
+                                transform: visible ? 'translateY(0)' : 'translateY(30px)',
+                                transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                             }}
                         >
-                            {content.video?.['video-highlight']?.value || 'Testing'}
-                        </span>
-                    </h2>
-                    <p className="text-lg" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.5)' }}>
-                        {content.video?.['video-description']?.value || 'Watch our rigorous quality testing in action'}
-                    </p>
+                            {videoTitle && <span style={{ color: isLight ? '#0F172A' : '#fff' }}>{videoTitle} </span>}
+                            {videoHighlight && (
+                                <span
+                                    style={{
+                                        background: 'linear-gradient(135deg, #8B5CF6, #2563EB)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
+                                    {videoHighlight}
+                                </span>
+                            )}
+                        </h2>
+                    )}
+                    {videoDescription && (
+                        <p
+                            className="text-lg lg:text-xl leading-relaxed"
+                            style={{
+                                color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.7)',
+                                opacity: visible ? 1 : 0,
+                                transform: visible ? 'translateY(0)' : 'translateY(30px)',
+                                transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s',
+                            }}
+                        >
+                            {videoDescription}
+                        </p>
+                    )}
                 </div>
+            </section>
 
+            {/* Video Player Section */}
+            <section className="relative h-[70vh] overflow-hidden bg-black">
+                {/* Background Image with Play Button */}
                 <div
-                    className="relative rounded-2xl overflow-hidden aspect-video"
-                    style={{
-                        border: isLight ? '1px solid rgba(6, 182, 212, 0.1)' : '1px solid rgba(6, 182, 212, 0.15)',
-                        boxShadow: isLight
-                            ? '0 20px 60px rgba(0,0,0,0.1), 0 0 30px rgba(6, 182, 212, 0.03)'
-                            : '0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(6, 182, 212, 0.05)',
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.98)',
-                        transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s',
-                    }}
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
+                        }`}
                 >
-                    {/* Image Carousel with Play Button */}
-                    <div
-                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
-                            }`}
+                    <img
+                        src={bgImage}
+                        alt="PAFT Product Testing"
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: 'center center' }}
+                        loading="eager"
+                    />
+
+                    {/* Subtle gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+
+                    {/* Play Button */}
+                    <button
+                        onClick={handlePlay}
+                        className="absolute inset-0 flex items-center justify-center z-10 group cursor-pointer"
+                        aria-label="Play video"
                     >
-                        {heroImages.map((src, index) => (
-                            <div
-                                key={index}
-                                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ease-in-out ${index === currentSlide && !isTransitioning ? 'opacity-100' : 'opacity-0'
-                                    }`}
-                            >
-                                <img
-                                    src={src}
-                                    alt={`PAFT Testing ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                    style={{ objectPosition: 'center center' }}
-                                    loading={index === 0 ? 'eager' : 'lazy'}
-                                />
+                        <div className="relative">
+                            {/* Pulsing ring */}
+                            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                            {/* Outer glow */}
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
+                                {/* Inner play icon */}
+                                <svg
+                                    className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
                             </div>
-                        ))}
-
-                        {/* Subtle gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
-
-                        {/* Play Button */}
-                        <button
-                            onClick={handlePlay}
-                            className="absolute inset-0 flex items-center justify-center z-10 group cursor-pointer"
-                            aria-label="Play video"
-                        >
-                            <div className="relative">
-                                {/* Pulsing ring */}
-                                <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                                {/* Outer glow */}
-                                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
-                                    {/* Inner play icon */}
-                                    <svg
-                                        className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
-                                        fill="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            {/* Watch video text */}
-                            <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                Watch Video
-                            </span>
-                        </button>
-
-                        {/* Slide indicators */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-10">
-                            {heroImages.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => goToSlide(index)}
-                                    className={`transition-all duration-500 rounded-full ${index === currentSlide
-                                        ? 'w-8 h-2.5 bg-white shadow-lg shadow-white/30'
-                                        : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
-                                        }`}
-                                    aria-label={`Go to slide ${index + 1}`}
-                                />
-                            ))}
                         </div>
-                    </div>
-
-                    {/* Video Layer */}
-                    <div
-                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                            }`}
-                    >
-                        <video
-                            ref={videoRef}
-                            className="w-full h-full object-cover"
-                            playsInline
-                            controls
-                            onEnded={handleVideoEnd}
-                        >
-                            <source src="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4" type="video/mp4" />
-                        </video>
-
-                        {/* Close / Back to carousel button */}
-                        <button
-                            onClick={handleVideoEnd}
-                            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all duration-400 border border-white/20"
-                            aria-label="Close video"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
+                        {/* Watch video text */}
+                        <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                            {cv('video', 'video-watch-text', 'WATCH VIDEO')}
+                        </span>
+                    </button>
                 </div>
-            </div>
-        </section>
+
+                {/* Video Layer */}
+                <div
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                        }`}
+                >
+                    <video
+                        ref={videoRef}
+                        className="w-full h-full object-cover"
+                        playsInline
+                        controls
+                        onEnded={handleVideoEnd}
+                    >
+                        <source src="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4" type="video/mp4" />
+                    </video>
+
+                    {/* Close / Back button */}
+                    <button
+                        onClick={handleVideoEnd}
+                        className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all border border-white/20"
+                        aria-label="Close video"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </section>
+        </div>
     );
 }
 
@@ -580,14 +548,21 @@ function VideoSection({ content, isLight }: { content: ContentMapResponse; isLig
 /* ─── Light Duty Info Bar ─── */
 function LightDutyInfo({ content, isLight }: { content: ContentMapResponse; isLight: boolean }) {
     const { ref, visible } = useInView(0.2);
+    const { language } = useLanguage();
+    const cv = (section: string, key: string, fallback: string) => {
+        const item = content[section]?.[key];
+        if (!item) return fallback;
+        if (language === 'ar' && item.valueAr != null && item.valueAr !== '') return item.valueAr;
+        return item.value != null ? item.value : fallback;
+    };
     const features = [
-        content['light-duty-info']?.feature1?.value || '100% Recycled Material',
-        content['light-duty-info']?.feature2?.value || '4 Ways Entry',
-        content['light-duty-info']?.feature3?.value || 'Anti Slip',
-        content['light-duty-info']?.feature4?.value || 'SPM 15 Certified',
-        content['light-duty-info']?.feature5?.value || 'No Nails, No Product Damage',
-        content['light-duty-info']?.feature6?.value || 'Racking System N/A',
-    ];
+        cv('light-duty-features', 'feature1', '100% Recycled Material'),
+        cv('light-duty-features', 'feature2', '4 Ways Entry'),
+        cv('light-duty-features', 'feature3', 'Anti Slip'),
+        cv('light-duty-features', 'feature4', 'SPM 15 Certified'),
+        cv('light-duty-features', 'feature5', 'No Nails, No Product Damage'),
+        cv('light-duty-features', 'feature6', 'Racking System N/A'),
+    ].filter(f => f);
 
     return (
         <div
@@ -631,6 +606,7 @@ function ProductsGrid({
     columns = 3,
     content,
     isLight,
+    cv,
 }: {
     title?: string;
     products: Product[];
@@ -638,6 +614,7 @@ function ProductsGrid({
     columns?: number;
     content: ContentMapResponse;
     isLight: boolean;
+    cv: (section: string, key: string, fallback: string) => string;
 }) {
     const { ref, visible } = useInView(0.05);
 
@@ -674,7 +651,7 @@ function ProductsGrid({
                         }}
                     >
                         {products.map((p, i) => (
-                            <ProductCard key={p.id + i} product={p} index={i} accent={accent} content={content} isLight={isLight} />
+                            <ProductCard key={p.id + i} product={p} index={i} accent={accent} content={content} isLight={isLight} cv={cv} />
                         ))}
                     </div>
                 )}
@@ -687,6 +664,7 @@ function ProductsGrid({
 export default function PlasticPallets() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { language } = useLanguage();
 
     // Initialize with static content structure to prevent content disappearing
     const [content, setContent] = useState<ContentMapResponse>({
@@ -704,14 +682,15 @@ export default function PlasticPallets() {
         'video': {
             'video-title': { value: 'Product', id: 0 },
             'video-highlight': { value: 'Testing', id: 0 },
-            'video-description': { value: 'Watch our rigorous quality testing in action', id: 0 }
+            'video-description': { value: 'Watch our rigorous quality testing in action', id: 0 },
+            'video-watch-text': { value: 'WATCH VIDEO', id: 0 }
         },
         'light-duty-hero': {
             'light-duty-title': { value: 'Light Duty', id: 0 },
             'light-duty-highlight': { value: 'Pallets', id: 0 },
             'light-duty-description': { value: 'Several pallets starting at 7kg/pallet. Made from recycled plastic, perfect for single-use applications. Unlike wooden pallets, these do not require special treatments, meeting all hygienic and environmental standards. Waterproof and competitively priced starting from just 8 USD/piece, ideal for industries with dynamic loads of up to 1.5 tons.', id: 0 }
         },
-        'light-duty-info': {
+        'light-duty-features': {
             'feature1': { value: '100% Recycled Material', id: 0 },
             'feature2': { value: '4 Ways Entry', id: 0 },
             'feature3': { value: 'Anti Slip', id: 0 },
@@ -746,17 +725,17 @@ export default function PlasticPallets() {
                     return {};
                 });
 
-                const heavyDutyPromise = productsApi.getAll({ category: 'heavy-duty' }).catch(err => {
+                const heavyDutyPromise = productsApi.getAllIncludingDeleted({ category: 'heavy-duty' }).catch(err => {
                     console.error('Failed to fetch heavy duty products:', err);
                     return [];
                 });
 
-                const lightDutyPromise = productsApi.getAll({ category: 'light-duty' }).catch(err => {
+                const lightDutyPromise = productsApi.getAllIncludingDeleted({ category: 'light-duty' }).catch(err => {
                     console.error('Failed to fetch light duty products:', err);
                     return [];
                 });
 
-                const rentalPromise = productsApi.getAll({ category: 'rental' }).catch(err => {
+                const rentalPromise = productsApi.getAllIncludingDeleted({ category: 'rental' }).catch(err => {
                     console.error('Failed to fetch rental products:', err);
                     return [];
                 });
@@ -794,30 +773,38 @@ export default function PlasticPallets() {
         fetchData();
     }, []);
 
+    // Content value helper — picks Arabic when language is 'ar'
+    const cv = (section: string, key: string, fallback: string) => {
+        const item = content[section]?.[key];
+        if (!item) return fallback;
+        if (language === 'ar' && item.valueAr != null && item.valueAr !== '') return item.valueAr;
+        return item.value != null ? item.value : fallback;
+    };
+
     const heavyDutyHeroContent = {
-        title: content['heavy-duty-hero']?.['heavy-duty-title']?.value || 'Heavy Duty',
-        highlight: content['heavy-duty-hero']?.['heavy-duty-highlight']?.value || 'Pallets',
-        description: content['heavy-duty-hero']?.['heavy-duty-description']?.value || 'PAFT Heavy-Duty Pallets are designed to deliver the highest value for money in the MENA region, offering exceptional durability with the lowest annual breakage rates. Constructed from premium composite virgin materials and reinforced with metal bars, these pallets have a lifespan of 10+ years and come with a 5-year manufacturing warranty. PAFT pallets can handle exceptional rack loads of up to 2 tonnes with maximum deflection of 15mm.',
+        title: cv('heavy-duty-hero', 'heavy-duty-title', 'Heavy Duty'),
+        highlight: cv('heavy-duty-hero', 'heavy-duty-highlight', 'Pallets'),
+        description: cv('heavy-duty-hero', 'heavy-duty-description', 'PAFT Heavy-Duty Pallets are designed to deliver the highest value for money in the MENA region, offering exceptional durability with the lowest annual breakage rates. Constructed from premium composite virgin materials and reinforced with metal bars, these pallets have a lifespan of 10+ years and come with a 5-year manufacturing warranty. PAFT pallets can handle exceptional rack loads of up to 2 tonnes with maximum deflection of 15mm.'),
     };
 
     const lightDutyHeroContent = {
-        title: content['light-duty-hero']?.['light-duty-title']?.value || 'Light Duty',
-        highlight: content['light-duty-hero']?.['light-duty-highlight']?.value || 'Pallets',
-        description: content['light-duty-hero']?.['light-duty-description']?.value || 'Several pallets starting at 7kg/pallet. Made from recycled plastic, perfect for single-use applications. Unlike wooden pallets, these do not require special treatments, meeting all hygienic and environmental standards. Waterproof and competitively priced starting from just 8 USD/piece, ideal for industries with dynamic loads of up to 1.5 tons.',
+        title: cv('light-duty-hero', 'light-duty-title', 'Light Duty'),
+        highlight: cv('light-duty-hero', 'light-duty-highlight', 'Pallets'),
+        description: cv('light-duty-hero', 'light-duty-description', 'Several pallets starting at 7kg/pallet. Made from recycled plastic, perfect for single-use applications. Unlike wooden pallets, these do not require special treatments, meeting all hygienic and environmental standards. Waterproof and competitively priced starting from just 8 USD/piece, ideal for industries with dynamic loads of up to 1.5 tons.'),
     };
 
     const rentalHeroContent = {
-        title: content['rental-hero']?.['rental-title']?.value || 'Rental',
-        highlight: content['rental-hero']?.['rental-highlight']?.value || 'Pallets',
-        description: content['rental-hero']?.['rental-description']?.value || 'PAFT offers a unique, innovative approach to product storage via our flexible rental service tailored to meet the specific needs of each client, allowing you to convert pallet costs from CAPEX to OPEX. Our rental options include misuse and abuse protection and can be arranged for both short and long-term periods, providing a cost-effective solution without the need for capital investment.',
+        title: cv('rental-hero', 'rental-title', 'Rental'),
+        highlight: cv('rental-hero', 'rental-highlight', 'Pallets'),
+        description: cv('rental-hero', 'rental-description', 'PAFT offers a unique, innovative approach to product storage via our flexible rental service tailored to meet the specific needs of each client, allowing you to convert pallet costs from CAPEX to OPEX. Our rental options include misuse and abuse protection and can be arranged for both short and long-term periods, providing a cost-effective solution without the need for capital investment.'),
     };
 
     const ctaContent = {
-        title: content.cta?.['cta-title']?.value || 'Need',
-        highlight: content.cta?.['cta-highlight']?.value || 'Custom Solutions?',
-        description: content.cta?.['cta-description']?.value || 'We can manufacture pallets according to your specific requirements',
-        button1Text: content.cta?.['cta-button1-text']?.value || 'Request a Quote →',
-        button2Text: content.cta?.['cta-button2-text']?.value || 'Contact Our Team',
+        title: cv('cta', 'cta-title', 'Need'),
+        highlight: cv('cta', 'cta-highlight', 'Custom Solutions?'),
+        description: cv('cta', 'cta-description', 'We can manufacture pallets according to your specific requirements'),
+        button1Text: cv('cta', 'cta-button1-text', 'Request a Quote →'),
+        button2Text: cv('cta', 'cta-button2-text', 'Contact Our Team'),
     };
 
     return (
@@ -830,14 +817,14 @@ export default function PlasticPallets() {
                 highlight={heavyDutyHeroContent.highlight}
                 description={heavyDutyHeroContent.description}
                 accent="#06B6D4"
-                image="https://paft.eg/wp-content/uploads/2025/11/Screenshot_2025-11-26_212516-removebg-preview.png"
+                image="https://paft.eg/wp-content/uploads/2026/02/Steel-Reinforced-Pallet.png"
                 isLight={isLight}
             />
             <InfoCards content={content} isLight={isLight} />
-            {productsLoaded && <ProductsGrid products={heavyDutyProducts} accent="#06B6D4" columns={3} content={content} isLight={isLight} />}
+            {productsLoaded && <ProductsGrid products={heavyDutyProducts} accent="#06B6D4" columns={3} content={content} isLight={isLight} cv={cv} />}
 
             {/* ── Video Section ── */}
-            <VideoSection content={content} isLight={isLight} />
+            <VideoSection content={content} isLight={isLight} cv={cv} />
 
             {/* ── Light Duty Section ── */}
             <SectionHero
@@ -848,7 +835,7 @@ export default function PlasticPallets() {
                 isLight={isLight}
             />
             <LightDutyInfo content={content} isLight={isLight} />
-            {productsLoaded && <ProductsGrid products={lightDutyProducts} accent="#10B981" columns={2} content={content} isLight={isLight} />}
+            {productsLoaded && <ProductsGrid products={lightDutyProducts} accent="#10B981" columns={2} content={content} isLight={isLight} cv={cv} />}
 
             {/* ── Rental Section ── */}
             <SectionHero
@@ -858,7 +845,7 @@ export default function PlasticPallets() {
                 accent="#8B5CF6"
                 isLight={isLight}
             />
-            {productsLoaded && <ProductsGrid products={rentalProducts} accent="#8B5CF6" columns={2} content={content} isLight={isLight} />}
+            {productsLoaded && <ProductsGrid products={rentalProducts} accent="#8B5CF6" columns={2} content={content} isLight={isLight} cv={cv} />}
 
             {/* ── CTA Section ── */}
             <section className="py-20 relative overflow-hidden">
@@ -871,44 +858,54 @@ export default function PlasticPallets() {
                     }}
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        {ctaContent.title}{' '}
-                        <span
-                            style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                            }}
-                        >
-                            {ctaContent.highlight}
-                        </span>
-                    </h2>
-                    <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
-                        {ctaContent.description}
-                    </p>
+                    {(ctaContent.title || ctaContent.highlight) && (
+                        <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
+                            {ctaContent.title && <>{ctaContent.title}{' '}</>}
+                            {ctaContent.highlight && (
+                                <span
+                                    style={{
+                                        background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
+                                    {ctaContent.highlight}
+                                </span>
+                            )}
+                        </h2>
+                    )}
+                    {ctaContent.description && (
+                        <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }}>
+                            {ctaContent.description}
+                        </p>
+                    )}
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
-                        <a
-                            href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105"
-                            style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                                boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
-                            }}
-                        >
-                            {ctaContent.button1Text}
-                        </a>
-                        <a
-                            href="/contact"
-                            className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
-                            style={{
-                                border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255, 255, 255, 0.2)',
-                                color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)',
-                                background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                backdropFilter: 'blur(10px)',
-                            }}
-                        >
-                            {ctaContent.button2Text}
-                        </a>
+                        {ctaContent.button1Text && (
+                            <a
+                                href="/contact"
+                                className="px-8 py-4 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105"
+                                style={{
+                                    background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                                    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
+                                }}
+                            >
+                                {ctaContent.button1Text}
+                            </a>
+                        )}
+                        {ctaContent.button2Text && (
+                            <a
+                                href="/contact"
+                                className="px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
+                                style={{
+                                    border: isLight ? '2px solid rgba(15, 23, 42, 0.15)' : '2px solid rgba(255, 255, 255, 0.2)',
+                                    color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)',
+                                    background: isLight ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                    backdropFilter: 'blur(10px)',
+                                }}
+                            >
+                                {ctaContent.button2Text}
+                            </a>
+                        )}
                     </div>
                 </div>
             </section>

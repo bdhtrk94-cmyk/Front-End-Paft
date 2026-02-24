@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 /* ──────────────────────────────────────────── */
 /*  Theme-aware single product page             */
@@ -177,6 +178,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const t = themeTokens(isDark);
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
 
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -252,7 +255,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 style={{ border: `3px solid ${t.loaderRingInner}`, borderTopColor: '#2563EB', animationDirection: 'reverse', animationDuration: '0.8s' }}
                             />
                         </div>
-                        <p className="text-sm font-medium" style={{ color: t.textMuted }}>Loading product details…</p>
+                        <p className="text-sm font-medium" style={{ color: t.textMuted }}>{isAr ? 'جاري تحميل تفاصيل المنتج…' : 'Loading product details…'}</p>
                     </div>
                 </div>
                 <Footer />
@@ -273,15 +276,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         >
                             <AlertCircle className="w-10 h-10" style={{ color: '#DC2626' }} />
                         </div>
-                        <h2 className="text-2xl font-bold mb-2" style={{ color: t.textPrimary }}>Product Not Found</h2>
-                        <p className="text-sm mb-8" style={{ color: t.textSecondary }}>{error || 'This product does not exist or has been removed.'}</p>
+                        <h2 className="text-2xl font-bold mb-2" style={{ color: t.textPrimary }}>{isAr ? 'المنتج غير موجود' : 'Product Not Found'}</h2>
+                        <p className="text-sm mb-8" style={{ color: t.textSecondary }}>{error || (isAr ? 'هذا المنتج غير موجود أو تم إزالته.' : 'This product does not exist or has been removed.')}</p>
                         <Link
                             href="/shop"
                             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5"
                             style={{ background: 'linear-gradient(135deg, #06B6D4, #2563EB)', boxShadow: '0 8px 25px rgba(6,182,212,0.25)' }}
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Shop
+                            {isAr ? 'العودة للمتجر' : 'Back to Shop'}
                         </Link>
                     </div>
                 </div>
@@ -326,16 +329,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             onMouseEnter={(e) => e.currentTarget.style.color = t.textPrimary}
                             onMouseLeave={(e) => e.currentTarget.style.color = t.textMuted}>
                             <Home className="w-3.5 h-3.5" />
-                            Home
+                            {isAr ? 'الرئيسية' : 'Home'}
                         </Link>
                         <ChevronRight className="w-3 h-3" />
                         <Link href="/shop" className="transition-colors" style={{ color: t.textMuted }}
                             onMouseEnter={(e) => e.currentTarget.style.color = t.textPrimary}
                             onMouseLeave={(e) => e.currentTarget.style.color = t.textMuted}>
-                            Shop
+                            {isAr ? 'المتجر' : 'Shop'}
                         </Link>
                         <ChevronRight className="w-3 h-3" />
-                        <span className="font-semibold" style={{ color: t.textBreadcrumbActive }}>{product.name}</span>
+                        <span className="font-semibold" style={{ color: t.textBreadcrumbActive }}>{isAr && (product as unknown as { nameAr?: string }).nameAr ? (product as unknown as { nameAr?: string }).nameAr : product.name}</span>
                     </nav>
                 </div>
 
@@ -446,7 +449,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 >
                                     <Tag className="w-3 h-3" style={{ color: t.categoryColor }} />
                                     <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: t.categoryColor }}>
-                                        {product.category}
+                                        {isAr && (product as unknown as { categoryAr?: string }).categoryAr ? (product as unknown as { categoryAr?: string }).categoryAr : product.category}
                                     </span>
                                 </div>
 
@@ -455,7 +458,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     className="text-3xl lg:text-4xl xl:text-[2.75rem] font-extrabold mb-4 leading-[1.15] tracking-tight"
                                     style={{ color: t.textPrimary }}
                                 >
-                                    {product.name}
+                                    {isAr && (product as unknown as { nameAr?: string }).nameAr ? (product as unknown as { nameAr?: string }).nameAr : product.name}
                                 </h1>
 
                                 {/* Rating */}
@@ -472,13 +475,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     </span>
                                     <div className="flex items-center gap-1 text-[13px]" style={{ color: t.textMuted }}>
                                         <Eye className="w-3.5 h-3.5" />
-                                        <span>142 views</span>
+                                        <span>{isAr ? '142 مشاهدة' : '142 views'}</span>
                                     </div>
                                 </div>
 
                                 {/* Description */}
                                 <p className="text-[15px] leading-relaxed mb-7" style={{ color: t.textSecondary, lineHeight: '1.75' }}>
-                                    {product.description}
+                                    {isAr && (product as unknown as { descriptionAr?: string }).descriptionAr ? (product as unknown as { descriptionAr?: string }).descriptionAr : product.description}
                                 </p>
 
                                 {/* Price */}
@@ -525,7 +528,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                         <AlertCircle className="w-4 h-4" style={{ color: t.stockOutColor }} />
                                     )}
                                     <span className="text-[13px] font-semibold" style={{ color: product.inStock ? t.stockInColor : t.stockOutColor }}>
-                                        {product.inStock ? 'In Stock — Ready to Ship' : 'Out of Stock'}
+                                        {product.inStock ? (isAr ? 'متوفر — جاهز للشحن' : 'In Stock — Ready to Ship') : (isAr ? 'غير متوفر' : 'Out of Stock')}
                                     </span>
                                 </div>
 
@@ -600,12 +603,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                         {addedToCart ? (
                                             <>
                                                 <Check className="w-5 h-5" strokeWidth={2.5} />
-                                                Added to Cart!
+                                                {isAr ? 'تمت الإضافة!' : 'Added to Cart!'}
                                             </>
                                         ) : (
                                             <>
                                                 <ShoppingCart className="w-5 h-5" />
-                                                Add to Cart — ${(price * quantity).toFixed(2)}
+                                                {isAr ? `أضف للسلة — $${(price * quantity).toFixed(2)}` : `Add to Cart — $${(price * quantity).toFixed(2)}`}
                                             </>
                                         )}
                                     </button>
@@ -614,9 +617,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 {/* Trust badges */}
                                 <div className="grid grid-cols-3 gap-3">
                                     {[
-                                        { icon: <Truck className="w-5 h-5" />, label: 'Free Shipping', sublabel: 'On orders $50+', idx: 0 },
-                                        { icon: <ShieldCheck className="w-5 h-5" />, label: 'Secure Payment', sublabel: '100% encrypted', idx: 1 },
-                                        { icon: <RotateCcw className="w-5 h-5" />, label: '30-Day Returns', sublabel: 'Money back', idx: 2 },
+                                        { icon: <Truck className="w-5 h-5" />, label: isAr ? 'شحن مجاني' : 'Free Shipping', sublabel: isAr ? 'للطلبات +$50' : 'On orders $50+', idx: 0 },
+                                        { icon: <ShieldCheck className="w-5 h-5" />, label: isAr ? 'دفع آمن' : 'Secure Payment', sublabel: isAr ? 'مشفر 100%' : '100% encrypted', idx: 1 },
+                                        { icon: <RotateCcw className="w-5 h-5" />, label: isAr ? 'إرجاع 30 يوم' : '30-Day Returns', sublabel: isAr ? 'استرداد الأموال' : 'Money back', idx: 2 },
                                     ].map((badge) => {
                                         const tc = t.trustColors[badge.idx];
                                         return (
@@ -673,7 +676,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                         boxShadow: activeTab === tab ? '0 4px 15px rgba(6,182,212,0.25)' : 'none',
                                     }}
                                 >
-                                    {tab === 'description' ? 'Full Description' : 'Specifications'}
+                                    {tab === 'description' ? (isAr ? 'الوصف الكامل' : 'Full Description') : (isAr ? 'المواصفات' : 'Specifications')}
                                 </button>
                             ))}
                         </div>
@@ -689,26 +692,33 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         >
                             {activeTab === 'description' ? (
                                 <div className="max-w-3xl">
-                                    {(product.fullDescription || product.description).split('\n\n').map((paragraph, i) => (
-                                        <p
-                                            key={i}
-                                            className="text-[15px] leading-relaxed mb-5 last:mb-0"
-                                            style={{ color: t.textSecondary, lineHeight: '1.85' }}
-                                        >
-                                            {paragraph}
-                                        </p>
-                                    ))}
+                                    {(() => {
+                                        const fullDesc = isAr && (product as unknown as { fullDescriptionAr?: string }).fullDescriptionAr
+                                            ? (product as unknown as { fullDescriptionAr?: string }).fullDescriptionAr!
+                                            : isAr && (product as unknown as { descriptionAr?: string }).descriptionAr
+                                                ? (product as unknown as { descriptionAr?: string }).descriptionAr!
+                                                : (product.fullDescription || product.description);
+                                        return fullDesc.split('\n\n').map((paragraph, i) => (
+                                            <p
+                                                key={i}
+                                                className="text-[15px] leading-relaxed mb-5 last:mb-0"
+                                                style={{ color: t.textSecondary, lineHeight: '1.85' }}
+                                            >
+                                                {paragraph}
+                                            </p>
+                                        ));
+                                    })()}
                                 </div>
                             ) : (
                                 <div className="max-w-2xl">
                                     <div className="space-y-0">
                                         {[
-                                            { icon: <Hash className="w-4 h-4" />, label: 'Product ID', value: `#${product.id}` },
-                                            { icon: <Tag className="w-4 h-4" />, label: 'Category', value: product.category },
-                                            { icon: <Package className="w-4 h-4" />, label: 'Price', value: `$${price.toFixed(2)}` },
-                                            { icon: <BarChart3 className="w-4 h-4" />, label: 'Rating', value: `${rating} / 5 (${product.reviewCount} reviews)` },
-                                            { icon: <CheckCircle2 className="w-4 h-4" />, label: 'Availability', value: product.inStock ? 'In Stock' : 'Out of Stock' },
-                                            ...(product.badge ? [{ icon: <Award className="w-4 h-4" />, label: 'Badge', value: product.badge }] : []),
+                                            { icon: <Hash className="w-4 h-4" />, label: isAr ? 'رقم المنتج' : 'Product ID', value: `#${product.id}` },
+                                            { icon: <Tag className="w-4 h-4" />, label: isAr ? 'الفئة' : 'Category', value: isAr && (product as unknown as { categoryAr?: string }).categoryAr ? (product as unknown as { categoryAr?: string }).categoryAr! : product.category },
+                                            { icon: <Package className="w-4 h-4" />, label: isAr ? 'السعر' : 'Price', value: `$${price.toFixed(2)}` },
+                                            { icon: <BarChart3 className="w-4 h-4" />, label: isAr ? 'التقييم' : 'Rating', value: `${rating} / 5 (${product.reviewCount} ${isAr ? 'تقييمات' : 'reviews'})` },
+                                            { icon: <CheckCircle2 className="w-4 h-4" />, label: isAr ? 'التوفر' : 'Availability', value: product.inStock ? (isAr ? 'متوفر' : 'In Stock') : (isAr ? 'غير متوفر' : 'Out of Stock') },
+                                            ...(product.badge ? [{ icon: <Award className="w-4 h-4" />, label: isAr ? 'شارة' : 'Badge', value: product.badge }] : []),
                                         ].map((spec, i) => (
                                             <div
                                                 key={i}
@@ -762,7 +772,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             }}
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Continue Shopping
+                            {isAr ? 'تابع التسوق' : 'Continue Shopping'}
                         </Link>
                     </div>
                 </section>

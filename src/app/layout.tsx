@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import CartSidebar from "@/components/CartSidebar";
 
 const geistSans = Geist({
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
   description: "Leading manufacturer of premium plastic pallets in Egypt. Durable, eco-friendly, and cost-effective logistics solutions.",
 };
 
-// Inline script to set data-theme before first paint — prevents FOUC
-const themeScript = `
+// Inline script to set data-theme and language before first paint — prevents FOUC
+const themeAndLangScript = `
   (function() {
     try {
       var t = localStorage.getItem('paft-theme');
@@ -30,6 +31,14 @@ const themeScript = `
         document.documentElement.setAttribute('data-theme', 'light');
       } else {
         document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      var lang = localStorage.getItem('paft-language');
+      if (lang === 'ar') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'ar');
+      } else {
+        document.documentElement.setAttribute('dir', 'ltr');
+        document.documentElement.setAttribute('lang', 'en');
       }
     } catch(e) {}
   })();
@@ -41,20 +50,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeAndLangScript }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <AuthProvider>
-            <CartProvider>
-              {children}
-              <CartSidebar />
-            </CartProvider>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <CartProvider>
+                {children}
+                <CartSidebar />
+              </CartProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransportLogisticsPageEditor from '@/app/admin/pages/TransportLogisticsPageEditor';
@@ -67,6 +68,7 @@ function useInView(threshold = 0.15) {
 /* ─── Spec Table Component ─── */
 function SpecTable({ specs, priceLabel }: { specs: Product['specs']; priceLabel?: string }) {
     const { theme } = useTheme();
+    const { language } = useLanguage();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -147,7 +149,7 @@ function SpecTable({ specs, priceLabel }: { specs: Product['specs']; priceLabel?
                                 style={{ color: '#06B6D4' }}
                                 colSpan={hasMultipleColumns ? (specs.headers?.length ?? 1) - 1 : 1}
                             >
-                                Price Range
+                                {language === 'ar' ? 'نطاق السعر' : 'Price Range'}
                             </td>
                             <td
                                 className="px-4 py-3 font-bold text-right"
@@ -169,6 +171,7 @@ function SpecTable({ specs, priceLabel }: { specs: Product['specs']; priceLabel?
 /* ─── Product Card Component ─── */
 function ProductCard({ product, index }: { product: Product; index: number }) {
     const { theme } = useTheme();
+    const { language } = useLanguage();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -255,18 +258,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
                             loading="lazy"
                         />
 
-                        {/* Floating badge */}
-                        <div
-                            className="absolute top-5 left-5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase z-20"
-                            style={{
-                                background: `${accent}18`,
-                                color: accent,
-                                border: `1px solid ${accent}30`,
-                                backdropFilter: 'blur(8px)',
-                            }}
-                        >
-                            {product.id.includes('rpc') ? 'RPC Series' : product.id === 'foldable-ibc' ? 'IBC' : 'Accessory'}
-                        </div>
+                        {/* Floating badge - REMOVED */}
                     </div>
 
                     {/* Content Section */}
@@ -322,7 +314,10 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
                         {/* Minimal card — no specs/features */}
                         {!product.specs && !product.features && (
                             <p className="text-sm mt-3" style={{ color: emptySpecColor }}>
-                                Contact us for specifications and pricing details.
+                                {language === 'ar'
+                                    ? 'تواصل معنا للحصول على تفاصيل المواصفات والأسعار.'
+                                    : 'Contact us for specifications and pricing details.'
+                                }
                             </p>
                         )}
                     </div>
@@ -358,53 +353,42 @@ export default function TransportLogistics() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [content, setContent] = useState<Record<string, unknown>>({});
     const [flatContent, setFlatContent] = useState<{ [key: string]: string }>({});
+    const [flatContentAr, setFlatContentAr] = useState<{ [key: string]: string }>({});
     const [idMap, setIdMap] = useState<{ [key: string]: number }>({});
     const [products, setProducts] = useState<Product[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const { language } = useLanguage();
 
-    const loadContentCb = useCallback(() => {
-        loadContent();
-    }, []);
-
-    useEffect(() => {
-        loadContentCb();
-    }, [loadContentCb]);
-
-    const loadContent = async () => {
-        try {
-            const data = await contentService.getContentByPage('transport-logistics');
-            setContent(data); // nested
-            const flat = contentService.flattenContent(data);
-            setFlatContent(flat);
-            setIdMap(contentService.getIdMap(data));
-
-            // Reconstruct Products
-            reconstructProducts(flat);
-        } catch (error) {
-            console.error('Failed to load content', error);
-            // Fallback to defaults if needed
-        }
-    };
-
-    const reconstructProducts = (flat: { [key: string]: string }) => {
+    // Define reconstructProducts first before using it
+    const reconstructProducts = useCallback((flat: { [key: string]: string }, flatAr: { [key: string]: string }) => {
         const newProducts: Product[] = [];
 
         // Helper to get val or empty
-        const getVal = (key: string) => flat[key] || '';
+        const getVal = (section: string, key: string, fallback: string = '') => {
+            const fullKey = `${section}-${key}`;
+
+            // Use Arabic value if language is Arabic and it exists
+            if (language === 'ar' && flatAr[fullKey]) {
+                return flatAr[fullKey];
+            }
+
+            // Otherwise use English value
+            return flat[fullKey] || fallback;
+        };
 
         // Product 1: Foldable IBC
-        if (getVal('product-1-title')) {
+        if (getVal('product-1', 'title')) {
             const p1: Product = {
                 id: 'foldable-ibc',
-                title: getVal('product-1-title'),
-                subtitle: getVal('product-1-subtitle'), // Add subtitle support
-                image: getVal('product-1-image'),
-                priceLabel: getVal('product-1-price-label'),
+                title: getVal('product-1', 'title'),
+                subtitle: getVal('product-1', 'subtitle'),
+                image: getVal('product-1', 'image'),
+                priceLabel: getVal('product-1', 'price-label'),
                 specs: {
-                    headers: getVal('product-1-spec-headers').split(',').map(s => s.trim()),
+                    headers: getVal('product-1', 'spec-headers').split(',').map((s: string) => s.trim()),
                     rows: [1, 2, 3].map(i => {
-                        const rowVal = getVal(`product-1-spec-row-${i}`);
+                        const rowVal = getVal('product-1', `spec-row-${i}`);
                         if (!rowVal) return null;
                         const parts = rowVal.split(',');
                         return { label: parts[0], values: parts.slice(1) };
@@ -415,7 +399,6 @@ export default function TransportLogistics() {
         }
 
         // Products 2-6: RPCs and Large Foldable Crate
-        // IDs map to sections product-2 through product-6
         const midProducts = [
             { id: 'rpc-6419', section: 2 },
             { id: 'rpc-6422', section: 3 },
@@ -425,16 +408,13 @@ export default function TransportLogistics() {
         ];
 
         midProducts.forEach(({ id, section }) => {
-            const prefix = `product-${section}`;
-            if (getVal(`${prefix}-title`)) {
+            const sectionName = `product-${section}`;
+            if (getVal(sectionName, 'title')) {
                 const rows: SpecRow[] = [];
                 // Check up to 6 potential spec rows
                 for (let i = 1; i <= 6; i++) {
-                    const rowVal = getVal(`${prefix}-spec-row-${i}`);
+                    const rowVal = getVal(sectionName, `spec-row-${i}`);
                     if (rowVal) {
-                        // For RPCs, value format is "Label,Value" (comma separated)
-                        // It might contain multiple values or just one.
-                        // Based on seed: "External Dimension,600x400x195 mm" => 2 parts
                         const parts = rowVal.split(',');
                         if (parts.length >= 2) {
                             rows.push({
@@ -447,32 +427,32 @@ export default function TransportLogistics() {
 
                 newProducts.push({
                     id,
-                    title: getVal(`${prefix}-title`),
-                    subtitle: getVal(`${prefix}-subtitle`),
-                    image: getVal(`${prefix}-image`),
-                    priceLabel: getVal(`${prefix}-price-label`),
+                    title: getVal(sectionName, 'title'),
+                    subtitle: getVal(sectionName, 'subtitle'),
+                    image: getVal(sectionName, 'image'),
+                    priceLabel: getVal(sectionName, 'price-label'),
                     specs: rows.length > 0 ? { rows } : undefined
                 });
             }
         });
 
         // Product 7: Sheet Separators
-        if (getVal('product-7-title')) {
+        if (getVal('product-7', 'title')) {
             newProducts.push({
                 id: 'sheet-separators',
-                title: getVal('product-7-title'),
-                image: getVal('product-7-image'),
+                title: getVal('product-7', 'title'),
+                image: getVal('product-7', 'image'),
             });
         }
 
         // Product 8: Gallon Racks
-        if (getVal('product-8-title')) {
+        if (getVal('product-8', 'title')) {
             newProducts.push({
                 id: 'gallon-racks',
-                title: getVal('product-8-title'),
-                image: getVal('product-8-image'),
-                features: getVal('product-8-features')
-                    ? getVal('product-8-features').split(',').map(s => s.trim())
+                title: getVal('product-8', 'title'),
+                image: getVal('product-8', 'image'),
+                features: getVal('product-8', 'features')
+                    ? getVal('product-8', 'features').split(',').map((s: string) => s.trim())
                     : undefined
             });
         }
@@ -480,22 +460,88 @@ export default function TransportLogistics() {
         if (newProducts.length > 0) {
             setProducts(newProducts);
         }
+    }, [language]);
+
+    const loadContent = async () => {
+        try {
+            const data = await contentService.getContentByPage('transport-logistics');
+            setContent(data); // nested
+            const flat = contentService.flattenContent(data);
+            const flatAr = contentService.flattenContentAr(data);
+            setFlatContent(flat);
+            setFlatContentAr(flatAr);
+            setIdMap(contentService.getIdMap(data));
+
+            // Reconstruct Products - pass both flat and flatAr
+            reconstructProducts(flat, flatAr);
+        } catch (error) {
+            console.error('Failed to load content', error);
+            // Fallback to defaults if needed
+        }
     };
 
-    const handleSave = async (newContent: { [key: string]: string }) => {
+    const loadContentCb = useCallback(() => {
+        loadContent();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        loadContentCb();
+    }, [loadContentCb]);
+
+    // Re-render products when language changes
+    useEffect(() => {
+        if (Object.keys(flatContent).length > 0) {
+            reconstructProducts(flatContent, flatContentAr);
+        }
+    }, [language, flatContent, flatContentAr, reconstructProducts]);
+
+    const handleSave = async (newContent: { [key: string]: string }, newContentAr?: { [key: string]: string }) => {
         setIsSaving(true);
         try {
-            const updates: { id: number; value: string }[] = [];
+            const updates: { id: number; value?: string; valueAr?: string }[] = [];
+
+            // Check for English content changes
             Object.keys(newContent).forEach(key => {
                 if (newContent[key] !== flatContent[key] && idMap[key]) {
-                    updates.push({ id: idMap[key], value: newContent[key] });
+                    const update: { id: number; value?: string; valueAr?: string } = { id: idMap[key] };
+                    update.value = newContent[key];
+
+                    // Add Arabic content if provided
+                    if (newContentAr && newContentAr[key] !== flatContentAr[key]) {
+                        update.valueAr = newContentAr[key];
+                    }
+
+                    updates.push(update);
                 }
             });
+
+            // Check for Arabic-only changes
+            if (newContentAr) {
+                Object.keys(newContentAr).forEach(key => {
+                    if (newContentAr[key] !== flatContentAr[key] && idMap[key]) {
+                        // Check if we already have an update for this key
+                        const existingUpdate = updates.find(u => u.id === idMap[key]);
+                        if (existingUpdate) {
+                            existingUpdate.valueAr = newContentAr[key];
+                        } else {
+                            updates.push({
+                                id: idMap[key],
+                                value: flatContent[key], // Keep existing English
+                                valueAr: newContentAr[key]
+                            });
+                        }
+                    }
+                });
+            }
 
             if (updates.length > 0) {
                 await contentService.bulkUpdateContent(updates);
                 setFlatContent(newContent);
-                reconstructProducts(newContent);
+                if (newContentAr) {
+                    setFlatContentAr(newContentAr);
+                }
+                reconstructProducts(newContent, newContentAr || flatContentAr);
             }
             setIsEditing(false);
         } catch (error) {
@@ -506,8 +552,23 @@ export default function TransportLogistics() {
         }
     };
 
-    // Helper for safe text access
-    const t = (key: string) => flatContent[key] || '';
+    // Content value helper — picks Arabic when language is 'ar'
+    const cv = (section: string, key: string, fallback: string) => {
+        const fullKey = (section === 'hero' || section === 'products' || section === 'cta') ? key : `${section}-${key}`;
+
+        // First try to get from nested content structure
+        const sectionData = (content as Record<string, Record<string, { value?: string; valueAr?: string }>>)[section];
+        const item = sectionData?.[key];
+
+        if (item) {
+            const result = (language === 'ar' && item.valueAr) ? item.valueAr : (item.value || fallback);
+            return result;
+        }
+
+        // Fallback to flat content
+        const flatValue = (language === 'ar' && flatContentAr[fullKey]) ? flatContentAr[fullKey] : flatContent[fullKey];
+        return flatValue || fallback;
+    };
 
     // Page Background
     const pageBg = isLight ? '#f8fafc' : '#0B1121';
@@ -559,9 +620,13 @@ export default function TransportLogistics() {
                 <TransportLogisticsPageEditor
                     content={Object.keys(flatContent).length > 0 ?
                         Object.keys(flatContent).reduce((acc, key) => {
-                            acc[key] = { value: flatContent[key], id: idMap[key] || 0 };
+                            acc[key] = {
+                                value: flatContent[key],
+                                valueAr: flatContentAr[key],
+                                id: idMap[key] || 0
+                            };
                             return acc;
-                        }, {} as { [key: string]: { value: string; id: number } })
+                        }, {} as { [key: string]: { value: string; valueAr?: string; id: number } })
                         : {}
                     }
                     onSave={handleSave}
@@ -627,7 +692,7 @@ export default function TransportLogistics() {
                     >
                         <span className="w-2 h-2 rounded-full" style={{ background: '#10B981', boxShadow: '0 0 8px #10B981' }} />
                         <span className="text-sm font-semibold tracking-wider uppercase" style={{ color: heroBadgeText }}>
-                            {t('badge-text') || 'PAFT Product Range'}
+                            {language === 'ar' ? 'مجموعة منتجات PAFT' : 'PAFT Product Range'}
                         </span>
                     </div>
 
@@ -640,18 +705,33 @@ export default function TransportLogistics() {
                             transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s',
                         }}
                     >
-                        {/* Splitting title logic for styling - this assumes standard title format */}
-                        <span style={{ color: heroTitlePrefixColor }}>{t('title') ? t('title').split(' ').slice(0, 2).join(' ') : 'Transport &'} </span>
-                        <br className="hidden sm:block" />
-                        <span
-                            style={{
-                                background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                            }}
-                        >
-                            {t('title') ? t('title').split(' ').slice(2).join(' ') : 'Logistics Items'}
-                        </span>
+                        {language === 'ar' ? (
+                            // Arabic title - display as one line
+                            <span
+                                style={{
+                                    background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                }}
+                            >
+                                {language === 'ar' ? 'النقل و اللوجستيات' : 'Transport & Logistics Items'}
+                            </span>
+                        ) : (
+                            // English title - split for styling
+                            <>
+                                <span style={{ color: heroTitlePrefixColor }}>Transport & </span>
+                                <br className="hidden sm:block" />
+                                <span
+                                    style={{
+                                        background: 'linear-gradient(135deg, #06B6D4, #8B5CF6)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
+                                    Logistics Items
+                                </span>
+                            </>
+                        )}
                     </h1>
 
                     <p
@@ -663,7 +743,10 @@ export default function TransportLogistics() {
                             transition: 'all 0.8s ease 0.25s',
                         }}
                     >
-                        {t('description') || 'Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks — engineered for modern supply chains with maximum efficiency and sustainability.'}
+                        {language === 'ar'
+                            ? 'حاويات IBC القابلة للطي المبتكرة، صناديق بلاستيكية قابلة لإعادة الاستخدام، فواصل الألواح، وحوامل الجالون — مصممة لسلاسل التوريد الحديثة بأقصى كفاءة واستدامة.'
+                            : 'Innovative foldable IBCs, reusable plastic crates, sheet separators, and gallon racks — engineered for modern supply chains with maximum efficiency and sustainability.'
+                        }
                     </p>
 
                     {/* Scroll indicator */}
@@ -675,7 +758,7 @@ export default function TransportLogistics() {
                         }}
                     >
                         <span className="text-xs uppercase tracking-widest" style={{ color: scrollColor }}>
-                            Scroll to explore
+                            {language === 'ar' ? 'مرر لاستكشاف المزيد' : 'Scroll to explore'}
                         </span>
                         <svg className="w-5 h-5 animate-bounce" fill="none" stroke={scrollColor} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -701,10 +784,10 @@ export default function TransportLogistics() {
                         }}
                     >
                         <h2 className="text-3xl lg:text-4xl font-bold mb-3" style={{ color: sectionTitleColor }}>
-                            {t('section-title') || 'Our Catalogue'}
+                            {language === 'ar' ? 'كتالوج المنتجات' : 'Our Catalogue'}
                         </h2>
                         <p className="text-base" style={{ color: sectionSubtitleColor }}>
-                            {t('section-subtitle') || 'Foldable IBCs · RPC Crates · Accessories'}
+                            {language === 'ar' ? 'حاويات IBC قابلة للطي · صناديق RPC · إكسسوارات' : 'Foldable IBCs · RPC Crates · Accessories'}
                         </p>
                     </div>
 
@@ -726,10 +809,10 @@ export default function TransportLogistics() {
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: ctaTitleColor }}>
-                        {t('cta-title') || 'Need a Custom Quote?'}
+                        {language === 'ar' ? 'هل تحتاج عرض سعر مخصص؟' : 'Need a Custom Quote?'}
                     </h2>
                     <p className="text-xl mb-10" style={{ color: ctaDescColor }}>
-                        {t('cta-description') || 'We offer tailored solutions for crates, IBCs, and logistics accessories'}
+                        {cv('cta', 'cta-description', 'We offer tailored solutions for crates, IBCs, and logistics accessories')}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
@@ -740,7 +823,7 @@ export default function TransportLogistics() {
                                 boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
                             }}
                         >
-                            Get a Quote →
+                            {language === 'ar' ? 'احصل على عرض سعر ←' : 'Get a Quote →'}
                         </a>
                         <a
                             href="/contact"
@@ -750,7 +833,7 @@ export default function TransportLogistics() {
                                 color: contactBtnText,
                             }}
                         >
-                            Contact Sales
+                            {language === 'ar' ? 'تواصل مع المبيعات' : 'Contact Sales'}
                         </a>
                     </div>
                 </div>

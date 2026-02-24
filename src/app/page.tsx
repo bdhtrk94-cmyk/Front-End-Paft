@@ -6,9 +6,11 @@ import Header from '@/components/Header';
 import BusinessUnits from '@/components/BusinessUnits';
 import Footer from '@/components/Footer';
 import { contentApi, ContentMapResponse } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Home() {
   const [content, setContent] = useState<ContentMapResponse>({});
+  const { language } = useLanguage();
 
   useEffect(() => {
     async function fetchContent() {
@@ -17,29 +19,31 @@ export default function Home() {
         setContent(data);
       } catch (error) {
         console.error('Failed to fetch home content:', error);
-        // Continue with empty content (fallback to default values)
       }
     }
 
     fetchContent();
   }, []);
 
+  // Language-aware content getter
+  const getVideoText = () => {
+    const item = content['video-hero']?.['watch-video-text'];
+    if (language === 'ar' && item?.valueAr) return item.valueAr;
+    return item?.value || 'Watch Video';
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--page-bg)' }}>
-      {/* Modern Header */}
       <Header currentPage="home" />
 
-      {/* Video Hero Section */}
       <VideoHero
         videoSrc="https://paft.eg/wp-content/uploads/2025/11/Homepage.mp4"
         videoSrc2="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4"
-        watchVideoText={content['video-hero']?.['watch-video-text']?.value || "Watch Video"}
+        watchVideoText={getVideoText()}
       />
 
-      {/* Business Units Section */}
       <BusinessUnits content={content['business-units'] || {}} />
 
-      {/* Footer */}
       <Footer />
     </div>
   );

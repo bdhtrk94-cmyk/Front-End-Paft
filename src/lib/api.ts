@@ -166,6 +166,14 @@ export const productsApi = {
 
     getOne: (id: number) =>
         apiRequest<ProductResponse>(`/products/public/${id}`),
+
+    /** Returns ALL products (including soft-deleted). Used by Plastic Pallets page. */
+    getAllIncludingDeleted: (params?: { category?: string }) => {
+        const searchParams = new URLSearchParams();
+        if (params?.category) searchParams.set('category', params.category);
+        const qs = searchParams.toString();
+        return apiRequest<ProductResponse[]>(`/products/public/all${qs ? `?${qs}` : ''}`);
+    },
 };
 
 // ── Admin Pages API helpers ───────────────────────────
@@ -391,7 +399,7 @@ export const contentApi = {
     update: (id: number, data: Partial<{ page: string; section: string; key: string; value: string; valueAr?: string; sortOrder?: number }>, token: string) =>
         apiRequest<ContentResponse>(`/content/${id}`, { method: 'PATCH', body: data, token }),
 
-    bulkUpdate: (updates: { id: number; value: string }[], token: string) =>
+    bulkUpdate: (updates: { id: number; value?: string; valueAr?: string }[], token: string) =>
         apiRequest<ContentResponse[]>('/content/bulk-update', { method: 'PATCH', body: updates, token }),
 
     delete: (id: number, token: string) =>

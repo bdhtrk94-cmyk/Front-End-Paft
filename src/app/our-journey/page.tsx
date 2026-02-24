@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { contentApi, ContentMapResponse } from '@/lib/api';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Milestone {
     number: number;
@@ -297,7 +298,15 @@ export default function OurJourney() {
     const [content, setContent] = useState<ContentMapResponse>({});
     const [loading, setLoading] = useState(true);
     const { theme } = useTheme();
+    const { language } = useLanguage();
     const isLight = theme === 'light';
+
+    // Language-aware content value getter
+    const cv = (item: { value: string; valueAr?: string | null } | undefined, fallback: string = '') => {
+        if (!item) return fallback;
+        if (language === 'ar' && item.valueAr) return item.valueAr;
+        return item.value || fallback;
+    };
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -317,8 +326,8 @@ export default function OurJourney() {
     // Build milestones array from dynamic content
     const milestones: Milestone[] = [];
     for (let i = 1; i <= 12; i++) {
-        const year = content.timeline?.[`milestone${i}-year`]?.value;
-        const title = content.timeline?.[`milestone${i}-title`]?.value;
+        const year = cv(content.timeline?.[`milestone${i}-year`]);
+        const title = cv(content.timeline?.[`milestone${i}-title`]);
 
         if (year && title) {
             let era = 1;
@@ -342,9 +351,9 @@ export default function OurJourney() {
     // Build eras array from dynamic content
     const eras: Era[] = [];
     for (let i = 1; i <= 4; i++) {
-        const label = content.eras?.[`era${i}-label`]?.value;
-        const subtitle = content.eras?.[`era${i}-subtitle`]?.value;
-        const range = content.eras?.[`era${i}-range`]?.value;
+        const label = cv(content.eras?.[`era${i}-label`]);
+        const subtitle = cv(content.eras?.[`era${i}-subtitle`]);
+        const range = cv(content.eras?.[`era${i}-range`]);
 
         if (label && subtitle && range) {
             eras.push({
@@ -368,26 +377,25 @@ export default function OurJourney() {
         { era: eras[3], items: era4 },
     ];
 
-    // Default content for loading state
     const heroContent = {
-        badgeText: content.hero?.['badge-text']?.value || 'Our Journey',
-        title: content.hero?.title?.value || 'Building the Future',
-        description: content.hero?.description?.value || 'Over a decade of innovation, growth, and relentless pursuit of excellence in industrial packaging solutions.',
-        stat1Value: content.hero?.['stat1-value']?.value || '15+',
-        stat1Label: content.hero?.['stat1-label']?.value || 'Years of Innovation',
-        stat2Value: content.hero?.['stat2-value']?.value || '12',
-        stat2Label: content.hero?.['stat2-label']?.value || 'Key Milestones',
-        stat3Value: content.hero?.['stat3-value']?.value || '4',
-        stat3Label: content.hero?.['stat3-label']?.value || 'Growth Eras',
-        stat4Value: content.hero?.['stat4-value']?.value || '300%',
-        stat4Label: content.hero?.['stat4-label']?.value || 'Capacity Growth',
+        badgeText: cv(content.hero?.['badge-text'], 'Our Journey'),
+        title: cv(content.hero?.title, 'Building the Future'),
+        description: cv(content.hero?.description, 'Over a decade of innovation, growth, and relentless pursuit of excellence in industrial packaging solutions.'),
+        stat1Value: cv(content.hero?.['stat1-value'], '15+'),
+        stat1Label: cv(content.hero?.['stat1-label'], 'Years of Innovation'),
+        stat2Value: cv(content.hero?.['stat2-value'], '12'),
+        stat2Label: cv(content.hero?.['stat2-label'], 'Key Milestones'),
+        stat3Value: cv(content.hero?.['stat3-value'], '4'),
+        stat3Label: cv(content.hero?.['stat3-label'], 'Growth Eras'),
+        stat4Value: cv(content.hero?.['stat4-value'], '300%'),
+        stat4Label: cv(content.hero?.['stat4-label'], 'Capacity Growth'),
     };
 
     const ctaContent = {
-        title: content.cta?.title?.value || 'The Journey Continues',
-        description: content.cta?.description?.value || 'Join us as we shape the future of industrial packaging solutions across the MENA region and beyond.',
-        button1Text: content.cta?.['button1-text']?.value || 'Partner With Us →',
-        button2Text: content.cta?.['button2-text']?.value || 'Learn About PAFT',
+        title: cv(content.cta?.title, 'The Journey Continues'),
+        description: cv(content.cta?.description, 'Join us as we shape the future of industrial packaging solutions across the MENA region and beyond.'),
+        button1Text: cv(content.cta?.['button1-text'], 'Partner With Us →'),
+        button2Text: cv(content.cta?.['button2-text'], 'Learn About PAFT'),
     };
 
     return (

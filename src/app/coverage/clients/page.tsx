@@ -76,9 +76,9 @@ function LogoCard({ url, index, visible, isLight }: { url: string; index: number
             className={`logo-card-${isLight ? 'light' : 'dark'} rounded-2xl flex items-center justify-center p-5`}
             style={{
                 aspectRatio: '1',
-                background: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.06)'}`,
-                boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
+                background: 'rgba(255,255,255,0.85)',
+                border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255, 255, 255, 0.1)'}`,
+                boxShadow: isLight ? '0 2px 12px rgba(0,0,0,0.03)' : '0 2px 12px rgba(0,0,0,0.15)',
                 backdropFilter: 'blur(10px)',
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(15px)',
@@ -89,7 +89,7 @@ function LogoCard({ url, index, visible, isLight }: { url: string; index: number
                 src={url}
                 alt={`Client Logo ${index + 1}`}
                 className="w-4/5 h-4/5 object-contain"
-                style={{ filter: isLight ? 'none' : 'brightness(0.95)' }}
+                style={{ filter: 'none' }}
             />
 
             <style jsx>{`
@@ -101,7 +101,9 @@ function LogoCard({ url, index, visible, isLight }: { url: string; index: number
                 }
                 .logo-card-dark:hover {
                     border-color: rgba(6, 182, 212, 0.25) !important;
-                    background: rgba(255,255,255,0.08) !important;
+                    background: rgba(255,255,255,0.95) !important;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.1), 0 0 15px rgba(6,182,212,0.06) !important;
+                    transform: translateY(-4px) !important;
                 }
                 .logo-card-light:hover img,
                 .logo-card-dark:hover img {

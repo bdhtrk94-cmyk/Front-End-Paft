@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { contentApi } from '@/lib/api';
 
 /* ─── Intersection Observer Hook ─── */
@@ -901,23 +902,33 @@ function ConclusionSection({ isLight, content = {} }: { isLight: boolean; conten
 export default function InnovativeSolutions() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
-    const [content, setContent] = useState<Record<string, string>>({});
+    const { language } = useLanguage();
+    const [contentEn, setContentEn] = useState<Record<string, string>>({});
+    const [contentAr, setContentAr] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const loadContent = async () => {
             try {
                 const data = await contentApi.getPageContent('innovative-solutions');
                 const flat: Record<string, string> = {};
+                const flatAr: Record<string, string> = {};
                 Object.keys(data).forEach(section => {
                     Object.keys(data[section]).forEach(key => {
                         flat[`${section}-${key}`] = data[section][key].value;
+                        if (data[section][key].valueAr) {
+                            flatAr[`${section}-${key}`] = data[section][key].valueAr;
+                        }
                     });
                 });
-                setContent(flat);
+                setContentEn(flat);
+                setContentAr(flatAr);
             } catch (e) { console.error('Failed to load innovative-solutions content', e); }
         };
         loadContent();
     }, []);
+
+    // Merge Arabic values into content when language is 'ar'
+    const content = language === 'ar' ? { ...contentEn, ...contentAr } : contentEn;
 
     return (
         <div className="min-h-screen" style={{ background: isLight ? '#F8FBFF' : '#0B1121' }}>
