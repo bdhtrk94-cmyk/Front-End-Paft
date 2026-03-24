@@ -78,7 +78,7 @@ export default function ProfilePage() {
         if (tab === 'orders' && token) {
             setOrdersLoading(true);
             profileApi.getOrders(token)
-                .then(setOrders)
+                .then((data) => setOrders(data as OrderItem[]))
                 .catch(() => setOrders([]))
                 .finally(() => setOrdersLoading(false));
         }
