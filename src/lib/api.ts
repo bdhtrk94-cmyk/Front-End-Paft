@@ -453,7 +453,7 @@ export const stripeApi = {
 // ── Profile API ──────────────────────────────────────────
 export const profileApi = {
     updateProfile: (data: { name?: string; phone?: string; bio?: string }, token: string) =>
-        apiRequest<{ message: string; user: any }>('/auth/profile', {
+        apiRequest<{ message: string; user: Record<string, unknown> }>('/auth/profile', {
             method: 'PATCH',
             body: data as unknown as Record<string, unknown>,
             token,
@@ -479,9 +479,9 @@ export const profileApi = {
             const err = await res.json().catch(() => ({ message: 'Upload failed' }));
             throw new Error(err.message);
         }
-        return res.json() as Promise<{ message: string; user: any }>;
+        return res.json() as Promise<{ message: string; user: Record<string, unknown> }>;
     },
 
     getOrders: (token: string) =>
-        apiRequest<any[]>('/orders/my-orders', { token }),
+        apiRequest<Record<string, unknown>[]>('/orders/my-orders', { token }),
 };

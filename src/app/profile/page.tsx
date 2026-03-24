@@ -151,8 +151,9 @@ export default function ProfilePage() {
             setCurrentPw('');
             setNewPw('');
             setConfirmPw('');
-        } catch (err: any) {
-            setPwMsg({ type: 'error', text: err?.message || (isAr ? 'فشل في تغيير كلمة المرور' : 'Failed to change password') });
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            setPwMsg({ type: 'error', text: errorMessage || (isAr ? 'فشل في تغيير كلمة المرور' : 'Failed to change password') });
         } finally {
             setPwSaving(false);
             setTimeout(() => setPwMsg(null), 4000);
@@ -205,7 +206,7 @@ export default function ProfilePage() {
                 </label>
                 <Tag
                     value={value}
-                    onChange={(e: any) => onChange(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
                     disabled={opts?.disabled}
                     placeholder={opts?.placeholder}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-300"
@@ -217,8 +218,8 @@ export default function ProfilePage() {
                         minHeight: opts?.multiline ? '100px' : undefined,
                         opacity: opts?.disabled ? 0.6 : 1,
                     }}
-                    onFocus={(e: any) => { e.target.style.borderColor = inputFocusBorder; e.target.style.boxShadow = `0 0 0 3px ${inputFocusBorder}25`; }}
-                    onBlur={(e: any) => { e.target.style.borderColor = inputBorder; e.target.style.boxShadow = 'none'; }}
+                    onFocus={(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.target.style.borderColor = inputFocusBorder; e.target.style.boxShadow = `0 0 0 3px ${inputFocusBorder}25`; }}
+                    onBlur={(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.target.style.borderColor = inputBorder; e.target.style.boxShadow = 'none'; }}
                 />
             </div>
         );
