@@ -72,8 +72,8 @@ export default function Contact() {
   // Helper to get content value with fallback
   const c = (key: string, fallback: string): string => {
     if (!contentLoaded) return fallback;
-    const val = isAr ? (contentAr[key] || contentEn[key]) : contentEn[key];
-    return val || fallback;
+    const val = isAr ? (contentAr[key] != null && contentAr[key] !== '' ? contentAr[key] : contentEn[key]) : contentEn[key];
+    return val != null ? val : fallback;
   };
 
   const validate = (): FormErrors => {

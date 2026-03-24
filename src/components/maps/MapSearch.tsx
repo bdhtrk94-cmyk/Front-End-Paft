@@ -1,11 +1,16 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
+
 interface MapSearchProps {
     query: string;
     onChange: (q: string) => void;
 }
 
 export default function MapSearch({ query, onChange }: MapSearchProps) {
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
+
     return (
         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-[1000] w-[min(90%,360px)] md:w-80">
             <div
@@ -34,18 +39,19 @@ export default function MapSearch({ query, onChange }: MapSearchProps) {
 
                 <input
                     type="text"
-                    placeholder="Search countries..."
+                    placeholder={isAr ? 'ابحث عن الدول...' : 'Search countries...'}
                     value={query}
                     onChange={(e) => onChange(e.target.value)}
                     className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400"
-                    aria-label="Search countries"
+                    aria-label={isAr ? 'بحث الدول' : 'Search countries'}
+                    dir={isAr ? 'rtl' : 'ltr'}
                 />
 
                 {query && (
                     <button
                         onClick={() => onChange('')}
                         className="p-1 rounded-full hover:bg-cyan-50 transition-colors"
-                        aria-label="Clear search"
+                        aria-label={isAr ? 'مسح البحث' : 'Clear search'}
                     >
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

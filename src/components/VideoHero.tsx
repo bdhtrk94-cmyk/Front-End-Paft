@@ -2,25 +2,19 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
+export interface HeroSlide {
+  image: string;
+  video: string | null;
+}
+
 interface VideoHeroProps {
-  videoSrc: string;
-  videoSrc2?: string;
+  slides: HeroSlide[];
   watchVideoText?: string;
 }
 
-const heroImages = [
-  'https://paft.eg/wp-content/uploads/2026/02/Copy-of-vlcsnap-2024-07-21-14h26m13s806-scaled.png',
-  'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-12.57.33-PM.jpeg',
-  'https://paft.eg/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-08-at-3.13.59-PM.jpeg',
-  'https://paft.eg/wp-content/uploads/2025/10/Hero-Section.png'
-  
-];
-
-export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch Video" }: VideoHeroProps) {
+export default function VideoHero({ slides, watchVideoText = "Watch Video" }: VideoHeroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const videoRef2 = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(1); // 1 for first video, 2 for second video
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,11 +25,11 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
     intervalRef.current = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
         setIsTransitioning(false);
       }, 500);
     }, 4000);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -47,17 +41,23 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
   }, [isPlaying, startAutoRotate]);
 
   const handlePlay = () => {
+    if (!slides[currentSlide].video) return; // Do nothing if no video
+
     if (intervalRef.current) clearInterval(intervalRef.current);
-    // Choose video based on current slide
-    // Slides 0,1 (first two images) → first video
-    // Slides 2,3 (last two images) → second video
-    const videoToPlay = currentSlide < 2 ? 1 : 2;
-    setCurrentVideo(videoToPlay);
     setIsPlaying(true);
+    // The video element is mounted when isPlaying becomes true
+    // We wait for a tick so the video ref is available
     setTimeout(() => {
-      const video = videoToPlay === 1 ? videoRef.current : videoRef2.current;
-      if (video) {
-        video.play().catch(console.error);
+      if (videoRef.current) {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            // Ignore AbortError caused by pause() interrupting play()
+            if (error.name !== 'AbortError') {
+              console.error('Video play error:', error);
+            }
+          });
+        }
       }
     }, 100);
   };
@@ -66,11 +66,10 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
     setIsPlaying(false);
     if (videoRef.current) {
       videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-    if (videoRef2.current) {
-      videoRef2.current.pause();
-      videoRef2.current.currentTime = 0;
+      // Only reset time if the video is fully loaded to prevent DOMException
+      if (videoRef.current.readyState > 0) {
+        videoRef.current.currentTime = 0;
+      }
     }
   };
 
@@ -81,25 +80,25 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
       setCurrentSlide(index);
       setIsTransitioning(false);
     }, 400);
-    startAutoRotate();
+    if (!isPlaying) {
+      startAutoRotate();
+    }
   };
 
   return (
     <section className="relative h-[70vh] overflow-hidden bg-black">
       {/* Image Carousel */}
       <div
-        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
-          }`}
+        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}
       >
-        {heroImages.map((src, index) => (
+        {slides.map((slide, index) => (
           <div
             key={index}
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ease-in-out ${index === currentSlide && !isTransitioning ? 'opacity-100' : 'opacity-0'
-              }`}
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ease-in-out ${index === currentSlide && !isTransitioning ? 'opacity-100' : 'opacity-0'}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={src}
+              src={slide.image}
               alt={`PAFT Hero ${index + 1}`}
               className="w-full h-full object-cover"
               style={{ objectPosition: 'center center' }}
@@ -111,36 +110,38 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
-        {/* Play Button */}
-        <button
-          onClick={handlePlay}
-          className="absolute inset-0 flex items-center justify-center z-10 group cursor-pointer"
-          aria-label="Play video"
-        >
-          <div className="relative">
-            {/* Pulsing ring */}
-            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-            {/* Outer glow */}
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
-              {/* Inner play icon */}
-              <svg
-                className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
+        {/* Play Button - Only show if current slide has a video */}
+        {slides[currentSlide].video && (
+          <button
+            onClick={handlePlay}
+            className="absolute inset-0 flex items-center justify-center z-10 group cursor-pointer"
+            aria-label="Play video"
+          >
+            <div className="relative">
+              {/* Pulsing ring */}
+              <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+              {/* Outer glow */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 group-hover:scale-110 transition-all duration-500 shadow-2xl">
+                {/* Inner play icon */}
+                <svg
+                  className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
             </div>
-          </div>
-          {/* Watch video text */}
-          <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            {watchVideoText}
-          </span>
-        </button>
+            {/* Watch video text */}
+            <span className="absolute bottom-[22%] text-white/80 text-sm font-medium tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              {watchVideoText}
+            </span>
+          </button>
+        )}
 
         {/* Slide indicators */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-10">
-          {heroImages.map((_, index) => (
+          {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -156,43 +157,33 @@ export default function VideoHero({ videoSrc, videoSrc2, watchVideoText = "Watch
 
       {/* Video Layer */}
       <div
-        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-          }`}
+        className={`absolute inset-0 transition-all duration-700 ease-in-out ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       >
-        {/* First Video */}
-        <video
-          ref={videoRef}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${currentVideo === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          playsInline
-          controls
-          onEnded={handleVideoEnd}
-        >
-          <source src={videoSrc} type="video/mp4" />
-        </video>
-
-        {/* Second Video (if provided) */}
-        {videoSrc2 && (
+        {isPlaying && slides[currentSlide].video && (
           <video
-            ref={videoRef2}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${currentVideo === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            key={slides[currentSlide].video} // Force React to recreate element on src change
+            ref={videoRef}
+            className="w-full h-full object-cover"
             playsInline
             controls
             onEnded={handleVideoEnd}
           >
-            <source src={videoSrc2} type="video/mp4" />
+            <source src={slides[currentSlide].video} type="video/mp4" />
           </video>
         )}
 
         {/* Close / Back to carousel button */}
-        <button
-          onClick={handleVideoEnd}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all border border-white/20"
-          aria-label="Close video"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {isPlaying && (
+          <button
+            onClick={handleVideoEnd}
+            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-all border border-white/20"
+            aria-label="Close video"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
     </section>
   );

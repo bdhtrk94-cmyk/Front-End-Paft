@@ -9,6 +9,7 @@ import MapSearch from '@/components/maps/MapSearch';
 import MapControls from '@/components/maps/MapControls';
 import MapStatsPanel from '@/components/maps/MapStatsPanel';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import type L from 'leaflet';
 
 // Dynamic import with ssr disabled — Leaflet requires the DOM
@@ -35,6 +36,8 @@ export default function MarketsPage() {
     const mapInstanceRef = useRef<L.Map | null>(null);
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
 
     const handleFocusReady = useCallback((fn: (name: string) => void) => {
         focusFnRef.current = fn;
@@ -103,7 +106,7 @@ export default function MarketsPage() {
                         }}
                     >
                         <span style={{ color: '#06B6D4' }} className="text-sm font-semibold tracking-wider uppercase">
-                            Global Presence
+                            {isAr ? 'تواجد عالمي' : 'Global Presence'}
                         </span>
                     </div>
 
@@ -116,7 +119,7 @@ export default function MarketsPage() {
                             letterSpacing: '-0.03em',
                         }}
                     >
-                        Our Markets
+                        {isAr ? 'أسواقنا' : 'Our Markets'}
                     </h1>
 
                     <div
@@ -128,7 +131,7 @@ export default function MarketsPage() {
                         className="text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed font-medium"
                         style={{ color: isLight ? '#475569' : 'rgba(255,255,255,0.7)' }}
                     >
-                        Explore PAFT&apos;s worldwide network spanning 13 countries across the Middle East &amp; Africa region.
+                        {isAr ? 'استكشف شبكة PAFT العالمية المنتشرة في ١٤ دولة عبر الشرق الأوسط وأفريقيا وأمريكا الشمالية.' : 'Explore PAFT\'s worldwide network spanning 14 countries across the Middle East, Africa & North America.'}
                     </p>
                 </div>
             </section>
@@ -148,6 +151,7 @@ export default function MarketsPage() {
                         onMapReady={(m) => {
                             mapInstanceRef.current = m;
                         }}
+                        language={language}
                     />
 
                     {/* Overlays */}
@@ -170,10 +174,10 @@ export default function MarketsPage() {
                 />
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: isLight ? '#0F172A' : '#fff' }}>
-                        Want to Partner With Us?
+                        {isAr ? 'هل تريد أن تكون شريكنا؟' : 'Want to Partner With Us?'}
                     </h2>
                     <p className="text-xl mb-10" style={{ color: isLight ? '#64748B' : 'rgba(255,255,255,0.6)' }}>
-                        Join our growing network of partners across the Middle East &amp; Africa
+                        {isAr ? 'انضم إلى شبكتنا المتنامية من الشركاء عبر الشرق الأوسط وأفريقيا' : 'Join our growing network of partners across the Middle East & Africa'}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a
@@ -184,7 +188,7 @@ export default function MarketsPage() {
                                 boxShadow: '0 4px 15px rgba(6,182,212,0.3)',
                             }}
                         >
-                            Get in Touch →
+                            {isAr ? '← تواصل معنا' : 'Get in Touch →'}
                         </a>
                         <a
                             href="/about"
@@ -196,7 +200,7 @@ export default function MarketsPage() {
                                 backdropFilter: 'blur(10px)',
                             }}
                         >
-                            Learn About Us
+                            {isAr ? 'تعرف علينا' : 'Learn About Us'}
                         </a>
                     </div>
                 </div>

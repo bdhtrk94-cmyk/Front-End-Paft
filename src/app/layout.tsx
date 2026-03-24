@@ -6,6 +6,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import CartSidebar from "@/components/CartSidebar";
+import NextTopLoader from 'nextjs-toploader';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,17 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               <CartProvider>
+                <NextTopLoader
+                  color="#06B6D4"
+                  initialPosition={0.08}
+                  crawlSpeed={200}
+                  height={3}
+                  crawl={true}
+                  showSpinner={false}
+                  easing="ease"
+                  speed={200}
+                  shadow="0 0 10px #06B6D4,0 0 5px #06B6D4"
+                />
                 {children}
                 <CartSidebar />
               </CartProvider>

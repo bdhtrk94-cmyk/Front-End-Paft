@@ -494,7 +494,7 @@ export default function RawMaterialSupply() {
     const { language } = useLanguage();
 
     // Helper: pick Arabic when language is 'ar'
-    const t = (key: string, fallback: string = '') => (language === 'ar' && contentAr[key]) ? contentAr[key] : (content[key] || fallback);
+    const t = (key: string, fallback: string = '') => (language === 'ar' && contentAr[key] != null && contentAr[key] !== '') ? contentAr[key] : (content[key] != null ? content[key] : fallback);
 
     const handleSave = async (newContent: { [key: string]: string }, newContentAr?: { [key: string]: string }) => {
         setIsSaving(true);
@@ -652,7 +652,7 @@ export default function RawMaterialSupply() {
                     className="absolute inset-0"
                     style={{
                         backgroundImage:
-                            'url(https://images.unsplash.com/photo-1665399320077-e1c70b4a0995?fm=jpg&q=60&w=3000&auto=format&fit=crop)',
+                            'url(https://paft.eg/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-08-at-3.13.59-PM.jpeg)',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }}

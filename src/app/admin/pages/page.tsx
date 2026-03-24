@@ -412,6 +412,7 @@ export default function AdminPagesPage() {
         try {
             const freshLayoutData = await contentApi.getPageContent('layout');
             const updates: { id: number; value?: string; valueAr?: string }[] = [];
+            const creates: { page: string; section: string; key: string; value: string; valueAr?: string; sortOrder: number }[] = [];
 
             // content keys are like "nav-home", "footer-brand-description", "nav-desc-about"
             // layoutData sections are "nav", "footer", "nav-desc"
@@ -435,12 +436,43 @@ export default function AdminPagesPage() {
                         }
                     }
                 }
-                if (!matched) console.warn('Layout key not matched:', flatKey);
+                // If not matched, auto-create the entry
+                if (!matched) {
+                    // Determine section and key from flatKey
+                    // Known sections sorted by length desc to match properly
+                    const knownSections = ['nav-desc', 'footer', 'nav'];
+                    let section = 'footer';
+                    let key = flatKey;
+                    for (const s of knownSections) {
+                        if (flatKey.startsWith(`${s}-`)) {
+                            section = s;
+                            key = flatKey.slice(s.length + 1);
+                            break;
+                        }
+                    }
+                    creates.push({
+                        page: 'layout',
+                        section,
+                        key,
+                        value: content[flatKey] || '',
+                        valueAr: contentAr?.[flatKey] || '',
+                        sortOrder: 0,
+                    });
+                    console.log(`🆕 Will create new layout entry: ${section}/${key}`);
+                }
             });
 
             if (updates.length > 0) {
                 await contentApi.bulkUpdate(updates, token);
-                setSuccessMsg('Header & Footer content updated successfully!');
+            }
+
+            // Create new entries one by one
+            for (const entry of creates) {
+                await contentApi.create(entry, token);
+            }
+
+            if (updates.length > 0 || creates.length > 0) {
+                setSuccessMsg(`Header & Footer updated! (${updates.length} updated, ${creates.length} created)`);
             } else {
                 setError('No valid content items found to update');
             }
@@ -589,9 +621,15 @@ export default function AdminPagesPage() {
             Object.keys(content).forEach(key => {
                 // Look through all sections to find the key
                 Object.keys(allOurJourneyData).forEach(section => {
-                    if (allOurJourneyData[section][key]) {
+                    // For the CTA section, editor keys are prefixed with 'cta-' (e.g. 'cta-title'),
+                    // but the API stores them without prefix (e.g. 'title' under section 'cta')
+                    let lookupKey = key;
+                    if (section === 'cta' && key.startsWith('cta-')) {
+                        lookupKey = key.slice(4); // strip 'cta-' prefix
+                    }
+                    if (allOurJourneyData[section][lookupKey]) {
                         const update: { id: number; value?: string; valueAr?: string } = {
-                            id: allOurJourneyData[section][key].id,
+                            id: allOurJourneyData[section][lookupKey].id,
                             value: content[key]
                         };
                         if (contentAr[key] !== undefined) {
@@ -1233,8 +1271,6 @@ export default function AdminPagesPage() {
                                         <td colSpan={5} className="px-5 py-4"><div className="h-4 bg-white/5 rounded animate-pulse" /></td>
                                     </tr>
                                 ))
-                            ) : pages.length === 0 ? (
-                                <tr><td colSpan={5} className="text-gray-500 text-center py-12 text-sm">No pages found. Create your first page!</td></tr>
                             ) : (
                                 pages.map((page) => (
                                     <tr key={page.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">

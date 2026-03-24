@@ -369,12 +369,12 @@ export default function TransportLogistics() {
             const fullKey = `${section}-${key}`;
 
             // Use Arabic value if language is Arabic and it exists
-            if (language === 'ar' && flatAr[fullKey]) {
+            if (language === 'ar' && flatAr[fullKey] != null && flatAr[fullKey] !== '') {
                 return flatAr[fullKey];
             }
 
             // Otherwise use English value
-            return flat[fullKey] || fallback;
+            return flat[fullKey] != null ? flat[fullKey] : fallback;
         };
 
         // Product 1: Foldable IBC
@@ -561,13 +561,13 @@ export default function TransportLogistics() {
         const item = sectionData?.[key];
 
         if (item) {
-            const result = (language === 'ar' && item.valueAr) ? item.valueAr : (item.value || fallback);
+            const result = (language === 'ar' && item.valueAr != null && item.valueAr !== '') ? item.valueAr : (item.value != null ? item.value : fallback);
             return result;
         }
 
         // Fallback to flat content
-        const flatValue = (language === 'ar' && flatContentAr[fullKey]) ? flatContentAr[fullKey] : flatContent[fullKey];
-        return flatValue || fallback;
+        const flatValue = (language === 'ar' && flatContentAr[fullKey] != null && flatContentAr[fullKey] !== '') ? flatContentAr[fullKey] : flatContent[fullKey];
+        return flatValue != null ? flatValue : fallback;
     };
 
     // Page Background

@@ -53,7 +53,7 @@ export default function AdminUsersPage() {
 
     try {
       await adminUsersApi.updateRole(userId, newRole, token!);
-      setUsers(users.map(user => 
+      setUsers(users.map(user =>
         user.id === userId ? { ...user, role: newRole } : user
       ));
     } catch (error) {
@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newUser.name || !newUser.email || !newUser.password) {
       alert('Please fill in all fields');
       return;
@@ -113,24 +113,24 @@ export default function AdminUsersPage() {
   const filteredUsers = users
     .filter(user => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       return matchesSearch && matchesRole;
     })
     .sort((a, b) => {
       let aValue: string | number = a[sortBy];
       let bValue: string | number = b[sortBy];
-      
+
       if (sortBy === 'createdAt') {
         aValue = new Date(aValue as string).getTime();
         bValue = new Date(bValue as string).getTime();
       }
-      
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
-      
+
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -185,13 +185,13 @@ export default function AdminUsersPage() {
             )}
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            {currentUser?.role === 'super_admin' 
-              ? `Manage all user accounts and permissions (${filteredUsers.length} users)` 
+            {currentUser?.role === 'super_admin'
+              ? `Manage all user accounts and permissions (${filteredUsers.length} users)`
               : `Manage user accounts and permissions (${filteredUsers.length} users)`
             }
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddUser(true)}
@@ -222,7 +222,7 @@ export default function AdminUsersPage() {
             value: users.length,
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             ),
             color: 'from-blue-500 to-blue-600',
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
             value: users.filter(u => u.role === 'admin' || u.role === 'super_admin').length,
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
               </svg>
             ),
             color: 'from-purple-500 to-purple-600',
@@ -244,7 +244,7 @@ export default function AdminUsersPage() {
             value: users.filter(u => u.role === 'user').length,
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7C14.65 7 14.32 7.1 14.04 7.28L11.58 9.54C11.22 9.86 10.66 9.84 10.34 9.48C10.02 9.12 10.04 8.56 10.4 8.24L12.85 6H9.15L6.7 8.24C7.06 8.56 7.08 9.12 6.76 9.48C6.44 9.84 5.88 9.86 5.52 9.54L3.06 7.28C2.78 7.1 2.45 7 2.1 7H2V9H3.8L6 22H18L20.2 9H21Z"/>
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7C14.65 7 14.32 7.1 14.04 7.28L11.58 9.54C11.22 9.86 10.66 9.84 10.34 9.48C10.02 9.12 10.04 8.56 10.4 8.24L12.85 6H9.15L6.7 8.24C7.06 8.56 7.08 9.12 6.76 9.48C6.44 9.84 5.88 9.86 5.52 9.54L3.06 7.28C2.78 7.1 2.45 7 2.1 7H2V9H3.8L6 22H18L20.2 9H21Z" />
               </svg>
             ),
             color: 'from-emerald-500 to-emerald-600',
@@ -255,7 +255,7 @@ export default function AdminUsersPage() {
             value: users.filter(u => new Date(u.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length,
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
               </svg>
             ),
             color: 'from-orange-500 to-red-500',
@@ -366,7 +366,7 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#151b2e] border border-white/10 rounded-2xl p-6 w-full max-w-md mx-4">
             <h3 className="text-xl font-bold text-white mb-4">Add New User</h3>
-            
+
             <form onSubmit={handleAddUser} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
@@ -379,7 +379,7 @@ export default function AdminUsersPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
                 <input
@@ -391,7 +391,7 @@ export default function AdminUsersPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
                 <input
@@ -403,23 +403,19 @@ export default function AdminUsersPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Role</label>
                 <select
                   value={newUser.role}
-                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'admin' | 'user' | 'super_admin' })}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'admin' | 'user' })}
                   className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="user" className="bg-[#1a2332] text-white">User</option>
                   <option value="admin" className="bg-[#1a2332] text-white">Admin</option>
-                  {/* Only super admins can create other super admins */}
-                  {currentUser?.role === 'super_admin' && (
-                    <option value="super_admin" className="bg-[#1a2332] text-white">Super Admin</option>
-                  )}
                 </select>
               </div>
-              
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
@@ -468,13 +464,12 @@ export default function AdminUsersPage() {
                   {/* Left Side - User Info */}
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
                     {/* Avatar */}
-                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${
-                      user.role === 'super_admin' 
-                        ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
-                        : user.role === 'admin' 
-                        ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${user.role === 'super_admin'
+                      ? 'bg-gradient-to-br from-purple-500 to-purple-600'
+                      : user.role === 'admin'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                         : 'bg-gradient-to-br from-gray-500 to-gray-600'
-                    }`}>
+                      }`}>
                       {user.name.charAt(0).toUpperCase()}
                       {/* Online indicator */}
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[#151b2e] rounded-full"></div>
@@ -485,17 +480,16 @@ export default function AdminUsersPage() {
                       <div className="flex items-center gap-3 mb-1">
                         <h3 className="text-white font-semibold text-lg truncate">{user.name}</h3>
                         {/* Role Badge */}
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                          user.role === 'super_admin'
-                            ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                            : user.role === 'admin' 
-                            ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' 
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${user.role === 'super_admin'
+                          ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                          : user.role === 'admin'
+                            ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
                             : 'bg-gray-500/10 text-gray-300 border-gray-500/30'
-                        }`}>
+                          }`}>
                           {user.role === 'super_admin' ? '👑 Super Admin' : user.role === 'admin' ? '🛡️ Admin' : '👤 User'}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-400">
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,14 +497,14 @@ export default function AdminUsersPage() {
                           </svg>
                           <span className="truncate max-w-[200px]">{user.email}</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
                           </svg>
                           <span>ID: {user.id}</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
@@ -529,16 +523,11 @@ export default function AdminUsersPage() {
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user' | 'super_admin')}
                         disabled={isProtectedUser(user.email, user.role)}
-                        className={`appearance-none text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 min-w-[120px] ${
-                          isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`appearance-none text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 min-w-[120px] ${isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                       >
                         <option value="user" className="bg-[#1a2332] text-white">👤 User</option>
                         <option value="admin" className="bg-[#1a2332] text-white">🛡️ Admin</option>
-                        {/* Only show super_admin option to super admins */}
-                        {currentUser?.role === 'super_admin' && (
-                          <option value="super_admin" className="bg-[#1a2332] text-white">👑 Super Admin</option>
-                        )}
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -546,7 +535,7 @@ export default function AdminUsersPage() {
                         </svg>
                       </div>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2">
                       {/* Edit Button */}
@@ -563,9 +552,8 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         disabled={isProtectedUser(user.email)}
-                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${
-                          isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         title={isProtectedUser(user.email) ? 'Cannot delete super admin' : 'Delete user'}
                       >
                         <svg className="w-4 h-4 group-hover/delete:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,17 +569,16 @@ export default function AdminUsersPage() {
                   {/* Top Row - Avatar, Name, Role */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${
-                        user.role === 'super_admin' 
-                          ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
-                          : user.role === 'admin' 
-                          ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg ${user.role === 'super_admin'
+                        ? 'bg-gradient-to-br from-purple-500 to-purple-600'
+                        : user.role === 'admin'
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                           : 'bg-gradient-to-br from-gray-500 to-gray-600'
-                      }`}>
+                        }`}>
                         {user.name.charAt(0).toUpperCase()}
                         <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[#151b2e] rounded-full"></div>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-white font-semibold text-lg">{user.name}</h3>
                         <p className="text-gray-400 text-sm">ID: {user.id}</p>
@@ -599,13 +586,12 @@ export default function AdminUsersPage() {
                     </div>
 
                     {/* Role Badge */}
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      user.role === 'super_admin'
-                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                        : user.role === 'admin' 
-                        ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' 
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${user.role === 'super_admin'
+                      ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                      : user.role === 'admin'
+                        ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
                         : 'bg-gray-500/10 text-gray-300 border-gray-500/30'
-                    }`}>
+                      }`}>
                       {user.role === 'super_admin' ? '👑 Super Admin' : user.role === 'admin' ? '🛡️ Admin' : '👤 User'}
                     </span>
                   </div>
@@ -618,7 +604,7 @@ export default function AdminUsersPage() {
                       </svg>
                       <span className="truncate">{user.email}</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-sm text-gray-400">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-2" />
@@ -635,16 +621,11 @@ export default function AdminUsersPage() {
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user' | 'super_admin')}
                         disabled={isProtectedUser(user.email, user.role)}
-                        className={`appearance-none w-full text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 ${
-                          isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`appearance-none w-full text-sm px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-white/10 cursor-pointer pr-10 ${isProtectedUser(user.email, user.role) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                       >
                         <option value="user" className="bg-[#1a2332] text-white">👤 User</option>
                         <option value="admin" className="bg-[#1a2332] text-white">🛡️ Admin</option>
-                        {/* Only show super_admin option to super admins */}
-                        {currentUser?.role === 'super_admin' && (
-                          <option value="super_admin" className="bg-[#1a2332] text-white">👑 Super Admin</option>
-                        )}
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -652,7 +633,7 @@ export default function AdminUsersPage() {
                         </svg>
                       </div>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2">
                       {/* Edit Button */}
@@ -669,9 +650,8 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         disabled={isProtectedUser(user.email)}
-                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${
-                          isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group/delete ${isProtectedUser(user.email) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         title={isProtectedUser(user.email) ? 'Cannot delete super admin' : 'Delete user'}
                       >
                         <svg className="w-4 h-4 group-hover/delete:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

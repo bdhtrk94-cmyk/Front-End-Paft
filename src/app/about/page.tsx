@@ -60,8 +60,8 @@ export default function About() {
   // Language-aware content value getter
   const cv = (item: { value: string; valueAr?: string | null } | undefined, fallback: string = '') => {
     if (!item) return fallback;
-    if (language === 'ar' && item.valueAr) return item.valueAr;
-    return item.value || fallback;
+    if (language === 'ar' && item.valueAr != null) return item.valueAr;
+    return item.value != null ? item.value : fallback;
   };
 
   useEffect(() => {

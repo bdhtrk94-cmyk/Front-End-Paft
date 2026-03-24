@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { stripeApi } from '@/lib/api';
 
 export default function SystemSettingsPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('general');
 
@@ -32,8 +33,73 @@ export default function SystemSettingsPage() {
     );
   }
 
+  // ── Payment settings state ──
+  const [payPublicKey, setPayPublicKey] = useState('');
+  const [paySecretKey, setPaySecretKey] = useState('');
+  const [payWebhookSecret, setPayWebhookSecret] = useState('');
+  const [payEnabled, setPayEnabled] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
+  const [paySaving, setPaySaving] = useState(false);
+  const [payMessage, setPayMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [payTestResult, setPayTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [payTesting, setPayTesting] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'payment' && user?.role === 'super_admin') {
+      if (!token) {
+        setPayLoading(false);
+        return;
+      }
+      setPayLoading(true);
+      stripeApi.getSettings(token)
+        .then((settings) => {
+          setPayPublicKey(settings.stripePublicKey || '');
+          setPaySecretKey(settings.stripeSecretKeyMasked || '');
+          setPayWebhookSecret(settings.stripeWebhookSecretMasked || '');
+          setPayEnabled(settings.isEnabled);
+        })
+        .catch(() => setPayMessage({ type: 'error', text: 'Failed to load payment settings' }))
+        .finally(() => setPayLoading(false));
+    }
+  }, [activeTab, user, token]);
+
+  const handlePaySave = async () => {
+    setPaySaving(true);
+    setPayMessage(null);
+    try {
+      if (!token) throw new Error('Not authenticated');
+      await stripeApi.saveSettings({
+        stripePublicKey: payPublicKey,
+        stripeSecretKey: paySecretKey.includes('****') ? undefined : paySecretKey,
+        stripeWebhookSecret: payWebhookSecret.includes('****') ? undefined : payWebhookSecret,
+        isEnabled: payEnabled,
+      }, token);
+      setPayMessage({ type: 'success', text: 'Payment settings saved successfully!' });
+      setPayTestResult(null);
+    } catch {
+      setPayMessage({ type: 'error', text: 'Failed to save payment settings' });
+    } finally {
+      setPaySaving(false);
+    }
+  };
+
+  const handlePayTest = async () => {
+    setPayTesting(true);
+    setPayTestResult(null);
+    try {
+      if (!token) throw new Error('Not authenticated');
+      const result = await stripeApi.testConnection(token);
+      setPayTestResult(result);
+    } catch {
+      setPayTestResult({ success: false, message: 'Failed to test connection' });
+    } finally {
+      setPayTesting(false);
+    }
+  };
+
   const tabs = [
     { id: 'general', label: 'General', icon: '⚙️' },
+    { id: 'payment', label: 'Payment', icon: '💳' },
     { id: 'security', label: 'Security', icon: '🔒' },
     { id: 'database', label: 'Database', icon: '💾' },
     { id: 'logs', label: 'System Logs', icon: '📋' },
@@ -67,11 +133,10 @@ export default function SystemSettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                activeTab === tab.id
-                  ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-all duration-200 ${activeTab === tab.id
+                ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <span>{tab.icon}</span>
               {tab.label}
@@ -83,7 +148,7 @@ export default function SystemSettingsPage() {
           {activeTab === 'general' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4">General Settings</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
@@ -94,7 +159,7 @@ export default function SystemSettingsPage() {
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Admin Email</label>
                     <input
@@ -103,7 +168,7 @@ export default function SystemSettingsPage() {
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Timezone</label>
                     <select className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50">
@@ -121,7 +186,7 @@ export default function SystemSettingsPage() {
                       <option value="ar" className="bg-[#1a2332] text-white">العربية</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Maintenance Mode</label>
                     <div className="flex items-center gap-3">
@@ -135,7 +200,7 @@ export default function SystemSettingsPage() {
                       </label>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Registration</label>
                     <div className="flex items-center gap-3">
@@ -155,10 +220,146 @@ export default function SystemSettingsPage() {
             </div>
           )}
 
+          {activeTab === 'payment' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">Payment Gateway (Stripe)</h3>
+                {payTestResult && (
+                  <div className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-full ${payTestResult.success
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    }`}>
+                    <div className={`w-2 h-2 rounded-full ${payTestResult.success ? 'bg-green-400' : 'bg-red-400'}`} />
+                    {payTestResult.success ? 'Connected' : 'Not Connected'}
+                  </div>
+                )}
+              </div>
+
+              {payLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-3 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {/* Enable toggle */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">Enable Stripe Payments</p>
+                      <p className="text-gray-400 text-sm">Allow customers to pay via Stripe at checkout</p>
+                    </div>
+                    <button
+                      onClick={() => setPayEnabled(!payEnabled)}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${payEnabled ? 'bg-purple-600' : 'bg-white/10'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${payEnabled ? 'left-[26px]' : 'left-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Key inputs */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Publishable Key <span className="text-gray-500">(pk_test_... or pk_live_...)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={payPublicKey}
+                        onChange={(e) => setPayPublicKey(e.target.value)}
+                        placeholder="pk_test_..."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 font-mono text-sm placeholder-gray-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Secret Key <span className="text-gray-500">(sk_test_... or sk_live_...)</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={paySecretKey}
+                        onChange={(e) => setPaySecretKey(e.target.value)}
+                        placeholder="sk_test_..."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 font-mono text-sm placeholder-gray-500"
+                      />
+                      <p className="text-gray-500 text-xs mt-1">🔒 Stored encrypted in the database. Never exposed to the frontend.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Webhook Secret <span className="text-gray-500">(whsec_...)</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={payWebhookSecret}
+                        onChange={(e) => setPayWebhookSecret(e.target.value)}
+                        placeholder="whsec_..."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 font-mono text-sm placeholder-gray-500"
+                      />
+                      <p className="text-gray-500 text-xs mt-1">Optional — required for webhook signature verification</p>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  {payMessage && (
+                    <div className={`px-4 py-3 rounded-xl text-sm ${payMessage.type === 'success'
+                      ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                      : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                      }`}>
+                      {payMessage.text}
+                    </div>
+                  )}
+
+                  {payTestResult && (
+                    <div className={`px-4 py-3 rounded-xl text-sm ${payTestResult.success
+                      ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                      : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                      }`}>
+                      {payTestResult.message}
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handlePaySave}
+                      disabled={paySaving}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl transition-colors font-medium flex items-center gap-2"
+                    >
+                      {paySaving ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
+                      ) : 'Save Settings'}
+                    </button>
+
+                    <button
+                      onClick={handlePayTest}
+                      disabled={payTesting}
+                      className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-50 text-white rounded-xl transition-colors font-medium flex items-center gap-2"
+                    >
+                      {payTesting ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Testing...</>
+                      ) : '🔌 Test Connection'}
+                    </button>
+                  </div>
+
+                  {/* Info box */}
+                  <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-sm text-blue-300">
+                    <p className="font-medium mb-2">📋 How to get your Stripe keys:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-gray-400">
+                      <li>Go to <span className="text-blue-300">dashboard.stripe.com/test/apikeys</span></li>
+                      <li>Copy the <strong className="text-white">Publishable key</strong> (pk_test_...)</li>
+                      <li>Click &quot;Reveal&quot; to copy the <strong className="text-white">Secret key</strong> (sk_test_...)</li>
+                      <li>For webhooks, go to Developers → Webhooks</li>
+                    </ol>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {activeTab === 'security' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4">Security Settings</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
@@ -169,7 +370,7 @@ export default function SystemSettingsPage() {
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Max Login Attempts</label>
                     <input
@@ -194,7 +395,7 @@ export default function SystemSettingsPage() {
                       </label>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">Password Policy</label>
                     <div className="space-y-2">
@@ -219,7 +420,7 @@ export default function SystemSettingsPage() {
           {activeTab === 'database' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4">Database Management</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <h4 className="text-white font-medium mb-3 flex items-center gap-2">
@@ -253,13 +454,13 @@ export default function SystemSettingsPage() {
           {activeTab === 'logs' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4">System Logs</h3>
-              
+
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-white font-medium">Recent Activity</h4>
                   <button className="text-purple-400 hover:text-purple-300 text-sm">View All Logs</button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {[
                     { time: '2 minutes ago', action: 'User login', user: 'Abdelrahman', type: 'info' },
@@ -269,11 +470,10 @@ export default function SystemSettingsPage() {
                   ].map((log, index) => (
                     <div key={index} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          log.type === 'success' ? 'bg-green-400' :
+                        <div className={`w-2 h-2 rounded-full ${log.type === 'success' ? 'bg-green-400' :
                           log.type === 'warning' ? 'bg-yellow-400' :
-                          'bg-blue-400'
-                        }`}></div>
+                            'bg-blue-400'
+                          }`}></div>
                         <div>
                           <p className="text-white text-sm">{log.action}</p>
                           <p className="text-gray-400 text-xs">by {log.user}</p>

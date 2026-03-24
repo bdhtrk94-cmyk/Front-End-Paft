@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useLayoutEffect, useState, useCallback } from 'react';
+import { contentApi } from '@/lib/api';
 
 type Language = 'en' | 'ar';
 
@@ -8,6 +9,8 @@ interface LanguageContextType {
     language: Language;
     toggleLanguage: () => void;
     t: (value?: string, valueAr?: string | null) => string;
+    layoutContent: { [key: string]: { value: string; valueAr?: string } };
+    isLayoutContentLoading: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -18,6 +21,8 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const [language, setLanguage] = useState<Language>('en');
     const [mounted, setMounted] = useState(false);
+    const [layoutContent, setLayoutContent] = useState<{ [key: string]: { value: string; valueAr?: string } }>({});
+    const [isLayoutContentLoading, setIsLayoutContentLoading] = useState(true);
 
     // Read language from localStorage before paint
     useIsomorphicLayoutEffect(() => {
@@ -37,6 +42,22 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('paft-language', language);
     }, [language, mounted]);
 
+    // Fetch layout content once globally
+    useEffect(() => {
+        contentApi.getPageContent('layout')
+            .then(data => {
+                const flat: { [key: string]: { value: string; valueAr?: string } } = {};
+                Object.keys(data).forEach(section => {
+                    Object.keys(data[section]).forEach(key => {
+                        flat[`${section}-${key}`] = data[section][key];
+                    });
+                });
+                setLayoutContent(flat);
+            })
+            .catch(err => console.error('Failed to load layout content globally:', err))
+            .finally(() => setIsLayoutContentLoading(false));
+    }, []);
+
     const toggleLanguage = useCallback(() => {
         setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
     }, []);
@@ -53,7 +74,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+        <LanguageContext.Provider value={{ language, toggleLanguage, t, layoutContent, isLayoutContentLoading }}>
             {children}
         </LanguageContext.Provider>
     );

@@ -211,6 +211,16 @@ export default function HeaderFooterEditor({ content, onSave, onClose, saving }:
                             </div>
 
                             <div className="bg-white/5 rounded-lg p-3 space-y-3">
+                                <h4 className={`${isAr ? 'text-amber-300' : 'text-blue-300'} text-sm font-medium`}>📍 Contact Info Details</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {renderInput('Email', 'footer-contact-email', 'info@paft.com', 'info@paft.com', 'blue')}
+                                    {renderInput('Phone', 'footer-contact-phone', '+20 123 456 7890', '+20 123 456 7890', 'blue')}
+                                </div>
+                                {renderInput('Address', 'footer-contact-address', '123 Industrial Zone, Manufacturing District, Cairo, Egypt', '123 المنطقة الصناعية، حي التصنيع، القاهرة، مصر', 'blue')}
+                                {renderInput('Business Hours', 'footer-business-hours', 'Sunday - Thursday: 9:00 AM - 6:00 PM', 'الأحد - الخميس: 9:00 ص - 6:00 م', 'blue')}
+                            </div>
+
+                            <div className="bg-white/5 rounded-lg p-3 space-y-3">
                                 <h4 className={`${isAr ? 'text-amber-300' : 'text-blue-300'} text-sm font-medium`}>📣 CTA Box</h4>
                                 <div className="grid grid-cols-2 gap-3">
                                     {renderInput('CTA Text', 'footer-cta-text', 'Ready to get started?', 'هل أنت مستعد للبدء؟', 'blue')}

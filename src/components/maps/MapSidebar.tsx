@@ -2,21 +2,24 @@
 
 import { useState } from 'react';
 import { PaftCountry, paftCountries, TOTAL_COUNTRIES, TOTAL_REGIONS } from '@/lib/mapData';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MapSidebarProps {
     searchQuery: string;
     onFocusCountry: (name: string) => void;
 }
 
-type FilterType = 'all' | 'headquarters' | 'office';
+type FilterType = 'all' | 'headquarters' | 'regional-office' | 'office';
 
 export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarProps) {
     const [filter, setFilter] = useState<FilterType>('all');
     const [collapsed, setCollapsed] = useState(false);
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
 
     const filteredCountries = paftCountries.filter((c) => {
         const matchesFilter = filter === 'all' || c.type === filter;
-        const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.nameAr.includes(searchQuery);
         return matchesFilter && matchesSearch;
     });
 
@@ -40,11 +43,21 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
             ),
         },
         {
+            key: 'regional-office',
+            label: 'Regional',
+            icon: (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+            ),
+        },
+        {
             key: 'office',
             label: 'Offices',
             icon: (
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             ),
         },
@@ -97,7 +110,7 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                         >
                             PAFT
                         </div>
-                        <div className="text-xs text-gray-500 font-medium -mt-0.5">Global Network</div>
+                        <div className="text-xs text-gray-500 font-medium -mt-0.5">{isAr ? 'الشبكة العالمية' : 'Global Network'}</div>
                     </div>
                 </div>
 
@@ -142,13 +155,13 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                         <span className="block text-2xl font-bold" style={{ color: '#06B6D4' }}>
                             {TOTAL_COUNTRIES}
                         </span>
-                        <span className="text-[0.7rem] text-gray-500 font-medium uppercase tracking-wider">Countries</span>
+                        <span className="text-[0.7rem] text-gray-500 font-medium uppercase tracking-wider">{isAr ? 'دول' : 'Countries'}</span>
                     </div>
                     <div className="flex-1 text-center">
                         <span className="block text-2xl font-bold" style={{ color: '#06B6D4' }}>
                             {TOTAL_REGIONS}
                         </span>
-                        <span className="text-[0.7rem] text-gray-500 font-medium uppercase tracking-wider">Regions</span>
+                        <span className="text-[0.7rem] text-gray-500 font-medium uppercase tracking-wider">{isAr ? 'مناطق' : 'Regions'}</span>
                     </div>
                 </div>
 
@@ -162,8 +175,8 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                             key={f.key}
                             onClick={() => setFilter(f.key)}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 max-sm:py-2 rounded-lg text-xs max-sm:text-[0.7rem] font-semibold transition-all duration-500 ${filter === f.key
-                                    ? 'text-white shadow-md -translate-y-px'
-                                    : 'text-gray-500 hover:text-cyan-600 hover:bg-cyan-50/50'
+                                ? 'text-white shadow-md -translate-y-px'
+                                : 'text-gray-500 hover:text-cyan-600 hover:bg-cyan-50/50'
                                 }`}
                             style={
                                 filter === f.key
@@ -183,12 +196,12 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
                 {/* Country list */}
                 <div className="space-y-2.5">
                     {filteredCountries.map((country) => (
-                        <CountryItem key={country.name} country={country} onClick={() => onFocusCountry(country.name)} />
+                        <CountryItem key={country.name} country={country} onClick={() => onFocusCountry(country.name)} isAr={isAr} />
                     ))}
 
                     {filteredCountries.length === 0 && (
                         <div className="text-center py-8 text-gray-400 text-sm">
-                            No countries found
+                            {isAr ? 'لم يتم العثور على دول' : 'No countries found'}
                         </div>
                     )}
                 </div>
@@ -197,43 +210,68 @@ export default function MapSidebar({ searchQuery, onFocusCountry }: MapSidebarPr
     );
 }
 
-function CountryItem({ country, onClick }: { country: PaftCountry; onClick: () => void }) {
+function CountryItem({ country, onClick, isAr }: { country: PaftCountry; onClick: () => void; isAr: boolean }) {
     const isHQ = country.type === 'headquarters';
+    const isRegionalOffice = country.type === 'regional-office';
+    const isSpecial = isHQ || isRegionalOffice;
+
+    const badgeBg = isHQ
+        ? 'linear-gradient(135deg, #06B6D4, #2563EB)'
+        : isRegionalOffice
+            ? 'linear-gradient(135deg, #10B981, #059669)'
+            : 'linear-gradient(135deg, #06B6D4, #2563EB)';
+
+    const badgeShadow = isRegionalOffice
+        ? '0 2px 8px rgba(16,185,129,0.3)'
+        : '0 2px 8px rgba(6,182,212,0.3)';
+
+    const dotColor = isRegionalOffice ? '#10B981' : '#06B6D4';
+
+    const itemBg = isHQ
+        ? 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.04))'
+        : isRegionalOffice
+            ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.04))'
+            : 'white';
+
+    const itemBorder = isSpecial
+        ? isRegionalOffice ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(6,182,212,0.15)'
+        : '1px solid rgba(0,0,0,0.04)';
+
+    const labelText = isHQ ? (isAr ? 'المقر الرئيسي' : 'Headquarters') : isRegionalOffice ? (isAr ? 'مكتب إقليمي' : 'Regional Office') : '';
+    const displayName = isAr ? country.nameAr : country.name;
 
     return (
         <button
             onClick={onClick}
             className="w-full flex items-center p-3.5 rounded-xl cursor-pointer transition-all duration-500 text-left group relative overflow-hidden"
             style={{
-                background: isHQ ? 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.04))' : 'white',
+                background: itemBg,
                 boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                border: isHQ ? '1px solid rgba(6,182,212,0.15)' : '1px solid rgba(0,0,0,0.04)',
+                border: itemBorder,
             }}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateX(8px)';
                 e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)';
-                e.currentTarget.style.background = 'rgba(6,182,212,0.05)';
+                e.currentTarget.style.background = isRegionalOffice ? 'rgba(16,185,129,0.05)' : 'rgba(6,182,212,0.05)';
             }}
             onMouseLeave={(e) => {
                 e.currentTarget.style.transform = '';
                 e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.04)';
-                e.currentTarget.style.background = isHQ
-                    ? 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(37,99,235,0.04))'
-                    : 'white';
+                e.currentTarget.style.background = itemBg;
             }}
         >
             {/* Left accent bar */}
             <div
                 className="absolute left-0 top-0 h-full w-1 transition-transform duration-500 origin-center scale-y-0 group-hover:scale-y-100"
-                style={{ background: 'linear-gradient(135deg, #06B6D4, #2563EB)' }}
+                style={{ background: isRegionalOffice ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #06B6D4, #2563EB)' }}
             />
 
             {/* Flag badge */}
             <div
                 className="w-9 h-[25px] rounded-md mr-3.5 flex items-center justify-center text-[0.7rem] text-white font-bold flex-shrink-0"
                 style={{
-                    background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                    boxShadow: '0 2px 8px rgba(6,182,212,0.3)',
+                    background: badgeBg,
+                    boxShadow: badgeShadow,
                 }}
             >
                 {country.name.substring(0, 2).toUpperCase()}
@@ -242,21 +280,21 @@ function CountryItem({ country, onClick }: { country: PaftCountry; onClick: () =
             {/* Info */}
             <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-800 text-sm flex items-center gap-1.5">
-                    {country.name}
+                    {displayName}
                     {isHQ && (
                         <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                     )}
                 </div>
-                <div className="text-xs text-gray-400">{isHQ ? 'Headquarters' : 'Regional Office'}</div>
+                {labelText && <div className="text-xs" style={{ color: isRegionalOffice ? '#10B981' : '#94a3b8' }}>{labelText}</div>}
             </div>
 
             {/* Status dot */}
             <div
                 className="w-2 h-2 rounded-full ml-2.5 flex-shrink-0"
                 style={{
-                    background: '#10B981',
+                    background: dotColor,
                     animation: 'pulseDot 2s infinite',
                 }}
             />

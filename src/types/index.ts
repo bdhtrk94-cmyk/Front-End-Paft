@@ -43,6 +43,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string;
+  bio?: string;
+  avatar?: string;
   createdAt: string;
   updatedAt: string;
 }

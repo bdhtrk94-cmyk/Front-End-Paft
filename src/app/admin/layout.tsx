@@ -39,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Check if user is admin or super admin
     if (user?.role !== 'admin' && user?.role !== 'super_admin') {
         return (
-            <AccessDenied 
+            <AccessDenied
                 title="Admin Access Required"
                 message="You need administrator privileges to access the admin dashboard."
             />
@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0e1a]">
+        <div className="min-h-screen bg-[#0a0e1a] font-sans text-left" dir="ltr">
             <AdminSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
             {/* Main content area */}

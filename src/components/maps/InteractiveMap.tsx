@@ -11,9 +11,10 @@ import 'leaflet/dist/leaflet.css';
 /* ------------------------------------------------------------------ */
 /* Sub-component: adds markers when map is ready                      */
 /* ------------------------------------------------------------------ */
-function MapMarkers({ onFocusReady }: { onFocusReady: (fn: (name: string) => void) => void }) {
+function MapMarkers({ onFocusReady, language }: { onFocusReady: (fn: (name: string) => void) => void; language: string }) {
     const map = useMap();
     const markersRef = useRef<{ marker: L.Marker; country: PaftCountry }[]>([]);
+    const isAr = language === 'ar';
 
     const focusCountry = useCallback(
         (name: string) => {
@@ -37,10 +38,17 @@ function MapMarkers({ onFocusReady }: { onFocusReady: (fn: (name: string) => voi
         // Add markers
         paftCountries.forEach((country) => {
             const isHQ = country.type === 'headquarters';
-            const size = isHQ ? 28 : 18;
+            const isRegionalOffice = country.type === 'regional-office';
+            const size = isHQ ? 28 : isRegionalOffice ? 22 : 18;
+
+            const markerClass = isHQ
+                ? 'paft-map-marker paft-map-marker--hq'
+                : isRegionalOffice
+                    ? 'paft-map-marker paft-map-marker--regional'
+                    : 'paft-map-marker';
 
             const icon = L.divIcon({
-                html: `<div class="paft-map-marker ${isHQ ? 'paft-map-marker--hq' : ''}"></div>`,
+                html: `<div class="${markerClass}"></div>`,
                 className: 'paft-custom-marker',
                 iconSize: [size, size],
                 iconAnchor: [size / 2, size / 2],
@@ -48,14 +56,22 @@ function MapMarkers({ onFocusReady }: { onFocusReady: (fn: (name: string) => voi
 
             const marker = L.marker(country.coords, { icon }).addTo(map);
 
+            const displayName = isAr ? country.nameAr : country.name;
+            const labelText = isHQ
+                ? (isAr ? 'المقر الرئيسي' : 'Headquarters')
+                : isRegionalOffice
+                    ? (isAr ? 'مكتب إقليمي' : 'Regional Office')
+                    : '';
+            const labelEmoji = isHQ ? '⭐ ' : isRegionalOffice ? '🏢 ' : '📍 ';
+
             const popupHtml = `
-        <div style="text-align:center;min-width:160px;font-family:system-ui,sans-serif;">
+        <div style="text-align:center;min-width:160px;font-family:system-ui,sans-serif;direction:${isAr ? 'rtl' : 'ltr'};">
           <h4 style="margin:0 0 6px;color:#1f2937;font-size:1rem;font-weight:700;">
-            ${isHQ ? '⭐ ' : '🏢 '}${country.name}
+            ${labelEmoji}${displayName}
           </h4>
-          <p style="margin:0 0 6px;color:#6b7280;font-size:0.85rem;">
-            ${isHQ ? 'Headquarters' : 'Regional Office'}
-          </p>
+          ${labelText ? `<p style="margin:0 0 6px;color:${isRegionalOffice ? '#10B981' : '#6b7280'};font-size:0.85rem;font-weight:600;">
+            ${labelText}
+          </p>` : ''}
           <p style="margin:0;color:#9ca3af;font-size:0.78rem;">
             ${country.region}
           </p>
@@ -76,7 +92,7 @@ function MapMarkers({ onFocusReady }: { onFocusReady: (fn: (name: string) => voi
             markersRef.current = [];
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map]);
+    }, [map, isAr]);
 
     return null;
 }
@@ -113,9 +129,10 @@ function MapKeyboard({ markersRef }: { markersRef: React.RefObject<{ marker: L.M
 interface InteractiveMapProps {
     onFocusReady: (fn: (name: string) => void) => void;
     onMapReady?: (map: L.Map) => void;
+    language?: string;
 }
 
-export default function InteractiveMap({ onFocusReady, onMapReady }: InteractiveMapProps) {
+export default function InteractiveMap({ onFocusReady, onMapReady, language = 'en' }: InteractiveMapProps) {
     const markersRef = useRef<{ marker: L.Marker; country: PaftCountry }[]>([]);
 
     return (
@@ -136,7 +153,7 @@ export default function InteractiveMap({ onFocusReady, onMapReady }: Interactive
                 maxZoom={18}
                 minZoom={2}
             />
-            <MapMarkers onFocusReady={onFocusReady} />
+            <MapMarkers onFocusReady={onFocusReady} language={language} />
             <MapKeyboard markersRef={markersRef} />
             <ZoomControl />
         </MapContainer>

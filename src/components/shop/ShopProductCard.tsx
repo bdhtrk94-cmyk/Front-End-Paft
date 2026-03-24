@@ -106,7 +106,7 @@ export default function ShopProductCard({ product }: ProductCardProps) {
                             alt={product.name}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-cover transition-transform duration-800 group-hover:scale-110"
+                            className="object-contain drop-shadow-md p-4 transition-transform duration-800 group-hover:scale-110"
                             loading="lazy"
                             onError={() => setImgError(true)}
                         />

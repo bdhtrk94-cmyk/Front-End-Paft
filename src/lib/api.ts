@@ -296,6 +296,7 @@ export interface OrderResponse {
 
 export interface CheckoutResponse {
     message: string;
+    clientSecret: string;
     order: OrderResponse;
 }
 
@@ -404,4 +405,83 @@ export const contentApi = {
 
     delete: (id: number, token: string) =>
         apiRequest<void>(`/content/${id}`, { method: 'DELETE', token }),
+};
+
+// ── Stripe Payment Settings API helpers ──────────────────
+
+export interface StripeSettingsResponse {
+    stripePublicKey: string;
+    stripeSecretKeyMasked: string;
+    stripeWebhookSecretMasked: string;
+    isEnabled: boolean;
+}
+
+export const stripeApi = {
+    /** Public — no auth required */
+    getPublicKey: () =>
+        apiRequest<{ publicKey: string }>('/stripe/public-key'),
+
+    /** Super admin only */
+    getSettings: (token: string) =>
+        apiRequest<StripeSettingsResponse>('/stripe/settings', { token }),
+
+    /** Super admin only */
+    saveSettings: (
+        data: {
+            stripePublicKey: string;
+            stripeSecretKey?: string;
+            stripeWebhookSecret?: string;
+            isEnabled: boolean;
+        },
+        token: string,
+    ) =>
+        apiRequest<{ message: string }>('/stripe/settings', {
+            method: 'PUT',
+            body: data as unknown as Record<string, unknown>,
+            token,
+        }),
+
+    /** Super admin only */
+    testConnection: (token: string) =>
+        apiRequest<{ success: boolean; message: string }>('/stripe/test-connection', {
+            method: 'POST',
+            body: {},
+            token,
+        }),
+};
+
+// ── Profile API ──────────────────────────────────────────
+export const profileApi = {
+    updateProfile: (data: { name?: string; phone?: string; bio?: string }, token: string) =>
+        apiRequest<{ message: string; user: any }>('/auth/profile', {
+            method: 'PATCH',
+            body: data as unknown as Record<string, unknown>,
+            token,
+        }),
+
+    changePassword: (currentPassword: string, newPassword: string, token: string) =>
+        apiRequest<{ message: string }>('/auth/change-password', {
+            method: 'POST',
+            body: { currentPassword, newPassword } as unknown as Record<string, unknown>,
+            token,
+        }),
+
+    uploadAvatar: async (file: File, token: string) => {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const res = await fetch(`${API_BASE}/auth/upload-avatar`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: 'Upload failed' }));
+            throw new Error(err.message);
+        }
+        return res.json() as Promise<{ message: string; user: any }>;
+    },
+
+    getOrders: (token: string) =>
+        apiRequest<any[]>('/orders/my-orders', { token }),
 };

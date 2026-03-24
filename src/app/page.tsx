@@ -28,17 +28,39 @@ export default function Home() {
   // Language-aware content getter
   const getVideoText = () => {
     const item = content['video-hero']?.['watch-video-text'];
-    if (language === 'ar' && item?.valueAr) return item.valueAr;
-    return item?.value || 'Watch Video';
+    if (language === 'ar' && item?.valueAr != null) return item.valueAr;
+    return item?.value != null ? item.value : 'Watch Video';
   };
+
+  const heroSlides = [
+    {
+      image: 'https://paft.eg/wp-content/uploads/2026/02/Copy-of-vlcsnap-2024-07-21-14h26m13s806-scaled.png',
+      video: 'https://paft.eg/wp-content/uploads/2025/11/Homepage.mp4'
+    },
+    {
+      image: 'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-12.57.33-PM.jpeg',
+      video: 'https://paft.eg/wp-content/uploads/2026/03/WhatsApp-Video-2026-03-01-at-12.23.19-PM.mp4'
+    },
+    {
+      image: 'https://paft.eg/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-08-at-3.13.59-PM.jpeg',
+      video: 'https://paft.eg/wp-content/uploads/2026/03/Lab.mp4'
+    },
+    {
+      image: 'https://paft.eg/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-24-at-5.17.46-PM.jpeg',
+      video: 'https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4'
+    },
+    {
+      image: 'https://paft.eg/wp-content/uploads/2025/10/Hero-Section.png',
+      video: null
+    }
+  ];
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--page-bg)' }}>
       <Header currentPage="home" />
 
       <VideoHero
-        videoSrc="https://paft.eg/wp-content/uploads/2025/11/Homepage.mp4"
-        videoSrc2="https://paft.eg/wp-content/uploads/2025/10/Drop-test-2-1-1.mp4"
+        slides={heroSlides}
         watchVideoText={getVideoText()}
       />
 

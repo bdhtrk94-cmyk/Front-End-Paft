@@ -65,10 +65,10 @@ export default function BusinessUnits({ content = {} }: BusinessUnitsProps) {
 
     // Get content values with fallbacks — language-aware
     const getContentValue = (key: string, fallback: string = '') => {
-        if (language === 'ar' && content[key]?.valueAr) {
+        if (language === 'ar' && content[key]?.valueAr != null) {
             return content[key].valueAr;
         }
-        return content[key]?.value || fallback;
+        return content[key]?.value != null ? content[key].value : fallback;
     };
 
     return (
@@ -257,10 +257,11 @@ export default function BusinessUnits({ content = {} }: BusinessUnitsProps) {
                                             <span className="relative z-10 flex items-center">
                                                 {getContentValue(unit.buttonTextKey, 'Discover more')}
                                                 <svg
-                                                    className="w-5 h-5 ml-2 transition-transform duration-500 group-hover:translate-x-2"
+                                                    className={`w-5 h-5 transition-transform duration-500 ${language === 'ar' ? 'mr-2 group-hover:-translate-x-2' : 'ml-2 group-hover:translate-x-2'}`}
                                                     fill="none"
                                                     stroke="currentColor"
                                                     viewBox="0 0 24 24"
+                                                    style={language === 'ar' ? { transform: 'scaleX(-1)' } : undefined}
                                                 >
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                                 </svg>

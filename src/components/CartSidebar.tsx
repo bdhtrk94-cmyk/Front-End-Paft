@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import {
     X,
     Minus,
@@ -83,8 +84,22 @@ export default function CartSidebar() {
     const { items, totalItems, totalPrice, isOpen, closeCart, updateQuantity, removeItem, clearCart } = useCart();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
     const t = cartTokens(isDark);
     const [mounted, setMounted] = useState(false);
+    const [renderedLang, setRenderedLang] = useState(language);
+
+    const isLangChanging = language !== renderedLang;
+
+    useEffect(() => {
+        if (isLangChanging) {
+            const timer = setTimeout(() => {
+                setRenderedLang(language);
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [language, isLangChanging]);
 
     useEffect(() => {
         // Use setTimeout to avoid synchronous setState in effect
@@ -124,11 +139,14 @@ export default function CartSidebar() {
 
             {/* Sidebar */}
             <aside
-                className="fixed top-0 right-0 z-[10001] h-full w-full sm:w-[420px] flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                dir={isAr ? 'rtl' : 'ltr'}
+                className={`fixed top-0 ${isAr ? 'left-0' : 'right-0'} z-[10001] h-full w-full sm:w-[420px] flex flex-col ${isAr ? 'font-arabic' : ''}`}
                 style={{
-                    transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+                    transform: isOpen ? 'translateX(0)' : `translateX(${isAr ? '-100%' : '100%'})`,
+                    transition: isLangChanging ? 'none' : 'transform 700ms cubic-bezier(0.32,0.72,0,1)',
                     background: t.sidebarBg,
-                    borderLeft: `1px solid ${t.sidebarBorder}`,
+                    borderLeft: isAr ? 'none' : `1px solid ${t.sidebarBorder}`,
+                    borderRight: isAr ? `1px solid ${t.sidebarBorder}` : 'none',
                     boxShadow: isOpen ? t.sidebarShadow : 'none',
                 }}
             >
@@ -145,9 +163,9 @@ export default function CartSidebar() {
                             <ShoppingBag className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold" style={{ color: t.textPrimary }}>Your Cart</h2>
+                            <h2 className="text-lg font-bold" style={{ color: t.textPrimary }}>{isAr ? 'عربة التسوق' : 'Your Cart'}</h2>
                             <p className="text-xs" style={{ color: t.textMuted }}>
-                                {totalItems} {totalItems === 1 ? 'item' : 'items'}
+                                {isAr ? `${totalItems} عنصر` : `${totalItems} ${totalItems === 1 ? 'item' : 'items'}`}
                             </p>
                         </div>
                     </div>
@@ -169,9 +187,9 @@ export default function CartSidebar() {
                         >
                             <ShoppingCart className="w-10 h-10" style={{ color: t.textEmptyIcon }} />
                         </div>
-                        <h3 className="text-lg font-semibold mb-2" style={{ color: t.textPrimary }}>Your cart is empty</h3>
+                        <h3 className="text-lg font-semibold mb-2" style={{ color: t.textPrimary }}>{isAr ? 'عربة التسوق فارغة' : 'Your cart is empty'}</h3>
                         <p className="text-sm text-center mb-8" style={{ color: t.textMuted }}>
-                            Browse our products and add items to your cart
+                            {isAr ? 'تصفح منتجاتنا وأضف عناصر إلى عربة التسوق الخاصة بك' : 'Browse our products and add items to your cart'}
                         </p>
                         <Link
                             href="/shop"
@@ -182,8 +200,8 @@ export default function CartSidebar() {
                                 boxShadow: '0 4px 15px rgba(6,182,212,0.3)',
                             }}
                         >
-                            Browse Shop
-                            <ArrowRight className="w-4 h-4" />
+                            {isAr ? 'تصفح المتجر' : 'Browse Shop'}
+                            <ArrowRight className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
                         </Link>
                     </div>
                 ) : (
@@ -231,7 +249,7 @@ export default function CartSidebar() {
                                                 className="text-sm font-bold mb-3"
                                                 style={{ color: '#06B6D4' }}
                                             >
-                                                ${itemPrice.toFixed(2)}
+                                                {isAr ? `ج.م ${itemPrice.toFixed(2)}` : `$${itemPrice.toFixed(2)}`}
                                             </p>
 
                                             {/* Quantity + Remove */}
@@ -285,9 +303,9 @@ export default function CartSidebar() {
                                         </div>
 
                                         {/* Line Total */}
-                                        <div className="text-right flex-shrink-0">
+                                        <div className={`text-right flex-shrink-0 ${isAr ? 'text-left mr-auto' : 'ml-auto text-right'}`}>
                                             <span className="text-sm font-bold" style={{ color: t.textPrimary }}>
-                                                ${(itemPrice * item.quantity).toFixed(2)}
+                                                {isAr ? `ج.م ${(itemPrice * item.quantity).toFixed(2)}` : `$${(itemPrice * item.quantity).toFixed(2)}`}
                                             </span>
                                         </div>
                                     </div>
@@ -306,18 +324,18 @@ export default function CartSidebar() {
                         {/* Summary */}
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span style={{ color: t.textSecondary }}>Subtotal ({totalItems} items)</span>
-                                <span className="font-semibold" style={{ color: t.textPrimary }}>${totalPrice.toFixed(2)}</span>
+                                <span style={{ color: t.textSecondary }}>{isAr ? `المجموع الفرعي (${totalItems} عناصر)` : `Subtotal (${totalItems} items)`}</span>
+                                <span className="font-semibold" style={{ color: t.textPrimary }}>{isAr ? `ج.م ${totalPrice.toFixed(2)}` : `$${totalPrice.toFixed(2)}`}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span style={{ color: t.textSecondary }}>Shipping</span>
-                                <span className="font-semibold" style={{ color: '#10B981' }}>Free</span>
+                                <span style={{ color: t.textSecondary }}>{isAr ? 'الشحن' : 'Shipping'}</span>
+                                <span className="font-semibold" style={{ color: '#10B981' }}>{isAr ? 'مجانًا' : 'Free'}</span>
                             </div>
                             <div
                                 className="flex justify-between pt-3"
                                 style={{ borderTop: `1px solid ${t.sectionBorder}` }}
                             >
-                                <span className="text-base font-bold" style={{ color: t.textPrimary }}>Total</span>
+                                <span className="text-base font-bold" style={{ color: t.textPrimary }}>{isAr ? 'الإجمالي' : 'Total'}</span>
                                 <span
                                     className="text-xl font-extrabold"
                                     style={{
@@ -326,14 +344,16 @@ export default function CartSidebar() {
                                         WebkitTextFillColor: 'transparent',
                                     }}
                                 >
-                                    ${totalPrice.toFixed(2)}
+                                    {isAr ? `ج.م ${totalPrice.toFixed(2)}` : `$${totalPrice.toFixed(2)}`}
                                 </span>
                             </div>
                         </div>
 
                         {/* Buttons */}
-                        <button
-                            className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-700"
+                        <Link
+                            href="/checkout"
+                            onClick={closeCart}
+                            className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-700 block text-center"
                             style={{
                                 background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
                                 boxShadow: '0 6px 20px rgba(6,182,212,0.3)',
@@ -347,8 +367,8 @@ export default function CartSidebar() {
                                 e.currentTarget.style.transform = '';
                             }}
                         >
-                            Proceed to Checkout
-                        </button>
+                            {isAr ? 'المتابعة للدفع' : 'Proceed to Checkout'}
+                        </Link>
 
                         <button
                             onClick={clearCart}
@@ -363,7 +383,7 @@ export default function CartSidebar() {
                                 e.currentTarget.style.background = 'transparent';
                             }}
                         >
-                            Clear Cart
+                            {isAr ? 'تفريغ العربة' : 'Clear Cart'}
                         </button>
                     </div>
                 )}

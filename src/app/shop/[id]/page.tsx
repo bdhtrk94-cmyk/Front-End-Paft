@@ -319,7 +319,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 .pdp-d4 { animation-delay: 0.4s; }
             `}</style>
 
-            <div className="min-h-screen" style={{ background: isDark ? t.pageBgFlat : t.pageBg }}>
+            <div className="min-h-screen" dir={isAr ? 'rtl' : 'ltr'} style={{ background: isDark ? t.pageBgFlat : t.pageBg }}>
                 <Header currentPage="shop" />
 
                 {/* ─── Breadcrumb ─── */}
@@ -338,7 +338,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             {isAr ? 'المتجر' : 'Shop'}
                         </Link>
                         <ChevronRight className="w-3 h-3" />
-                        <span className="font-semibold" style={{ color: t.textBreadcrumbActive }}>{isAr && (product as unknown as { nameAr?: string }).nameAr ? (product as unknown as { nameAr?: string }).nameAr : product.name}</span>
+                        <span className="font-semibold" style={{ color: t.textBreadcrumbActive }}>{isAr && product.nameAr ? product.nameAr : product.name}</span>
                     </nav>
                 </div>
 
@@ -360,17 +360,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     {!imgError ? (
                                         <Image
                                             src={product.image}
-                                            alt={product.name}
+                                            alt={isAr && product.nameAr ? product.nameAr : product.name}
                                             fill
                                             sizes="(max-width: 1024px) 100vw, 50vw"
-                                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                            className="object-contain drop-shadow-xl p-8 transition-transform duration-700 ease-out group-hover:scale-105"
                                             priority
                                             onError={() => setImgError(true)}
                                         />
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ color: t.placeholderColor }}>
                                             <Package className="w-20 h-20" strokeWidth={1} />
-                                            <p className="text-xs font-medium">No image available</p>
+                                            <p className="text-xs font-medium">{isAr ? 'لا توجد صورة' : 'No image available'}</p>
                                         </div>
                                     )}
 
@@ -420,7 +420,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                                     boxShadow: '0 4px 15px rgba(239,68,68,0.3)',
                                                 }}
                                             >
-                                                –{discount}% OFF
+                                                {isAr ? `خصم ${discount}%–` : `–${discount}% OFF`}
                                             </span>
                                         )}
                                     </div>
@@ -449,7 +449,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 >
                                     <Tag className="w-3 h-3" style={{ color: t.categoryColor }} />
                                     <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: t.categoryColor }}>
-                                        {isAr && (product as unknown as { categoryAr?: string }).categoryAr ? (product as unknown as { categoryAr?: string }).categoryAr : product.category}
+                                        {isAr && product.categoryAr ? product.categoryAr : product.category}
                                     </span>
                                 </div>
 
@@ -458,7 +458,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     className="text-3xl lg:text-4xl xl:text-[2.75rem] font-extrabold mb-4 leading-[1.15] tracking-tight"
                                     style={{ color: t.textPrimary }}
                                 >
-                                    {isAr && (product as unknown as { nameAr?: string }).nameAr ? (product as unknown as { nameAr?: string }).nameAr : product.name}
+                                    {isAr && product.nameAr ? product.nameAr : product.name}
                                 </h1>
 
                                 {/* Rating */}
@@ -471,7 +471,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                         <span className="text-xs font-bold" style={{ color: t.ratingTextColor }}>{rating}</span>
                                     </div>
                                     <span className="text-[13px] font-medium" style={{ color: t.textMuted }}>
-                                        ({product.reviewCount} reviews)
+                                        ({product.reviewCount} {isAr ? 'تقييم' : 'reviews'})
                                     </span>
                                     <div className="flex items-center gap-1 text-[13px]" style={{ color: t.textMuted }}>
                                         <Eye className="w-3.5 h-3.5" />
@@ -481,7 +481,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
                                 {/* Description */}
                                 <p className="text-[15px] leading-relaxed mb-7" style={{ color: t.textSecondary, lineHeight: '1.75' }}>
-                                    {isAr && (product as unknown as { descriptionAr?: string }).descriptionAr ? (product as unknown as { descriptionAr?: string }).descriptionAr : product.description}
+                                    {isAr && product.descriptionAr ? product.descriptionAr : product.description}
                                 </p>
 
                                 {/* Price */}
@@ -509,7 +509,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                             className="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider"
                                             style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: isDark ? 'none' : '1px solid #FECACA' }}
                                         >
-                                            Save ${(originalPrice! - price).toFixed(2)}
+                                            {isAr ? `وفّر $${(originalPrice! - price).toFixed(2)}` : `Save $${(originalPrice! - price).toFixed(2)}`}
                                         </span>
                                     )}
                                 </div>
@@ -693,10 +693,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             {activeTab === 'description' ? (
                                 <div className="max-w-3xl">
                                     {(() => {
-                                        const fullDesc = isAr && (product as unknown as { fullDescriptionAr?: string }).fullDescriptionAr
-                                            ? (product as unknown as { fullDescriptionAr?: string }).fullDescriptionAr!
-                                            : isAr && (product as unknown as { descriptionAr?: string }).descriptionAr
-                                                ? (product as unknown as { descriptionAr?: string }).descriptionAr!
+                                        const fullDesc = isAr && product.fullDescriptionAr
+                                            ? product.fullDescriptionAr
+                                            : isAr && product.descriptionAr
+                                                ? product.descriptionAr
                                                 : (product.fullDescription || product.description);
                                         return fullDesc.split('\n\n').map((paragraph, i) => (
                                             <p
@@ -714,7 +714,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     <div className="space-y-0">
                                         {[
                                             { icon: <Hash className="w-4 h-4" />, label: isAr ? 'رقم المنتج' : 'Product ID', value: `#${product.id}` },
-                                            { icon: <Tag className="w-4 h-4" />, label: isAr ? 'الفئة' : 'Category', value: isAr && (product as unknown as { categoryAr?: string }).categoryAr ? (product as unknown as { categoryAr?: string }).categoryAr! : product.category },
+                                            { icon: <Tag className="w-4 h-4" />, label: isAr ? 'الفئة' : 'Category', value: isAr && product.categoryAr ? product.categoryAr : product.category },
                                             { icon: <Package className="w-4 h-4" />, label: isAr ? 'السعر' : 'Price', value: `$${price.toFixed(2)}` },
                                             { icon: <BarChart3 className="w-4 h-4" />, label: isAr ? 'التقييم' : 'Rating', value: `${rating} / 5 (${product.reviewCount} ${isAr ? 'تقييمات' : 'reviews'})` },
                                             { icon: <CheckCircle2 className="w-4 h-4" />, label: isAr ? 'التوفر' : 'Availability', value: product.inStock ? (isAr ? 'متوفر' : 'In Stock') : (isAr ? 'غير متوفر' : 'Out of Stock') },

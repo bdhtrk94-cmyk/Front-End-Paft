@@ -2,11 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, User as UserIcon } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useLanguage } from '@/context/LanguageContext';
-import { contentApi } from '@/lib/api';
+
+const getImageUrl = (path: string) => {
+  if (!path) return '';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const baseUrl = apiBase.replace(/\/api\/?$/, '');
+  return `${baseUrl}${path}`;
+};
 
 interface NavItem {
   name: string;
@@ -38,26 +45,12 @@ export default function Header({ currentPage = '' }: HeaderProps) {
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { totalItems, openCart } = useCart();
-  const { language, toggleLanguage } = useLanguage();
-
-  // Dynamic content from DB
-  const [navContent, setNavContent] = useState<{ [key: string]: { value: string; valueAr?: string } }>({});
-
-  useEffect(() => {
-    contentApi.getPageContent('layout').then(data => {
-      const flat: { [key: string]: { value: string; valueAr?: string } } = {};
-      Object.keys(data).forEach(section => {
-        Object.keys(data[section]).forEach(key => {
-          flat[`${section}-${key}`] = data[section][key];
-        });
-      });
-      setNavContent(flat);
-    }).catch(() => {/* fallback to hardcoded */ });
-  }, []);
+  const { user: authUser } = useAuth();
+  const { language, toggleLanguage, layoutContent } = useLanguage();
 
   // Helper to get a nav label — prefers AR when in Arabic mode
   const n = (key: string, fallback: string) => {
-    const item = navContent[key];
+    const item = layoutContent[key];
     if (!item) return fallback;
     return language === 'ar' && item.valueAr ? item.valueAr : item.value || fallback;
   };
@@ -193,7 +186,7 @@ export default function Header({ currentPage = '' }: HeaderProps) {
 
   const getDropdownDescription = (childKey: string) => {
     const descKey = `nav-desc-${childKey}`;
-    const item = navContent[descKey];
+    const item = layoutContent[descKey];
     if (item) return isAr && item.valueAr ? item.valueAr : item.value;
     // fallbacks
     switch (childKey) {
@@ -472,6 +465,25 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                 )}
               </button>
 
+              {/* Profile Avatar */}
+              {authUser && (
+                <Link
+                  href="/profile"
+                  className="relative w-9 h-9 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 hover:ring-2 hover:ring-cyan-500"
+                  style={{
+                    background: authUser.avatar ? 'transparent' : 'linear-gradient(135deg, #06B6D4, #2563EB)',
+                    border: '2px solid var(--header-border)',
+                  }}
+                  title="My Profile"
+                >
+                  {authUser.avatar ? (
+                    <img src={getImageUrl(authUser.avatar)} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-white">{authUser.name?.charAt(0)?.toUpperCase() || <UserIcon className="w-4 h-4" />}</span>
+                  )}
+                </Link>
+              )}
+
               <a
                 href="/contact"
                 className="relative overflow-hidden text-white px-6 py-2.5 rounded-lg font-semibold transition-all duration-700 flex items-center space-x-2 group"
@@ -489,7 +501,13 @@ export default function Header({ currentPage = '' }: HeaderProps) {
                 }}
               >
                 <span>{getQuoteLabel()}</span>
-                <svg className="w-4 h-4 transition-transform duration-700 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-4 h-4 transition-transform duration-700 ${isAr ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  style={isAr ? { transform: 'scaleX(-1)' } : undefined}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </a>
